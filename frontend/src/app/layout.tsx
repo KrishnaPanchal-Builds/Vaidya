@@ -5,6 +5,14 @@ import { Providers } from './providers'
 export const metadata: Metadata = {
   title: 'Vaidya — Clinical Intelligence',
   description: 'Pre-consultation clinical intelligence for Indian hospitals. SIH26047.',
+  icons: {
+    icon: [
+      { url: '/brand/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/brand/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    apple: '/brand/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

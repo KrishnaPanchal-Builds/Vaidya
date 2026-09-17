@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, FileText, CheckCircle2, AlertTriangle, Loader2, Plus, ArrowRight, MoreVertical } from 'lucide-react'
 import { useIntakeStore } from '@/store'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
 
 export default function PatientDocumentsPage() {
   const router = useRouter()
@@ -57,7 +58,7 @@ export default function PatientDocumentsPage() {
       <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#E4E4E7]">
         <div className="max-w-[600px] mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[14px] text-[#2563EB] tracking-tight uppercase">VAIDYA</span>
+            <VaidyaWordmark size="xs" showDescriptor={false} />
           </div>
           <span className="text-[11px] font-mono text-[#71717A]">~3 min remaining</span>
         </div>

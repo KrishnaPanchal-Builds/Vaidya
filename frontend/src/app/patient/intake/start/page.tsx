@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Mic, Activity, Eye, Bone, Flame, Plus, HeartPulse } from 'lucide-react'
 import { intakeService } from '@/services'
 import { useIntakeStore } from '@/store'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
 
 const CATEGORIES = [
   { id: 'heart', title: 'दिल / साँस', subtitle: 'Heart / Breathing', icon: HeartPulse, color: 'bg-[#FFDAD6] text-[#93000A]' },
@@ -54,7 +55,7 @@ export default function PatientIntakeStartPage() {
       <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#E4E4E7]">
         <div className="max-w-[600px] mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[14px] text-[#2563EB] tracking-tight uppercase">VAIDYA</span>
+            <VaidyaWordmark size="xs" showDescriptor={false} />
           </div>
           <span className="text-[11px] font-mono text-[#71717A]">~12 min remaining</span>
         </div>

@@ -9,6 +9,7 @@ export { Skeleton, SkeletonCard, SkeletonRow } from './skeleton'
 export { EmptyState } from './empty-state'
 export { ToastContainer } from './toast'
 export { default as VaidyaWordmark } from './VaidyaWordmark'
+export { default as VaidyaLogo } from './VaidyaLogo'
 export {
   AuthButton,
   AuthInput,

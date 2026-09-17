@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Leaf, ArrowRight } from 'lucide-react'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
 
 export default function AyushIntroPage() {
   const router = useRouter()
@@ -20,7 +21,10 @@ export default function AyushIntroPage() {
       <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#E4E4E7]">
         <div className="max-w-[600px] mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[14px] text-[#0D9488] tracking-tight uppercase">VAIDYA AYUSH</span>
+            <VaidyaWordmark size="xs" showDescriptor={false} />
+            <span className="px-1.5 py-0.5 bg-[#CCFBF1] rounded text-[10px] font-bold text-[#0F766E] uppercase tracking-wider">
+              AYUSH
+            </span>
           </div>
           <span className="text-[11px] font-mono text-[#71717A]">~12 min remaining</span>
         </div>

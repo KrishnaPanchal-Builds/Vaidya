@@ -1,3 +1,5 @@
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
+
 interface ProgressHeaderProps {
   percent: number
   minutesRemaining: number
@@ -7,7 +9,7 @@ export function ProgressHeader({ percent, minutesRemaining }: ProgressHeaderProp
   return (
     <div className="h-[52px] bg-white border-b border-[var(--color-border)] flex items-center px-4 gap-4 sticky top-0 z-10 shrink-0">
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[14px] font-semibold text-[var(--color-text-primary)]">Vaidya</span>
+        <VaidyaWordmark size="xs" showDescriptor={false} />
         <span className="text-[11px] text-[var(--color-text-muted)]">AIIA OPD</span>
       </div>
       <div className="flex-1 h-0.5 bg-[var(--color-border)] rounded-full overflow-hidden">

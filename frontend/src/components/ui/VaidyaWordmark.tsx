@@ -1,131 +1,124 @@
-/**
- * VaidyaWordmark — Clinical brand mark.
- *
- * Design: A stylized leaf/caduceus-inspired mark enclosed in a teal square,
- * paired with the product name and optional descriptor.
- * Replaces the generic double-chevron tech icon with a symbol
- * that communicates care, clinical precision, and Indian herbal medicine.
- */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
+import React from 'react'
 
-interface VaidyaWordmarkProps {
-  size?: 'sm' | 'md' | 'lg'
-  showDescriptor?: boolean
-  /** Variant for dark/teal backgrounds (e.g., sidebar nav) */
+export interface VaidyaWordmarkProps {
+  /**
+   * Sizing presets or specific pixel height.
+   * Preset heights:
+   * - 'xs': 26px (compact subheaders, mobile bars)
+   * - 'sm': 32px (standard sidebars: clinical & admin shell)
+   * - 'md': 38px (kiosk headers, top app bars, auth headers)
+   * - 'lg': 46px (public homepage top navbar, main hero headers)
+   * - 'xl': 60px (auth splash / large brand displays)
+   * @default 'md'
+   */
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number
+
+  /**
+   * Color variant:
+   * - 'default': Clinical teal symbol + charcoal serif wordmark (for light backgrounds)
+   * - 'on-dark': Glowing ivory symbol + serif wordmark (for dark teal / dark backgrounds)
+   * @default 'default'
+   */
   variant?: 'default' | 'on-dark'
+
+  /**
+   * If true, renders only the circular clinical-human symbol mark.
+   * @default false
+   */
+  markOnly?: boolean
+
+  /**
+   * If true, renders the stacked vertical lockup (mark on top, wordmark below).
+   * @default false
+   */
+  stacked?: boolean
+
+  /**
+   * Preserved for API compatibility across existing screens.
+   * @default true
+   */
+  showDescriptor?: boolean
+
+  /** Additional CSS class names */
+  className?: string
+
+  /** Additional inline styles */
+  style?: React.CSSProperties
+
+  /** Accessible alt text */
+  alt?: string
+
+  /** Image loading priority */
+  priority?: boolean
 }
 
 export default function VaidyaWordmark({
   size = 'md',
-  showDescriptor = true,
   variant = 'default',
+  markOnly = false,
+  stacked = false,
+  showDescriptor = true,
+  className = '',
+  style,
+  alt = 'Vaidya — Clinical Intelligence',
+  priority = false,
 }: VaidyaWordmarkProps) {
-  const dims = { sm: 28, md: 34, lg: 42 }
-  const iconSizes = { sm: 15, md: 18, lg: 22 }
-  const d = dims[size]
-  const i = iconSizes[size]
+  // Map size prop to height in px
+  const heightPx: number =
+    typeof size === 'number'
+      ? size
+      : {
+          xs: 26,
+          sm: 32,
+          md: 38,
+          lg: 46,
+          xl: 60,
+        }[size] || 38
 
-  const nameClass = {
-    sm: 'text-[15px] font-semibold tracking-[-0.01em]',
-    md: 'text-[18px] font-semibold tracking-[-0.015em]',
-    lg: 'text-[22px] font-semibold tracking-[-0.02em]',
-  }[size]
+  // Choose the authentic extracted asset
+  let src = '/brand/vaidya-logo-primary.png'
+  let aspectRatio = 1428 / 423 // ~3.375
 
-  const descClass = {
-    sm: 'text-[9px] tracking-[0.10em]',
-    md: 'text-[10px] tracking-[0.10em]',
-    lg: 'text-[11px] tracking-[0.10em]',
-  }[size]
+  if (markOnly) {
+    src = variant === 'on-dark' ? '/brand/vaidya-mark-white.png' : '/brand/vaidya-mark.png'
+    aspectRatio = 1 // 1:1 square
+  } else if (stacked) {
+    src = '/brand/vaidya-logo-stacked.png'
+    aspectRatio = 1005 / 702 // ~1.43
+  } else {
+    src = variant === 'on-dark' ? '/brand/vaidya-logo-reversed.png' : '/brand/vaidya-logo-primary.png'
+    aspectRatio = 1428 / 423 // ~3.375
+  }
 
-  const nameColor = variant === 'on-dark' ? '#E4F0EC' : 'var(--color-text-primary)'
-  const descColor = variant === 'on-dark' ? 'rgba(228,240,236,0.6)' : 'var(--color-text-muted)'
+  const calculatedWidth = Math.round(heightPx * aspectRatio)
 
   return (
-    <div className="flex items-center gap-2.5">
-      {/* Emblem mark */}
-      <div
+    <div
+      className={`inline-flex items-center select-none ${className}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        lineHeight: 0,
+        ...style,
+      }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        width={calculatedWidth}
+        height={heightPx}
         style={{
-          width: d,
-          height: d,
-          background: 'var(--color-brand)',
-          borderRadius: 7,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
+          height: `${heightPx}px`,
+          width: 'auto',
+          maxWidth: 'none',
+          objectFit: 'contain',
+          display: 'block',
         }}
-        aria-hidden="true"
-      >
-        {/*
-          Stylized botanical-clinical mark:
-          - Central vertical stem (caduceus-inspired)
-          - Two leaf shapes branching from the stem
-          - A small circle at the top (representing a pulse / vital)
-          Communicates: living care, medical precision, plant medicine
-        */}
-        <svg
-          width={i}
-          height={i}
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Central vertical stem */}
-          <line
-            x1="12" y1="20"
-            x2="12" y2="6"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-          {/* Left leaf */}
-          <path
-            d="M12 14 C9 12 7 9 9 6 C9 6 11 10 12 11"
-            stroke="white"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-          {/* Right leaf */}
-          <path
-            d="M12 10 C15 8 17 5 15 3 C15 3 13 7 12 8"
-            stroke="rgba(255,255,255,0.65)"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-          {/* Pulse dot at apex */}
-          <circle
-            cx="12"
-            cy="4.5"
-            r="1.5"
-            fill="rgba(255,255,255,0.85)"
-          />
-        </svg>
-      </div>
-
-      {/* Wordmark text */}
-      <div>
-        <div
-          className={nameClass}
-          style={{
-            color: nameColor,
-            fontFamily: 'var(--font-display)',
-            lineHeight: 1,
-          }}
-        >
-          VAIDYA
-        </div>
-        {showDescriptor && (
-          <div
-            className={`${descClass} font-semibold uppercase mt-0.5`}
-            style={{ color: descColor, letterSpacing: '0.10em' }}
-          >
-            Clinical Intelligence
-          </div>
-        )}
-      </div>
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+      />
     </div>
   )
 }

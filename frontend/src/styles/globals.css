@@ -6,7 +6,9 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
+
+  html,
+  body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -22,125 +24,182 @@
 :root {
   /* ── Fonts ──────────────────────────────────────────────────────── */
   --font-display: 'Hanken Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-sans:    'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+  --font-sans: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
 
   /* ── VAIDYA FROSTED CLINICAL DESIGN TOKENS (PHASE 1) ───────────── */
-  --clinical-canvas:          #F7F9FC;   /* Layer 0: Main Canvas           */
-  --clinical-surface:         #FFFFFF;   /* Layer 2: Clinical Content Card */
-  --clinical-tab-track-start: #F3F8FD;   /* Layer 1: Tab Rail Top          */
-  --clinical-tab-track-end:   #E8F1FA;   /* Layer 1: Tab Rail Bottom       */
-  --clinical-tab-border:      #D3E2F0;   /* Layer 1: Tab Rail Border       */
-  --clinical-card-border:     #DFE8F1;   /* Layer 2: Card Border           */
-  --clinical-tab-text:        #536A82;   /* Inactive Tab Text              */
-  --clinical-blue-start:      #347FCE;   /* Active Blue Start              */
-  --clinical-blue-mid:        #2365B5;   /* Active Blue Mid                */
-  --clinical-blue-end:        #174A91;   /* Active Blue End                */
-  --clinical-heading:         #173B59;   /* High-contrast Blue Heading     */
+  --clinical-canvas: #F7F9FC;
+  /* Layer 0: Main Canvas           */
+  --clinical-surface: #FFFFFF;
+  /* Layer 2: Clinical Content Card */
+  --clinical-tab-track-start: #F3F8FD;
+  /* Layer 1: Tab Rail Top          */
+  --clinical-tab-track-end: #E8F1FA;
+  /* Layer 1: Tab Rail Bottom       */
+  --clinical-tab-border: #D3E2F0;
+  /* Layer 1: Tab Rail Border       */
+  --clinical-card-border: #DFE8F1;
+  /* Layer 2: Card Border           */
+  --clinical-tab-text: #536A82;
+  /* Inactive Tab Text              */
+  --clinical-blue-start: #347FCE;
+  /* Active Blue Start              */
+  --clinical-blue-mid: #2365B5;
+  /* Active Blue Mid                */
+  --clinical-blue-end: #174A91;
+  /* Active Blue End                */
+  --clinical-heading: #173B59;
+  /* High-contrast Blue Heading     */
 
   /* ── Phase 6A Tonal System ──────────────────────────────────────── */
-  --canvas-primary:          #F7F9FC;   /* Primary Clinical Canvas        */
-  --canvas-secondary:        #F0F3F9;   /* Supporting Structural Canvas   */
-  --canvas-wash:             #FAFBFD;   /* Atmospheric Wash               */
-  --surface-primary:         #FFFFFF;   /* Pure White Clinical Surface    */
-  --surface-raised:          #FFFFFF;   /* Raised Clinical Surface        */
-  --surface-recessed:        #F3F5FA;   /* Inset / Recessed Surface       */
-  --surface-focus:           #FFFFFF;   /* Focused Surface                */
+  --canvas-primary: #F7F9FC;
+  /* Primary Clinical Canvas        */
+  --canvas-secondary: #F0F3F9;
+  /* Supporting Structural Canvas   */
+  --canvas-wash: #FAFBFD;
+  /* Atmospheric Wash               */
+  --surface-primary: #FFFFFF;
+  /* Pure White Clinical Surface    */
+  --surface-raised: #FFFFFF;
+  /* Raised Clinical Surface        */
+  --surface-recessed: #F3F5FA;
+  /* Inset / Recessed Surface       */
+  --surface-focus: #FFFFFF;
+  /* Focused Surface                */
 
   /* ── Legacy Palette Foundation Preserved ────────────────────────── */
-  --color-canvas:            #F7F9FC;   /* Soft Warm Off-White Canvas     */
-  --color-surface:           #FFFFFF;   /* Pure White Clinical Surface    */
-  --color-surface-subtle:    #F1F3F9;   /* Light Elevated Surface         */
-  --color-surface-dim:       #E8ECF4;   /* Dimmed Surface                 */
+  --color-canvas: #F7F9FC;
+  /* Soft Warm Off-White Canvas     */
+  --color-surface: #FFFFFF;
+  /* Pure White Clinical Surface    */
+  --color-surface-subtle: #F1F3F9;
+  /* Light Elevated Surface         */
+  --color-surface-dim: #E8ECF4;
+  /* Dimmed Surface                 */
 
   /* ── Typography / Ink ───────────────────────────────────────────── */
-  --color-ink:               #17191F;   /* Primary Dark Graphite Ink      */
-  --color-text-primary:      #17191F;   /* Primary Text                   */
-  --color-text-secondary:    #536A82;   /* Secondary Muted Slate-Blue     */
-  --color-text-muted:        #8E9CAB;   /* Low-emphasis Text              */
-  --color-text-disabled:     #C5C9D3;   /* Disabled State Text            */
+  --color-ink: #17191F;
+  /* Primary Dark Graphite Ink      */
+  --color-text-primary: #17191F;
+  /* Primary Text                   */
+  --color-text-secondary: #536A82;
+  /* Secondary Muted Slate-Blue     */
+  --color-text-muted: #8E9CAB;
+  /* Low-emphasis Text              */
+  --color-text-disabled: #C5C9D3;
+  /* Disabled State Text            */
 
   /* ── Borders ────────────────────────────────────────────────────── */
-  --color-border:            #DFE8F1;   /* Clean Neutral Blue-Tint Border */
-  --color-border-strong:     #CBD8E5;   /* Prominent Border               */
-  --color-border-focus:      #2365B5;   /* Active Focus Ring              */
+  --color-border: #DFE8F1;
+  /* Clean Neutral Blue-Tint Border */
+  --color-border-strong: #CBD8E5;
+  /* Prominent Border               */
+  --color-border-focus: #2365B5;
+  /* Active Focus Ring              */
 
   /* ── Brand / Primary Blue ───────────────────────────────────────── */
-  --color-brand:             #2365B5;   /* Primary Clinical Blue          */
-  --color-brand-dim:         #174A91;   /* Hover Brand Blue               */
-  --color-brand-mist:        #F0F6FC;   /* Soft Ice Blue Background       */
-  --color-brand-mist-subtle: #F6F9FD;   /* Ultra-light Brand Surface      */
-  --color-brand-light:       #347FCE;   /* Bright Accent Blue             */
+  --color-brand: #2365B5;
+  /* Primary Clinical Blue          */
+  --color-brand-dim: #174A91;
+  /* Hover Brand Blue               */
+  --color-brand-mist: #F0F6FC;
+  /* Soft Ice Blue Background       */
+  --color-brand-mist-subtle: #F6F9FD;
+  /* Ultra-light Brand Surface      */
+  --color-brand-light: #347FCE;
+  /* Bright Accent Blue             */
 
   /* ── Pastel Palette Accents ─────────────────────────────────────── */
-  --color-pastel-blue:       #DCEBFA;   /* Pastel Blue (Intake/General)   */
-  --color-pastel-lavender:   #E9E7FA;   /* Pastel Lavender (Clinical AI)  */
-  --color-pastel-mint:       #DDEFE8;   /* Pastel Mint (Verified/AYUSH)   */
-  --color-pastel-peach:      #F8E6D5;   /* Pastel Peach (Patient Triage)  */
-  --color-pastel-yellow:     #F8F0D7;   /* Pastel Yellow (Attention/Wait) */
+  --color-pastel-blue: #DCEBFA;
+  /* Pastel Blue (Intake/General)   */
+  --color-pastel-lavender: #E9E7FA;
+  /* Pastel Lavender (Clinical AI)  */
+  --color-pastel-mint: #DDEFE8;
+  /* Pastel Mint (Verified/AYUSH)   */
+  --color-pastel-peach: #F8E6D5;
+  /* Pastel Peach (Patient Triage)  */
+  --color-pastel-yellow: #F8F0D7;
+  /* Pastel Yellow (Attention/Wait) */
 
   /* ── Semantic Colors (Accessible Clinical Status) ───────────────── */
-  --color-critical:          #D92D20;   /* Critical T1 Red                */
-  --color-critical-subtle:   #FEF3F2;   /* Critical Red Background        */
-  --color-critical-text:     #912018;   /* Critical Dark Red Text         */
+  --color-critical: #D92D20;
+  /* Critical T1 Red                */
+  --color-critical-subtle: #FEF3F2;
+  /* Critical Red Background        */
+  --color-critical-text: #912018;
+  /* Critical Dark Red Text         */
 
-  --color-warning:           #DC6803;   /* Urgent T2 Amber                */
-  --color-warning-subtle:    #FEF6EE;   /* Urgent Amber Background        */
-  --color-warning-text:      #8E3E0B;   /* Urgent Dark Amber Text         */
+  --color-warning: #DC6803;
+  /* Urgent T2 Amber                */
+  --color-warning-subtle: #FEF6EE;
+  /* Urgent Amber Background        */
+  --color-warning-text: #8E3E0B;
+  /* Urgent Dark Amber Text         */
 
-  --color-verified:          #079455;   /* Verified T3 Green              */
-  --color-verified-subtle:   #ECFDF3;   /* Verified Green Background      */
-  --color-verified-text:     #065935;   /* Verified Dark Green Text       */
+  --color-verified: #079455;
+  /* Verified T3 Green              */
+  --color-verified-subtle: #ECFDF3;
+  /* Verified Green Background      */
+  --color-verified-text: #065935;
+  /* Verified Dark Green Text       */
 
-  --color-info:              #1570EF;   /* Information Blue               */
-  --color-info-subtle:       #EFF8FF;   /* Info Blue Background           */
-  --color-info-text:         #175CD3;   /* Info Dark Blue Text            */
+  --color-info: #1570EF;
+  /* Information Blue               */
+  --color-info-subtle: #EFF8FF;
+  /* Info Blue Background           */
+  --color-info-text: #175CD3;
+  /* Info Dark Blue Text            */
 
-  --color-ayush:             #0E7060;   /* AYUSH Forest Green             */
-  --color-ayush-subtle:      #DDEFE8;   /* AYUSH Mint Background          */
-  --color-ayush-text:        #0B5246;   /* AYUSH Text                     */
+  --color-ayush: #0E7060;
+  /* AYUSH Forest Green             */
+  --color-ayush-subtle: #DDEFE8;
+  /* AYUSH Mint Background          */
+  --color-ayush-text: #0B5246;
+  /* AYUSH Text                     */
 
   /* ── Shadows (Gentle, Diffuse Clinical Elevations) ─────────────── */
-  --shadow-xs:      0 1px 2px rgba(23, 25, 31, 0.03);
-  --shadow-sm:      0 1px 3px rgba(23, 25, 31, 0.05), 0 1px 2px rgba(23, 25, 31, 0.03);
-  --shadow-md:      0 4px 14px rgba(23, 25, 31, 0.06), 0 1px 3px rgba(23, 25, 31, 0.02);
-  --shadow-lg:      0 14px 36px rgba(23, 25, 31, 0.08), 0 4px 10px rgba(23, 25, 31, 0.03);
-  --shadow-drawer:  -8px 0 40px rgba(23, 25, 31, 0.08);
+  --shadow-xs: 0 1px 2px rgba(23, 25, 31, 0.03);
+  --shadow-sm: 0 1px 3px rgba(23, 25, 31, 0.05), 0 1px 2px rgba(23, 25, 31, 0.03);
+  --shadow-md: 0 4px 14px rgba(23, 25, 31, 0.06), 0 1px 3px rgba(23, 25, 31, 0.02);
+  --shadow-lg: 0 14px 36px rgba(23, 25, 31, 0.08), 0 4px 10px rgba(23, 25, 31, 0.03);
+  --shadow-drawer: -8px 0 40px rgba(23, 25, 31, 0.08);
   --shadow-tactile: 0 4px 0 rgba(23, 25, 31, 0.08), 0 8px 20px rgba(23, 25, 31, 0.06);
 
   /* ── Border Radii ───────────────────────────────────────────────── */
-  --radius-xs:  4px;
-  --radius-sm:  6px;
-  --radius:     8px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  18px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-2xl: 24px;
   --radius-3xl: 32px;
 
   /* ── Motion Tokens ──────────────────────────────────────────────── */
-  --motion-micro:    150ms;
-  --motion-normal:   260ms;
-  --motion-large:    380ms;
-  --motion-drawer:   350ms;
-  --motion-page:     320ms;
-  --ease-spring:     cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-micro: 150ms;
+  --motion-normal: 260ms;
+  --motion-large: 380ms;
+  --motion-drawer: 350ms;
+  --motion-page: 320ms;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Kiosk Touch Tokens ─────────────────────────────────────────── */
-  --kiosk-primary:              #2D6CB5;
-  --kiosk-primary-mist:         #EBF3FC;
-  --kiosk-surface:              #FFFFFF;
-  --kiosk-surface-container:    #F7F8FC;
-  --kiosk-on-surface:           #17191F;
+  --kiosk-primary: #2D6CB5;
+  --kiosk-primary-mist: #EBF3FC;
+  --kiosk-surface: #FFFFFF;
+  --kiosk-surface-container: #F7F8FC;
+  --kiosk-on-surface: #17191F;
 }
 
 /* ═══════════════════════════════════════════════════════════════
    GLOBAL RESETS & STYLING
 ═══════════════════════════════════════════════════════════════ */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -183,13 +242,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-strong);
 }
@@ -220,7 +282,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(23, 25, 31, 0.015) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(23, 25, 31, 0.015) 1px, transparent 1px);
   background-size: 32px 32px;
@@ -320,6 +382,7 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
+
   100% {
     opacity: var(--final-opacity, 1);
     transform: translateY(0);
@@ -397,7 +460,7 @@ body {
 .kiosk-device-bezel {
   background: linear-gradient(145deg, #FFFFFF 0%, #F5F7FC 100%);
   border: 1px solid rgba(209, 213, 223, 0.8);
-  box-shadow: 
+  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 20px 50px -10px rgba(23, 25, 31, 0.12),
     0 1px 3px rgba(23, 25, 31, 0.05);
@@ -429,6 +492,7 @@ body {
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -437,23 +501,53 @@ body {
 
 /* Animation Keyframes */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(16px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes floatGentle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 @keyframes pulseSubtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.015); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.015);
+  }
 }
 
 .animate-fade-in {
@@ -473,11 +567,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
-

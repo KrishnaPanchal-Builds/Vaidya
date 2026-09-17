@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Leaf, Info, CheckCircle2, Mic, ArrowRight, ArrowLeft } from 'lucide-react'
 import { useIntakeStore } from '@/store'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
 
 const AHARA_OPTIONS = [
   { id: '2_meals', label: '2 Main Meals (Traditional)' },
@@ -42,10 +43,10 @@ export default function AyushQuestionPage() {
       <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#E4E4E7]">
         <div className="max-w-[600px] mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0D9488] flex items-center justify-center text-white">
-              <Leaf size={20} />
-            </div>
-            <span className="font-bold text-[16px] text-[#0D9488] tracking-tight">VAIDYA AYUSH</span>
+            <VaidyaWordmark size="xs" showDescriptor={false} />
+            <span className="px-1.5 py-0.5 bg-[#CCFBF1] rounded text-[10px] font-bold text-[#0F766E] uppercase tracking-wider">
+              AYUSH
+            </span>
           </div>
           <span className="text-[11px] font-mono text-[#71717A]">~10 min remaining</span>
         </div>
