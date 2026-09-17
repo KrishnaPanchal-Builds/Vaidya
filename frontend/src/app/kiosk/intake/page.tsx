@@ -1,22 +1,38 @@
 'use client'
+
 /**
- * K-05 — Clinical Intake Interview (Phase 3 + Multimodal + Multilingual)
+ * K-05 — Patient Clinical Intake with Interactive 2.5D Body Symptom Selection
  *
  * Route: /kiosk/intake
- *
- * Multilingual Architecture:
- * - Powered by useKioskTranslation() for complete EN, HI, MR translations.
+ * Features:
+ * - 2.5D Medical Mannequin Body Map with Front/Back/Side view switching & 360 rotation
+ * - 9-Category Medical Symptom Grid with custom vector icons
+ * - Synchronized body hotspot & category selections with removable chips
+ * - 4-Stage Progressive Clinical Intake: Complaint -> Duration -> Quality -> Lifestyle -> Summary
+ * - Multimodal voice synthesis & speech input fallback
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Shield, HelpCircle, ArrowRight, Volume2, Mic, CheckCircle2 } from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
+import {
+  InteractiveBodyMap,
+  SymptomCategoryGrid,
+  SelectedAreasPanel,
+  KioskStepperHeader,
+  SYMPTOM_CATEGORIES,
+  type BodyHotspot,
+  type BodyRegionId,
+  type SymptomCategoryId,
+  type SelectedItem,
+  type IntakeStageKey,
+} from '@/components/kiosk/body-map'
 
 type IntakeStage =
-  | 'INTRO'
   | 'CHIEF_COMPLAINT'
   | 'DURATION'
   | 'CHARACTER'
@@ -28,17 +44,23 @@ type VoiceModalState = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'CONFIRMING'
 export default function KioskIntakePage() {
   const router = useRouter()
   const { t } = useKioskTranslation()
-  const { language, patientData, advanceStep, setIntakeAnswer, resetSession, updateActivity } = useKioskStore()
+  const { language, patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
 
-  const [stage, setStage] = useState<IntakeStage>('INTRO')
+  const [stage, setStage] = useState<IntakeStage>('CHIEF_COMPLAINT')
   const [voiceModal, setVoiceModal] = useState<VoiceModalState>('IDLE')
   const [activeVoiceQuestion, setActiveVoiceQuestion] = useState<string>('')
   const [recognizedText, setRecognizedText] = useState<{ native: string; english: string }>({ native: '', english: '' })
   const [matchedOption, setMatchedOption] = useState<string>('')
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState(false)
 
-  // Answers State
-  const [selectedComplaint, setSelectedComplaint] = useState<string>(t.intake.catStomach)
+  // ── Body & Category Selections State ──
+  const [selectedRegions, setSelectedRegions] = useState<BodyRegionId[]>(['chest'])
+  const [selectedCategories, setSelectedCategories] = useState<SymptomCategoryId[]>(['chest_breathing'])
+  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([
+    { id: 'chest', label: 'Chest' },
+  ])
+
+  // ── Subsequent Stages Answers State ──
   const [selectedDuration, setSelectedDuration] = useState<string>(t.intake.durWeeks)
   const [selectedCharacter, setSelectedCharacter] = useState<string>(t.intake.qualBurning)
   const [selectedLifestyle, setSelectedLifestyle] = useState<string>(t.intake.lifeSpicy)
@@ -47,8 +69,130 @@ export default function KioskIntakePage() {
     advanceStep('INTAKE')
   }, [advanceStep])
 
-  // ── TTS Question Playback Simulation ───────────────────────────────────────
+  // ── Body Hotspot Toggle Handler ──
+  const handleToggleHotspot = useCallback((hotspot: BodyHotspot) => {
+    updateActivity()
+    setSelectedRegions((prev) => {
+      const exists = prev.includes(hotspot.id)
+      let next: BodyRegionId[]
+      if (exists) {
+        next = prev.filter((id) => id !== hotspot.id)
+      } else {
+        next = [...prev, hotspot.id]
+      }
+      return next
+    })
 
+    // Also link category
+    setSelectedCategories((prev) => {
+      if (prev.includes(hotspot.categoryId)) {
+        return prev
+      }
+      return [...prev, hotspot.categoryId]
+    })
+
+    // Update selected items list
+    setSelectedItems((prev) => {
+      const exists = prev.some((item) => item.id === hotspot.id)
+      if (exists) {
+        return prev.filter((item) => item.id !== hotspot.id)
+      } else {
+        return [...prev, { id: hotspot.id, label: hotspot.label }]
+      }
+    })
+  }, [updateActivity])
+
+  // ── Category Card Toggle Handler ──
+  const handleToggleCategory = useCallback((catId: SymptomCategoryId) => {
+    updateActivity()
+    const cat = SYMPTOM_CATEGORIES.find((c) => c.id === catId)
+    if (!cat) return
+
+    setSelectedCategories((prev) => {
+      const exists = prev.includes(catId)
+      if (exists) {
+        return prev.filter((id) => id !== catId)
+      } else {
+        return [...prev, catId]
+      }
+    })
+
+    // Also activate primary region on body
+    setSelectedRegions((prev) => {
+      if (prev.includes(cat.primaryRegionId)) {
+        return prev.filter((id) => id !== cat.primaryRegionId)
+      }
+      return [...prev, cat.primaryRegionId]
+    })
+
+    // Update selected items list
+    setSelectedItems((prev) => {
+      const exists = prev.some((item) => item.id === cat.primaryRegionId || item.id === cat.id)
+      if (exists) {
+        return prev.filter((item) => item.id !== cat.primaryRegionId && item.id !== cat.id)
+      } else {
+        return [...prev, { id: cat.primaryRegionId, label: cat.label.split('/')[0].trim() }]
+      }
+    })
+  }, [updateActivity])
+
+  // ── Remove Single Selected Item ──
+  const handleRemoveSelectedItem = useCallback((itemId: string) => {
+    updateActivity()
+    setSelectedItems((prev) => prev.filter((item) => item.id !== itemId))
+    setSelectedRegions((prev) => prev.filter((id) => id !== itemId))
+    
+    // Check if category needs to be unselected
+    const cat = SYMPTOM_CATEGORIES.find((c) => c.primaryRegionId === itemId || c.id === itemId)
+    if (cat) {
+      setSelectedCategories((prev) => prev.filter((cId) => cId !== cat.id))
+    }
+  }, [updateActivity])
+
+  // ── Clear All Selections ──
+  const handleClearAll = useCallback(() => {
+    updateActivity()
+    setSelectedItems([])
+    setSelectedRegions([])
+    setSelectedCategories([])
+  }, [updateActivity])
+
+  // ── Continue to Duration Stage ──
+  const handleContinueFromComplaint = useCallback(() => {
+    updateActivity()
+    const complaintSummary = selectedItems.map((i) => i.label).join(', ') || 'General Discomfort'
+    setIntakeAnswer('chief_complaint', complaintSummary)
+    setStage('DURATION')
+  }, [selectedItems, setIntakeAnswer, updateActivity])
+
+  // ── Map stage to Stepper key ──
+  const getStepperStage = (): IntakeStageKey => {
+    switch (stage) {
+      case 'CHIEF_COMPLAINT':
+        return 'COMPLAINT'
+      case 'DURATION':
+        return 'DURATION'
+      case 'CHARACTER':
+        return 'QUALITY'
+      case 'AYUSH_LIFESTYLE':
+        return 'LIFESTYLE'
+      case 'SUMMARY':
+      default:
+        return 'SUMMARY'
+    }
+  }
+
+  // ── Header Stepper Navigation ──
+  const handleStepperSelect = (stepperKey: IntakeStageKey) => {
+    updateActivity()
+    if (stepperKey === 'COMPLAINT') setStage('CHIEF_COMPLAINT')
+    else if (stepperKey === 'DURATION') setStage('DURATION')
+    else if (stepperKey === 'QUALITY') setStage('CHARACTER')
+    else if (stepperKey === 'LIFESTYLE') setStage('AYUSH_LIFESTYLE')
+    else if (stepperKey === 'SUMMARY') setStage('SUMMARY')
+  }
+
+  // ── TTS Question Audio Playback ──
   const handleHearQuestion = useCallback(() => {
     updateActivity()
     setIsSpeakingQuestion(true)
@@ -57,9 +201,8 @@ export default function KioskIntakePage() {
     }, 2200)
   }, [updateActivity])
 
-  // ── Multimodal Voice Recognition for Current Question ──────────────────────
-
-  const handleStartVoiceForQuestion = useCallback(
+  // ── Voice Input Simulation ──
+  const handleStartVoice = useCallback(
     (questionKey: string, sampleNative: string, sampleEnglish: string, targetOption: string) => {
       updateActivity()
       setActiveVoiceQuestion(questionKey)
@@ -67,13 +210,12 @@ export default function KioskIntakePage() {
       setRecognizedText({ native: sampleNative, english: sampleEnglish })
       setMatchedOption(targetOption)
 
-      // Simulate listening
       setTimeout(() => {
         setVoiceModal('PROCESSING')
         setTimeout(() => {
           setVoiceModal('CONFIRMING')
         }, 800)
-      }, 2200)
+      }, 2000)
     },
     [updateActivity]
   )
@@ -81,7 +223,7 @@ export default function KioskIntakePage() {
   const handleConfirmVoiceAnswer = useCallback(() => {
     updateActivity()
     if (activeVoiceQuestion === 'CHIEF_COMPLAINT') {
-      setSelectedComplaint(matchedOption)
+      setSelectedItems([{ id: 'voice_complaint', label: matchedOption }])
       setIntakeAnswer('chief_complaint', matchedOption)
       setVoiceModal('IDLE')
       setStage('DURATION')
@@ -103,684 +245,376 @@ export default function KioskIntakePage() {
     }
   }, [activeVoiceQuestion, matchedOption, setIntakeAnswer, updateActivity])
 
-  // ── Touch Selection Handlers ────────────────────────────────────────────────
-
-  const handleSelectComplaint = useCallback(
-    (complaint: string) => {
-      updateActivity()
-      setSelectedComplaint(complaint)
-      setIntakeAnswer('chief_complaint', complaint)
-      setStage('DURATION')
-    },
-    [setIntakeAnswer, updateActivity]
-  )
-
-  const handleSelectDuration = useCallback(
-    (dur: string) => {
-      updateActivity()
-      setSelectedDuration(dur)
-      setIntakeAnswer('duration', dur)
-      setStage('CHARACTER')
-    },
-    [setIntakeAnswer, updateActivity]
-  )
-
-  const handleSelectCharacter = useCallback(
-    (char: string) => {
-      updateActivity()
-      setSelectedCharacter(char)
-      setIntakeAnswer('character', char)
-      setStage('AYUSH_LIFESTYLE')
-    },
-    [setIntakeAnswer, updateActivity]
-  )
-
-  const handleSelectLifestyle = useCallback(
-    (life: string) => {
-      updateActivity()
-      setSelectedLifestyle(life)
-      setIntakeAnswer('lifestyle_ahara', life)
-      setStage('SUMMARY')
-    },
-    [setIntakeAnswer, updateActivity]
-  )
-
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
-      {/* Spacer for fixed header */}
-      <div className="h-14 shrink-0" />
+    <div className="h-full max-h-full flex flex-col bg-[#F7F9FC] text-[#17191F] antialiased overflow-hidden select-none">
+      {/* ── 1. Top Persistent Stepper Header ── */}
+      <KioskStepperHeader
+        currentStage={getStepperStage()}
+        onSelectStage={handleStepperSelect}
+      />
 
-      {/* Main container */}
-      <div className="flex-1 w-full max-w-[620px] mx-auto px-5 py-6 flex flex-col justify-center">
-        {/* Patient header chip */}
-        {patientData && stage !== 'SUMMARY' && (
-          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 py-2 rounded-2xl border border-[var(--color-border)] shadow-sm mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[12px]">
-                {patientData.name.charAt(0)}
-              </div>
-              <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
-                {patientData.name} ({patientData.age} yrs)
-              </span>
-            </div>
-            <span className="text-[11px] font-bold text-[var(--color-verified)] bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] px-2 py-0.5 rounded-md">
-              {t.intake.title}
-            </span>
-          </div>
-        )}
-
-        {/* Adaptive Question Progress Timeline */}
-        {stage !== 'INTRO' && stage !== 'SUMMARY' && (
-          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-3 mb-2 text-[12px]">
-            <div
-              className={[
-                'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
-                stage === 'CHIEF_COMPLAINT'
-                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
-                  : 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]',
-              ].join(' ')}
-            >
-              <span>{t.intake.timelineComplaint}</span>
-              {stage !== 'CHIEF_COMPLAINT' && <span>✓</span>}
-            </div>
-            <span className="text-[var(--color-text-muted)]">→</span>
-
-            <div
-              className={[
-                'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
-                stage === 'DURATION'
-                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
-                  : stage === 'CHARACTER' || stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]'
-                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
-              ].join(' ')}
-            >
-              <span>{t.intake.timelineDuration}</span>
-              {(stage === 'CHARACTER' || stage === 'AYUSH_LIFESTYLE') && <span>✓</span>}
-            </div>
-            <span className="text-[var(--color-text-muted)]">→</span>
-
-            <div
-              className={[
-                'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
-                stage === 'CHARACTER'
-                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
-                  : stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]'
-                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
-              ].join(' ')}
-            >
-              <span>{t.intake.timelineQuality}</span>
-              {stage === 'AYUSH_LIFESTYLE' && <span>✓</span>}
-            </div>
-            <span className="text-[var(--color-text-muted)]">→</span>
-
-            <div
-              className={[
-                'px-3 py-1 rounded-full font-semibold transition-all',
-                stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
-                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
-              ].join(' ')}
-            >
-              <span>{t.intake.timelineLifestyle}</span>
-            </div>
-          </div>
-        )}
-
+      {/* ── 2. Main Intake Canvas Container ── */}
+      <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-6 py-1.5 sm:py-2 flex flex-col justify-between overflow-hidden">
         <AnimatePresence mode="wait">
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 1: INTAKE INTRO
-          ════════════════════════════════════════════════════════════════════ */}
-          {stage === 'INTRO' && (
-            <motion.div
-              key="stage-intro"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-6 text-center"
-            >
-              <div className="space-y-1.5">
-                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
-                  Vaidya Clinical Intake
-                </span>
-                <h1 className="text-[30px] font-bold text-[var(--color-text-primary)] leading-tight">
-                  {t.intake.title}
-                </h1>
-                <p className="text-[14px] text-[var(--color-text-secondary)] max-w-[480px] mx-auto leading-relaxed">
-                  {t.intake.introDesc}
-                </p>
-              </div>
-
-              {/* Multimodal Feature Cards */}
-              <div className="bg-[var(--color-surface)] rounded-3xl p-6 border border-[var(--color-border)] shadow-sm flex flex-col gap-4 text-left">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="22" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceFeatureTitle}</h3>
-                    <p className="text-[13px] text-[var(--color-text-secondary)]">{t.intake.voiceFeatureDesc}</p>
-                  </div>
-                </div>
-
-                <div className="h-[1px] bg-[var(--color-border)]" />
-
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-[var(--color-verified-bg)] text-[var(--color-verified)] flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M9 9h6M9 13h6M9 17h4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">{t.intake.touchFeatureTitle}</h3>
-                    <p className="text-[13px] text-[var(--color-text-secondary)]">{t.intake.touchFeatureDesc}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-2">
-                <KioskButton
-                  variant="primary"
-                  size="fullLg"
-                  onClick={() => {
-                    setStage('CHIEF_COMPLAINT')
-                    updateActivity()
-                  }}
-                >
-                  {t.intake.startIntakeButton}
-                </KioskButton>
-
-                <KioskButton
-                  variant="ghost"
-                  size="full"
-                  onClick={() => router.push('/kiosk/consent')}
-                >
-                  ← {t.common.back}
-                </KioskButton>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 2: CHIEF COMPLAINT (Stitch p_06)
-          ════════════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 1: 2.5D INTERACTIVE HUMAN BODY SYMPTOM SELECTION
+          ══════════════════════════════════════════════════════════════════════ */}
           {stage === 'CHIEF_COMPLAINT' && (
             <motion.div
-              key="stage-complaint"
-              initial={{ opacity: 0, y: 12 }}
+              key="stage-body-map"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-4"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 min-h-0 flex flex-col justify-between gap-1.5 overflow-hidden"
             >
-              {/* Question Header with Audio Affordance */}
-              <div className="text-center space-y-1">
-                <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[25px] font-bold text-[var(--color-text-primary)] leading-tight">
-                    {t.intake.complaintTitle}
-                  </h1>
-                  <button
-                    onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)] transition-colors"
-                    aria-label="Hear question audio"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t.intake.complaintSub}
+              {/* Page Title & Subtext */}
+              <div className="text-center space-y-0.5 shrink-0">
+                <h1 className="text-[20px] sm:text-[24px] lg:text-[26px] font-extrabold text-[#17191F] tracking-tight leading-tight">
+                  Where is the problem?
+                </h1>
+                <p className="text-[12px] sm:text-[13px] font-medium text-[#6F7480] max-w-2xl mx-auto">
+                  Touch the body part where you feel pain, discomfort, or have a health concern.
                 </p>
-                {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
-                    {t.intake.playingAudio}
-                  </span>
-                )}
               </div>
 
-              {/* Voice Primary Widget */}
-              <div className="bg-[var(--color-surface)] rounded-3xl p-4 border border-[var(--color-border)] shadow-sm flex flex-col items-center gap-2 text-center">
-                <button
-                  onClick={() => {
-                    const samples: Record<string, string> = {
-                      mr: 'माझं पोट खूप दुखतंय, विशेषतः जेवल्यानंतर.',
-                      hi: 'मेरे पेट में बहुत दर्द हो रहा है, खासकर खाने के बाद।',
-                      gu: 'મને પેટમાં ખૂબ દુખાવો થાય છે, ખાસ કરીને જમ્યા પછી.',
-                      bn: 'আমার পেটে খুব ব্যথা হচ্ছে, বিশেষ করে খাওয়ার পরে।',
-                      ta: 'எனக்கு வயிறு மிகவும் வலிக்கிறது, குறிப்பாக சாப்பிட்ட பிறகு.',
-                      en: 'My stomach hurts a lot, especially after eating.',
-                    }
-                    handleStartVoiceForQuestion(
-                      'CHIEF_COMPLAINT',
-                      samples[language ?? 'en'] ?? samples.en,
-                      'My stomach hurts a lot, especially after eating.',
-                      t.intake.catStomach
-                    )
-                  }}
-                  className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-transform"
-                  aria-label="Speak symptoms"
-                >
-                  <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                  </svg>
-                </button>
-                <span className="text-[13px] font-bold text-[var(--color-brand)]">
-                  {t.intake.complaintVoicePrompt}
-                </span>
-              </div>
+              {/* Two-Column Responsive Split Workspace */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 items-stretch overflow-hidden">
+                {/* ── LEFT PANEL: 2.5D Interactive Body Canvas (Cols: 7/12) ── */}
+                <div className="lg:col-span-7 h-full min-h-0 flex flex-col">
+                  <InteractiveBodyMap
+                    selectedRegions={selectedRegions}
+                    selectedCategories={selectedCategories}
+                    onToggleHotspot={handleToggleHotspot}
+                    onResetView={() => {
+                      setSelectedRegions(['chest'])
+                      setSelectedCategories(['chest_breathing'])
+                      setSelectedItems([{ id: 'chest', label: 'Chest' }])
+                    }}
+                  />
+                </div>
 
-              <div className="flex items-center gap-2">
-                <div className="h-[1px] flex-1 bg-[var(--color-border)]" />
-                <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
-                  {t.intake.orSelectCat}
-                </span>
-                <div className="h-[1px] flex-1 bg-[var(--color-border)]" />
-              </div>
-
-              {/* Touch Category Grid */}
-              <div className="grid grid-cols-2 gap-2.5">
-                {[
-                  { name: t.intake.catStomach, icon: '🥣' },
-                  { name: t.intake.catChest, icon: '🫀' },
-                  { name: t.intake.catHead, icon: '🧠' },
-                  { name: t.intake.catJoints, icon: '🦴' },
-                  { name: t.intake.catFever, icon: '🌡️' },
-                  { name: t.intake.catOther, icon: '➕' },
-                ].map((cat) => (
-                  <button
-                    key={cat.name}
-                    onClick={() => handleSelectComplaint(cat.name)}
-                    className="p-3 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center gap-2.5 text-left transition-all active:scale-98"
+                {/* ── RIGHT PANEL: Symptom Categories & Selected Areas (Cols: 5/12) ── */}
+                <div className="lg:col-span-5 h-full min-h-0 flex flex-col">
+                  <div
+                    className="bg-white rounded-3xl border border-[#DFE8F1] shadow-card p-3 sm:p-3.5 flex flex-col justify-between h-full min-h-0 gap-2 overflow-hidden"
+                    style={{
+                      boxShadow: '0 4px 20px rgba(35, 75, 115, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                    }}
                   >
-                    <span className="text-[20px] shrink-0">{cat.icon}</span>
-                    <span className="text-[13px] font-bold text-[var(--color-text-primary)] block truncate">
-                      {cat.name}
-                    </span>
-                  </button>
-                ))}
+                    {/* Top: 9 Category Cards */}
+                    <SymptomCategoryGrid
+                      selectedCategories={selectedCategories}
+                      onToggleCategory={handleToggleCategory}
+                    />
+
+                    {/* Bottom: Selected Areas & Continue Action */}
+                    <SelectedAreasPanel
+                      selectedItems={selectedItems}
+                      onRemoveItem={handleRemoveSelectedItem}
+                      onClearAll={handleClearAll}
+                      onContinue={handleContinueFromComplaint}
+                    />
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
 
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 3: DURATION & ONSET
-          ════════════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 2: DURATION & ONSET
+          ══════════════════════════════════════════════════════════════════════ */}
           {stage === 'DURATION' && (
             <motion.div
               key="stage-duration"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-4"
+              transition={{ duration: 0.2 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-6"
             >
-              <div className="space-y-1 text-center">
+              <div className="text-center space-y-1.5">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
-                    {t.intake.durationTitle}
+                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
+                    How long have you had this issue?
                   </h1>
                   <button
-                    onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
+                    onClick={handleHearQuestion}
+                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] transition-colors"
                     aria-label="Hear question audio"
                   >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </svg>
+                    <Volume2 size={18} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t.intake.durationSub}
+                <p className="text-[14px] text-[#6F7480]">
+                  Select the duration that best describes when your symptoms started.
                 </p>
                 {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
-                    {t.intake.playingAudio}
+                  <span className="inline-block text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-3 py-0.5 rounded-full animate-pulse">
+                    Playing audio guidance...
                   </span>
                 )}
               </div>
 
-              {/* Multimodal Speak Action Bar */}
-              <div className="bg-[var(--color-surface-subtle)] p-3 rounded-2xl border border-[var(--color-border)] flex items-center justify-between">
-                <span className="text-[13px] text-[var(--color-text-secondary)]">
-                  {t.intake.durationRegarding} <strong className="text-[var(--color-brand)]">{selectedComplaint}</strong>
+              {/* Symptom Context Badge */}
+              <div className="bg-[#EEF5FC] p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between">
+                <span className="text-[13.5px] text-[#4B5565]">
+                  Regarding: <strong className="text-[#2365B5]">{selectedItems.map((i) => i.label).join(', ') || 'Chest'}</strong>
                 </span>
                 <button
                   onClick={() => {
-                    const samples: Record<string, string> = {
-                      mr: 'जवळपास १ ते २ आठवड्यांपासून आहे.',
-                      hi: 'लगभग 1 से 2 हफ़्ते से यह समस्या है।',
-                      gu: 'લગભગ ૧ થી ૨ અઠવાડિયાથી આ તકલીફ છે.',
-                      bn: 'প্রায় ১ থেকে ২ সপ্তাহ ধরে এই সমস্যা হচ্ছে।',
-                      ta: 'சுமார் 1 முதல் 2 வாரங்களாக இந்த பிரச்சனை உள்ளது.',
-                      en: 'It has been about 1 to 2 weeks.',
-                    }
-                    handleStartVoiceForQuestion(
+                    handleStartVoice(
                       'DURATION',
-                      samples[language ?? 'en'] ?? samples.en,
+                      'जवळपास १ ते २ आठवड्यांपासून आहे.',
                       'It has been about 1 to 2 weeks.',
                       t.intake.durWeeks
                     )
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors"
                 >
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  </svg>
-                  {t.intake.speakAnswer}
+                  <Mic size={14} />
+                  <span>Speak Answer</span>
                 </button>
               </div>
 
               {/* Touch Options */}
-              <div className="flex flex-col gap-2.5">
+              <div className="grid grid-cols-1 gap-3">
                 {[
-                  t.intake.durAcute,
-                  t.intake.durWeeks,
-                  t.intake.durChronic,
-                  t.intake.durIntermittent,
+                  { label: 'Less than 24 hours (Just started today)', value: t.intake.durAcute },
+                  { label: '1 to 2 weeks (Recent discomfort)', value: t.intake.durWeeks },
+                  { label: 'More than 1 month (Ongoing / Chronic)', value: t.intake.durChronic },
+                  { label: 'Comes and goes intermittently', value: t.intake.durIntermittent },
                 ].map((opt) => (
                   <button
-                    key={opt}
-                    onClick={() => handleSelectDuration(opt)}
-                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    key={opt.value}
+                    onClick={() => {
+                      updateActivity()
+                      setSelectedDuration(opt.value)
+                      setIntakeAnswer('duration', opt.value)
+                      setStage('CHARACTER')
+                    }}
+                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#2365B5] hover:bg-[#F0F6FD] flex items-center justify-between text-left transition-all active:scale-98 group cursor-pointer"
                   >
-                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
-                      {opt}
+                    <span className="text-[15px] font-bold text-[#17191F] group-hover:text-[#174A91]">
+                      {opt.label}
                     </span>
-                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
+                    <ArrowRight size={18} className="text-[#9AA8B7] group-hover:text-[#2365B5] transition-colors" />
                   </button>
                 ))}
               </div>
 
-              <button
-                onClick={() => setStage('CHIEF_COMPLAINT')}
-                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
-              >
-                ← {t.common.back}
-              </button>
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={() => setStage('CHIEF_COMPLAINT')}
+                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                >
+                  ← Back to Body Map
+                </button>
+              </div>
             </motion.div>
           )}
 
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 4: CHARACTER & QUALITY
-          ════════════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 3: QUALITY & SENSATION
+          ══════════════════════════════════════════════════════════════════════ */}
           {stage === 'CHARACTER' && (
             <motion.div
-              key="stage-character"
+              key="stage-quality"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-4"
+              transition={{ duration: 0.2 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-6"
             >
-              <div className="space-y-1 text-center">
+              <div className="text-center space-y-1.5">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
-                    {t.intake.qualityTitle}
+                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
+                    What does the sensation feel like?
                   </h1>
                   <button
-                    onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
-                    aria-label="Hear question audio"
+                    onClick={handleHearQuestion}
+                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
                   >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </svg>
+                    <Volume2 size={18} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t.intake.qualitySub}
+                <p className="text-[14px] text-[#6F7480]">
+                  Choose the description that most closely matches your pain or discomfort.
                 </p>
-                {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
-                    {t.intake.playingAudio}
-                  </span>
-                )}
-              </div>
-
-              {/* Multimodal Speak Action Bar */}
-              <div className="bg-[var(--color-surface-subtle)] p-3 rounded-2xl border border-[var(--color-border)] flex items-center justify-between">
-                <span className="text-[13px] text-[var(--color-text-secondary)]">
-                  {t.intake.qualityRegarding}
-                </span>
-                <button
-                  onClick={() => {
-                    const samples: Record<string, string> = {
-                      mr: 'पोटात खूप जळजळ होते आणि ॲसिडिटी वाटते.',
-                      hi: 'पेट में जलन और एसिडिटी जैसा दर्द है।',
-                      gu: 'પેટમાં ખૂબ બળતરા થાય છે અને એસિડિટી લાગે છે.',
-                      bn: 'পেটে খুব জ্বালাপোড়া ও অ্যাসিডিটি ভাব হচ্ছে।',
-                      ta: 'வயிற்றில் மிகுந்த எரிச்சலும் அசிடிட்டியும் உணரப்படுகிறது.',
-                      en: 'It feels like burning sensation and acidity.',
-                    }
-                    handleStartVoiceForQuestion(
-                      'CHARACTER',
-                      samples[language ?? 'en'] ?? samples.en,
-                      'It feels like burning sensation and acidity.',
-                      t.intake.qualBurning
-                    )
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  </svg>
-                  {t.intake.speakAnswer}
-                </button>
               </div>
 
               {/* Touch Options */}
-              <div className="flex flex-col gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  t.intake.qualBurning,
-                  t.intake.qualDull,
-                  t.intake.qualSharp,
-                  t.intake.qualCramp,
-                  t.intake.qualNotSure,
+                  { title: 'Burning or Acidity', desc: 'Hot, reflux, or burning feeling', value: t.intake.qualBurning },
+                  { title: 'Dull Ache / Heaviness', desc: 'Continuous mild pressure or weight', value: t.intake.qualDull },
+                  { title: 'Sharp / Stabbing', desc: 'Sudden, piercing, or pinching pain', value: t.intake.qualSharp },
+                  { title: 'Cramping / Spasm', desc: 'Tightening or twisting sensation', value: t.intake.qualCramp },
+                  { title: 'Stiffness / Throbbing', desc: 'Pulsing or restricted movement', value: 'Stiffness / Throbbing' },
+                  { title: 'Not Sure / General', desc: 'Difficult to specify precisely', value: t.intake.qualNotSure },
                 ].map((opt) => (
                   <button
-                    key={opt}
-                    onClick={() => handleSelectCharacter(opt)}
-                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    key={opt.value}
+                    onClick={() => {
+                      updateActivity()
+                      setSelectedCharacter(opt.value)
+                      setIntakeAnswer('character', opt.value)
+                      setStage('AYUSH_LIFESTYLE')
+                    }}
+                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#2365B5] hover:bg-[#F0F6FD] flex flex-col justify-between text-left transition-all active:scale-98 group cursor-pointer min-h-[90px]"
                   >
-                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
-                      {opt}
-                    </span>
-                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
+                    <div>
+                      <span className="text-[14.5px] font-extrabold text-[#17191F] group-hover:text-[#174A91] block">
+                        {opt.title}
+                      </span>
+                      <span className="text-[12px] text-[#6F7480] mt-0.5 block">
+                        {opt.desc}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
 
-              <button
-                onClick={() => setStage('DURATION')}
-                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
-              >
-                ← {t.common.back}
-              </button>
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={() => setStage('DURATION')}
+                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                >
+                  ← Back to Duration
+                </button>
+              </div>
             </motion.div>
           )}
 
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 5: AYUSH & LIFESTYLE
-          ════════════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 4: AYUSH & LIFESTYLE CORRELATION
+          ══════════════════════════════════════════════════════════════════════ */}
           {stage === 'AYUSH_LIFESTYLE' && (
             <motion.div
               key="stage-lifestyle"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-4"
+              transition={{ duration: 0.2 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-6"
             >
-              <div className="space-y-1 text-center">
+              <div className="text-center space-y-1.5">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
-                    {t.intake.lifestyleTitle}
+                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
+                    Any lifestyle or dietary trigger?
                   </h1>
                   <button
-                    onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
-                    aria-label="Hear question audio"
+                    onClick={handleHearQuestion}
+                    className="p-2 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF]"
                   >
-                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </svg>
+                    <Volume2 size={18} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t.intake.lifestyleSub}
+                <p className="text-[14px] text-[#6F7480]">
+                  AYUSH Ahara &amp; Vihara clinical assessment for holistic care.
                 </p>
-                {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[var(--color-verified)] bg-[var(--color-verified-bg)] px-2.5 py-0.5 rounded-full animate-pulse">
-                    {t.intake.playingAudio}
-                  </span>
-                )}
-              </div>
-
-              {/* Multimodal Speak Action Bar */}
-              <div className="bg-[var(--color-verified-bg)] p-3 rounded-2xl border border-[var(--color-sage-border)] flex items-center justify-between">
-                <span className="text-[13px] text-[var(--color-verified)] font-medium">
-                  {t.intake.lifestyleTag}
-                </span>
-                <button
-                  onClick={() => {
-                    const samples: Record<string, string> = {
-                      mr: 'तिखट आणि तेलकट जेवल्यानंतर पोटात जास्त त्रास होतो.',
-                      hi: 'मसालेदार और तला हुआ खाना खाने के बाद दर्द बढ़ता है।',
-                      gu: 'તીખું અને તળેલું જમ્યા પછી પેટમાં વધુ તકલીફ થાય છે.',
-                      bn: 'ঝাল ও তৈলাক্ত খাবার খাওয়ার পর পেটের কষ্ট বাড়ে।',
-                      ta: 'காரமான மற்றும் எண்ணெய்ப் பொருட்கள் சாப்பிட்ட பின் வலி அதிகமாகிறது.',
-                      en: 'Hurts more after spicy and oily food.',
-                    }
-                    handleStartVoiceForQuestion(
-                      'AYUSH_LIFESTYLE',
-                      samples[language ?? 'en'] ?? samples.en,
-                      'Hurts more after spicy and oily food.',
-                      t.intake.lifeSpicy
-                    )
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  </svg>
-                  {t.intake.speakAnswer}
-                </button>
               </div>
 
               {/* Touch Options */}
-              <div className="flex flex-col gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  t.intake.lifeSpicy,
-                  t.intake.lifeFasting,
-                  t.intake.lifeStress,
-                  t.intake.lifeNoPattern,
+                  { title: 'Spicy or Fried Food', desc: 'Worse after oily/spicy meals', value: t.intake.lifeSpicy },
+                  { title: 'Fasting or Delayed Meals', desc: 'Worse on empty stomach', value: t.intake.lifeFasting },
+                  { title: 'Stress or Lack of Sleep', desc: 'Fatigue, disturbed routine', value: t.intake.lifeStress },
+                  { title: 'No Specific Pattern', desc: 'Occurs regardless of food or rest', value: t.intake.lifeNoPattern },
                 ].map((opt) => (
                   <button
-                    key={opt}
-                    onClick={() => handleSelectLifestyle(opt)}
-                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    key={opt.value}
+                    onClick={() => {
+                      updateActivity()
+                      setSelectedLifestyle(opt.value)
+                      setIntakeAnswer('lifestyle_ahara', opt.value)
+                      setStage('SUMMARY')
+                    }}
+                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#079455] hover:bg-[#EBFDF5] flex flex-col justify-between text-left transition-all active:scale-98 group cursor-pointer min-h-[90px]"
                   >
-                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
-                      {opt}
-                    </span>
-                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
+                    <div>
+                      <span className="text-[14.5px] font-extrabold text-[#17191F] group-hover:text-[#079455] block">
+                        {opt.title}
+                      </span>
+                      <span className="text-[12px] text-[#6F7480] mt-0.5 block">
+                        {opt.desc}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
 
-              <button
-                onClick={() => setStage('CHARACTER')}
-                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
-              >
-                ← {t.common.back}
-              </button>
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  onClick={() => setStage('CHARACTER')}
+                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                >
+                  ← Back to Quality
+                </button>
+              </div>
             </motion.div>
           )}
 
-          {/* ════════════════════════════════════════════════════════════════════
-              STAGE 6: CLINICAL SUMMARY & PHASE 4 HANDOFF
-          ════════════════════════════════════════════════════════════════════ */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 5: INTAKE SUMMARY & PROCEED TO DOCUMENTS
+          ══════════════════════════════════════════════════════════════════════ */}
           {stage === 'SUMMARY' && (
             <motion.div
               key="stage-summary"
-              initial={{ opacity: 0, scale: 0.96 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-5 text-center"
+              transition={{ duration: 0.2 }}
+              className="max-w-xl mx-auto w-full my-auto space-y-5 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center mx-auto shadow-md">
-                <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+              <div className="w-16 h-16 rounded-3xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
+                <CheckCircle2 size={32} />
               </div>
 
               <div className="space-y-1">
-                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
-                  Vaidya Intake Complete
-                </span>
-                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
-                  {t.intake.summaryTitle}
+                <h1 className="text-[28px] font-extrabold text-[#17191F] tracking-tight">
+                  Intake Assessment Complete
                 </h1>
-                <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t.intake.summarySubtitle}
+                <p className="text-[14px] text-[#6F7480]">
+                  Your symptom profile is recorded and ready for the attending physician.
                 </p>
               </div>
 
-              {/* Structured Summary Card */}
-              <div className="bg-[var(--color-surface)] rounded-3xl p-5 border border-[var(--color-border)] shadow-sm flex flex-col gap-3 text-left text-[14px]">
-                <div className="flex justify-between items-center pb-2 border-b border-[var(--color-border)]">
-                  <span className="font-bold text-[var(--color-text-primary)]">Patient:</span>
-                  <span className="font-semibold text-[var(--color-brand)]">
+              {/* Summary Card */}
+              <div className="bg-white rounded-3xl p-5 border border-[#DFE8F1] shadow-card text-left space-y-3 text-[13.5px]">
+                <div className="flex justify-between items-center pb-2.5 border-b border-[#DFE8F1]">
+                  <span className="font-bold text-[#6F7480]">Patient:</span>
+                  <span className="font-extrabold text-[#17191F]">
                     {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
                   </span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineComplaint}:</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right">{selectedComplaint}</span>
+                  <span className="text-[#6F7480]">Symptoms &amp; Regions:</span>
+                  <span className="font-extrabold text-[#17191F] text-right">
+                    {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineDuration}:</span>
-                  <span className="font-semibold text-[var(--color-text-primary)] text-right">{selectedDuration}</span>
+                  <span className="text-[#6F7480]">Duration:</span>
+                  <span className="font-bold text-[#17191F] text-right">{selectedDuration}</span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineQuality}:</span>
-                  <span className="font-semibold text-[var(--color-text-primary)] text-right">{selectedCharacter}</span>
+                  <span className="text-[#6F7480]">Quality:</span>
+                  <span className="font-bold text-[#17191F] text-right">{selectedCharacter}</span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineLifestyle}:</span>
-                  <span className="font-semibold text-[var(--color-verified)] text-right">{selectedLifestyle}</span>
-                </div>
-
-                <div className="mt-2 p-2.5 bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] rounded-xl flex items-center gap-2 text-[12px] text-[var(--color-verified)]">
-                  <span className="font-bold">✓</span>
-                  <span>{t.intake.triageNotice}</span>
+                  <span className="text-[#6F7480]">Lifestyle Factor:</span>
+                  <span className="font-bold text-[#079455] text-right">{selectedLifestyle}</span>
                 </div>
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col gap-2.5 pt-2">
                 <KioskButton
                   variant="primary"
                   size="fullLg"
@@ -789,113 +623,113 @@ export default function KioskIntakePage() {
                     router.push('/kiosk/documents')
                   }}
                 >
-                  {t.intake.proceedToDocs}
+                  <span>Proceed to Document Scanning</span>
+                  <ArrowRight size={18} className="stroke-[2.5]" />
                 </KioskButton>
 
-                <div className="flex gap-2">
-                  <KioskButton
-                    variant="secondary"
-                    size="md"
-                    className="flex-1"
-                    onClick={() => setStage('CHIEF_COMPLAINT')}
-                  >
-                    {t.intake.editAnswers}
-                  </KioskButton>
-                  <KioskButton
-                    variant="ghost"
-                    size="md"
-                    className="flex-1"
-                    onClick={() => {
-                      resetSession()
-                      router.replace('/kiosk')
-                    }}
-                  >
-                    {t.common.startOver}
-                  </KioskButton>
-                </div>
+                <KioskButton
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setStage('CHIEF_COMPLAINT')}
+                >
+                  Edit Symptom Locations
+                </KioskButton>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Global Voice Modal Dialog */}
-        <AnimatePresence>
-          {voiceModal !== 'IDLE' && (
-            <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-5">
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[var(--color-surface)] rounded-3xl p-6 max-w-[480px] w-full shadow-2xl flex flex-col items-center gap-5 text-center border border-[var(--color-border)]"
-              >
-                {voiceModal === 'LISTENING' && (
-                  <>
-                    <div className="w-20 h-20 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center">
-                      <div className="flex items-center gap-1.5 h-10">
-                        {[40, 70, 100, 60, 90, 45, 80, 50].map((h, i) => (
-                          <div
-                            key={i}
-                            className="w-1.5 bg-[var(--color-brand)] rounded-full motion-safe:animate-pulse"
-                            style={{ height: `${h}%`, animationDelay: `${i * 120}ms` }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h2 className="text-[22px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceModalListening}</h2>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">{t.intake.voiceModalListeningDesc}</p>
-                    </div>
-                  </>
-                )}
+        {/* ── 3. Bottom Security & Assistance Footer ── */}
+        <footer className="w-full shrink-0 flex items-center justify-between text-[11.5px] text-[#6F7480] pt-1.5 select-none border-t border-[#DFE8F1]/60">
+          <div className="flex items-center gap-1.5">
+            <Shield size={13} className="text-[#2365B5]" />
+            <span>Your information is secure and private</span>
+          </div>
 
-                {voiceModal === 'PROCESSING' && (
-                  <div className="py-6 flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 rounded-full border-4 border-[var(--color-brand)] border-t-transparent animate-spin" />
-                    <h2 className="text-[18px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceModalTranscribing}</h2>
-                  </div>
-                )}
+          <div className="flex items-center gap-1.5">
+            <HelpCircle size={13} className="text-[#6F7480]" />
+            <span>Need help? Ask hospital staff</span>
+          </div>
+        </footer>
+      </main>
 
-                {voiceModal === 'CONFIRMING' && (
-                  <div className="w-full flex flex-col gap-4">
-                    <span className="text-[11px] font-bold text-[var(--color-brand)] uppercase tracking-wider">
-                      {t.intake.voiceResultTitle}
-                    </span>
-                    <div className="bg-[var(--color-surface-subtle)] p-4 rounded-2xl border border-[var(--color-border)] text-left">
-                      <p className="text-[16px] font-bold text-[var(--color-text-primary)] italic">
-                        &quot;{recognizedText.native}&quot;
-                      </p>
-                      <div className="w-8 h-[1px] bg-[var(--color-border)] my-2" />
-                      <p className="text-[13px] text-[var(--color-text-secondary)]">
-                        &quot;{recognizedText.english}&quot;
-                      </p>
-                    </div>
-                    <div className="bg-[var(--color-verified-bg)] p-3 rounded-xl border border-[var(--color-sage-border)] text-left text-[13px] text-[var(--color-verified)]">
-                      <span>{t.intake.matchedOption} <strong>{matchedOption}</strong></span>
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-full pt-1">
-                      <KioskButton
-                        variant="primary"
-                        size="full"
-                        onClick={handleConfirmVoiceAnswer}
-                      >
-                        {t.intake.acceptAnswer}
-                      </KioskButton>
-                      <KioskButton
-                        variant="ghost"
-                        size="full"
-                        onClick={() => setVoiceModal('IDLE')}
-                      >
-                        {t.intake.cancelTouch}
-                      </KioskButton>
+      {/* ── 4. Multimodal Voice Recognition Modal Dialog ── */}
+      <AnimatePresence>
+        {voiceModal !== 'IDLE' && (
+          <div className="fixed inset-0 z-50 bg-[#0c1829]/60 backdrop-blur-xs flex items-center justify-center p-5">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col items-center gap-5 text-center border border-[#CBD8E5]"
+            >
+              {voiceModal === 'LISTENING' && (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center">
+                    <div className="flex items-center gap-1.5 h-10">
+                      {[40, 70, 100, 60, 90, 45, 80, 50].map((h, i) => (
+                        <div
+                          key={i}
+                          className="w-1.5 bg-[#2365B5] rounded-full motion-safe:animate-pulse"
+                          style={{ height: `${h}%`, animationDelay: `${i * 120}ms` }}
+                        />
+                      ))}
                     </div>
                   </div>
-                )}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
+                  <div>
+                    <h2 className="text-[20px] font-extrabold text-[#17191F]">Listening in {language?.toUpperCase() || 'MR'}...</h2>
+                    <p className="text-[13px] text-[#6F7480] mt-1">Please speak clearly towards the microphone.</p>
+                  </div>
+                </>
+              )}
+
+              {voiceModal === 'PROCESSING' && (
+                <div className="py-6 flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border-4 border-[#2365B5] border-t-transparent animate-spin" />
+                  <h2 className="text-[18px] font-bold text-[#17191F]">Transcribing speech...</h2>
+                </div>
+              )}
+
+              {voiceModal === 'CONFIRMING' && (
+                <div className="w-full flex flex-col gap-4">
+                  <span className="text-[11px] font-bold text-[#2365B5] uppercase tracking-wider">
+                    Speech Recognized (Bhashini AI)
+                  </span>
+                  <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#DFE8F1] text-left">
+                    <p className="text-[15px] font-bold text-[#17191F] italic">
+                      &quot;{recognizedText.native}&quot;
+                    </p>
+                    <div className="w-8 h-px bg-[#DFE8F1] my-2" />
+                    <p className="text-[12.5px] text-[#6F7480]">
+                      &quot;{recognizedText.english}&quot;
+                    </p>
+                  </div>
+                  <div className="bg-[#EBFDF5] p-3 rounded-xl border border-[#A6F4C5] text-left text-[13px] text-[#079455]">
+                    <span>Mapped to: <strong>{matchedOption}</strong></span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-full pt-1">
+                    <KioskButton
+                      variant="primary"
+                      size="full"
+                      onClick={handleConfirmVoiceAnswer}
+                    >
+                      Confirm &amp; Proceed
+                    </KioskButton>
+                    <KioskButton
+                      variant="ghost"
+                      size="full"
+                      onClick={() => setVoiceModal('IDLE')}
+                    >
+                      Cancel
+                    </KioskButton>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

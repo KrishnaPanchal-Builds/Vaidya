@@ -132,6 +132,7 @@ export function KioskShell({ children }: KioskShellProps) {
   }
 
   const isAttract = pathname === '/kiosk'
+  const isCustomHeaderRoute = isAttract || pathname === '/kiosk/intake'
   const activeStep: KioskStep = (pathname && PATHNAME_STEP_MAP[pathname]) || (step !== 'ATTRACT' ? step : 'LANGUAGE')
 
   // Language code for the header indicator (default to 'en' if not yet selected)
@@ -139,14 +140,14 @@ export function KioskShell({ children }: KioskShellProps) {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col overflow-x-hidden"
+      className="h-[100dvh] max-h-[100dvh] w-full flex flex-col overflow-hidden"
       style={{ background: 'var(--color-canvas)' }}
       // Inform assistive tech this is an application (kiosk mode)
       role="application"
       aria-label="Vaidya Patient Kiosk"
     >
-      {/* Persistent kiosk header — shown on all subroutes except attract */}
-      {!isAttract && (
+      {/* Persistent kiosk header — shown on subroutes except attract and custom header routes */}
+      {!isCustomHeaderRoute && (
         <KioskHeader
           step={activeStep}
           language={langCode}
@@ -155,7 +156,7 @@ export function KioskShell({ children }: KioskShellProps) {
 
       {/* Page content */}
       <main
-        className="flex-1 flex flex-col"
+        className="flex-1 min-h-0 flex flex-col overflow-hidden"
         id="kiosk-main-content"
         tabIndex={-1}
       >
