@@ -56,38 +56,63 @@ export function EvidenceDrawer() {
         {!loading && fact && (
           <>
             {/* The Fact Highlight */}
-            <div className="bg-[#FAF8FF] rounded-2xl p-5 border border-[#E1E2ED] space-y-2 shadow-xs">
+            <div
+              className="rounded-2xl p-5 border space-y-2 shadow-xs"
+              style={{
+                background: 'var(--color-surface-subtle)',
+                borderColor: 'var(--color-border)',
+              }}
+            >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#004AC6]">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-brand">
                   {fact.domain} • {fact.fieldName.replace(/_/g, ' ')}
                 </span>
-                <span className="text-[10px] font-bold uppercase bg-[#EFF6FF] text-[#004AC6] px-2 py-0.5 rounded border border-[#BFDBFE]">
+                <span
+                  className="text-[10px] font-bold uppercase px-2 py-0.5 rounded border"
+                  style={{
+                    background: 'var(--color-brand-mist)',
+                    color: 'var(--color-brand)',
+                    borderColor: 'var(--color-border-strong)',
+                  }}
+                >
                   Extracted Entity
                 </span>
               </div>
-              <p className="text-[20px] font-bold text-[#18181B] leading-snug">
+              <p className="text-[20px] font-bold text-text-primary leading-snug">
                 {fact.rawValue}
-                {fact.valueUnit && <span className="text-[15px] font-semibold text-[#71717A] ml-1">{fact.valueUnit}</span>}
+                {fact.valueUnit && <span className="text-[15px] font-semibold text-text-muted ml-1">{fact.valueUnit}</span>}
               </p>
             </div>
 
             {/* Source Classification */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#71717A] block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted block">
                 Source Channel &amp; Provenance
               </span>
-              <div className="bg-white p-4 rounded-2xl border border-[#E1E2ED] flex items-center justify-between gap-3">
+              <div
+                className="p-4 rounded-2xl border flex items-center justify-between gap-3"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: 'var(--color-brand-mist)',
+                      color: 'var(--color-brand)',
+                    }}
+                  >
                     {fact.sourceType === 'DOCUMENT_EXTRACT' ? <FileText size={20} /> : <Mic size={20} />}
                   </div>
                   <div>
-                    <p className="text-[14px] font-bold text-[#18181B]">
+                    <p className="text-[14px] font-bold text-text-primary">
                       {fact.sourceType === 'DOCUMENT_EXTRACT'
                         ? 'Scanned Physical Record'
                         : 'Patient Voice Intake (Kiosk)'}
                     </p>
-                    <p className="text-[11px] font-mono text-[#71717A]">
+                    <p className="text-[11px] font-mono text-text-muted">
                       {fact.sourceDocumentId ? `Doc ID: ${fact.sourceDocumentId}` : 'Audio Session: sess-001 (Marathi)'}
                     </p>
                   </div>
@@ -102,37 +127,69 @@ export function EvidenceDrawer() {
 
             {/* Visual Source Proof Crop / Audio Transcript */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#71717A] block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted block">
                 {fact.sourceType === 'DOCUMENT_EXTRACT' ? 'Optical Bounding Box Crop' : 'Speech Transcript'}
               </span>
 
               {fact.sourceType === 'DOCUMENT_EXTRACT' ? (
-                <div className="bg-[#FAF8FF] border-2 border-dashed border-[#004AC6]/40 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#71717A]">
+                <div
+                  className="border-2 border-dashed rounded-2xl p-4 space-y-3"
+                  style={{
+                    background: 'var(--color-surface-subtle)',
+                    borderColor: 'var(--color-border-strong)',
+                  }}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-mono text-text-muted">
                     <span>Crop: Page {fact.sourcePage || 1} • Bounding Box [x:120, y:450]</span>
-                    <span className="text-[#166534] font-bold bg-[#F0FDF4] px-2 py-0.5 rounded border border-[#BBF7D0]">
+                    <span
+                      className="font-bold px-2 py-0.5 rounded border"
+                      style={{
+                        background: 'var(--color-verified-subtle)',
+                        color: 'var(--color-verified-text)',
+                        borderColor: 'var(--color-verified-subtle)',
+                      }}
+                    >
                       {Math.round((fact.ocrConfidence || 0.94) * 100)}% OCR Accuracy
                     </span>
                   </div>
 
                   {/* Simulated Crop Rendering */}
-                  <div className="bg-white p-3 rounded-xl border border-[#004AC6]/30 shadow-xs font-mono text-[14px] font-bold text-[#18181B] border-l-4 border-l-[#004AC6]">
+                  <div
+                    className="p-3 rounded-xl border shadow-xs font-mono text-[14px] font-bold text-text-primary border-l-4"
+                    style={{
+                      background: 'var(--color-surface)',
+                      borderColor: 'var(--color-border)',
+                      borderLeftColor: 'var(--color-brand)',
+                    }}
+                  >
                     {fact.sourceText || fact.rawValue}
                   </div>
-                  <p className="text-[11px] text-[#71717A] italic">
+                  <p className="text-[11px] text-text-muted italic">
                     Scanned document verified from physical file presented at Kiosk Station 01.
                   </p>
                 </div>
               ) : (
-                <div className="bg-[#FAF8FF] border border-[#E1E2ED] rounded-2xl p-4 space-y-2">
-                  <div className="flex items-center gap-2 text-[#004AC6] text-[12px] font-bold">
+                <div
+                  className="border rounded-2xl p-4 space-y-2"
+                  style={{
+                    background: 'var(--color-surface-subtle)',
+                    borderColor: 'var(--color-border)',
+                  }}
+                >
+                  <div className="flex items-center gap-2 text-brand text-[12px] font-bold">
                     <Mic size={14} />
                     <span>Bhashini Multilingual Speech Model (mr-IN)</span>
                   </div>
-                  <p className="text-[14px] text-[#18181B] font-medium italic bg-white p-3 rounded-xl border border-[#E1E2ED]">
+                  <p
+                    className="text-[14px] font-medium italic p-3 rounded-xl border text-text-primary"
+                    style={{
+                      background: 'var(--color-surface)',
+                      borderColor: 'var(--color-border)',
+                    }}
+                  >
                     &quot;३ महिन्यांपासून जेवणानंतर पोटात तीव्र जळजळ आणि दुखणे जाणवते...&quot;
                   </p>
-                  <p className="text-[11px] text-[#71717A]">
+                  <p className="text-[11px] text-text-muted">
                     English Translation: &quot;I have been experiencing severe burning stomach pain after meals for 3 months...&quot;
                   </p>
                 </div>
@@ -140,14 +197,16 @@ export function EvidenceDrawer() {
             </div>
 
             {/* Physician Verification Decision */}
-            <div className="pt-4 border-t border-[#E1E2ED] space-y-3">
+            <div
+              className="pt-4 border-t space-y-3"
+              style={{ borderColor: 'var(--color-border)' }}
+            >
               <button
                 onClick={handleVerify}
-                className={`w-full h-11 text-[14px] font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98 ${
-                  isFactVerified
-                    ? 'bg-[#16A34A] text-white'
-                    : 'bg-[#004AC6] hover:bg-[#003EA8] text-white'
-                }`}
+                className="w-full h-11 text-[14px] font-bold rounded-2xl text-white transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98"
+                style={{
+                  background: isFactVerified ? 'var(--color-verified)' : 'var(--color-brand)',
+                }}
               >
                 <CheckCircle2 size={16} />
                 <span>{isFactVerified ? 'Fact Confirmed ✓' : 'Mark as Physician Verified'}</span>
@@ -155,7 +214,11 @@ export function EvidenceDrawer() {
 
               <button
                 onClick={closeEvidenceDrawer}
-                className="w-full h-10 text-[13px] font-semibold text-[#71717A] hover:text-[#18181B] hover:bg-[#FAF8FF] border border-[#E1E2ED] rounded-2xl transition-colors"
+                className="w-full h-10 text-[13px] font-semibold border rounded-2xl transition-colors hover:bg-surface-subtle text-text-secondary hover:text-text-primary"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'var(--color-border)',
+                }}
               >
                 Close Drawer
               </button>
@@ -165,9 +228,9 @@ export function EvidenceDrawer() {
 
         {!loading && !fact && (
           <div className="text-center py-12 space-y-2">
-            <Search size={32} className="mx-auto text-[#A1A1AA]" />
-            <p className="text-[15px] font-bold text-[#18181B]">Source Evidence Not Found</p>
-            <p className="text-[12px] text-[#71717A]">
+            <Search size={32} className="mx-auto text-text-muted" />
+            <p className="text-[15px] font-bold text-text-primary">Source Evidence Not Found</p>
+            <p className="text-[12px] text-text-secondary">
               The selected fact does not contain attached optical crops.
             </p>
           </div>

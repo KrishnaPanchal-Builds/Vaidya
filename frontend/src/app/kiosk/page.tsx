@@ -3,43 +3,54 @@
  * K-01 — Attract / Welcome Screen
  *
  * Route: /kiosk
- *
- * Multilingual Architecture:
- * - Dynamic strings from useKioskTranslation()
- * - Multi-script greetings stack
- * - Interactive language pill row
+ * Phase 8: Sliding Segmented Language Selector, Tactile Device Frame & Instant Language Adaptation
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 import { KioskFooter } from '@/components/kiosk/kiosk-footer'
 import { kioskService } from '@/services/kiosk.service'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
+import { SlidingSegmentedTabs, type TabOption } from '@/components/ui/SlidingSegmentedTabs'
+import { ArrowRight, Globe, ShieldCheck, Volume2 } from 'lucide-react'
+import type { SupportedKioskLanguage } from '@/lib/translations/kiosk-translations'
 
-// Multilingual greeting stack — 6 supported languages
-const GREETINGS = [
-  { text: 'Welcome',        opacity: 'opacity-100', lang: 'en' },
-  { text: 'स्वागत है',     opacity: 'opacity-80',  lang: 'hi' },
-  { text: 'स्वागत आहे',    opacity: 'opacity-65',  lang: 'mr' },
-  { text: 'સ્વાગત છે',     opacity: 'opacity-50',  lang: 'gu' },
-  { text: 'স্বাগতম',         opacity: 'opacity-40',  lang: 'bn' },
-  { text: 'வரவேற்கிறோம்',   opacity: 'opacity-30',  lang: 'ta' },
+interface GreetingInfo {
+  lang: SupportedKioskLanguage
+  text: string
+  native: string
+  sublabel: string
+}
+
+const GREETING_MAP: Record<SupportedKioskLanguage, GreetingInfo> = {
+  en: { lang: 'en', text: 'Welcome', native: 'English', sublabel: 'Touch screen to begin your outpatient intake' },
+  mr: { lang: 'mr', text: 'स्वागत आहे', native: 'मराठी', sublabel: 'ओपीडी तपासणीसाठी स्क्रीनला स्पर्श करा' },
+  hi: { lang: 'hi', text: 'स्वागत है', native: 'हिन्दी', sublabel: 'ओपीडी प्रवेश शुरू करने के लिए स्क्रीन स्पर्श करें' },
+  gu: { lang: 'gu', text: 'સ્વાગત છે', native: 'ગુજરાતી', sublabel: 'ઓપીડી પ્રવેશ શરૂ કરવા માટે સ્ક્રીન ટચ કરો' },
+  bn: { lang: 'bn', text: 'স্বাগতম', native: 'বাংলা', sublabel: 'ওপিডি ইনটেক শুরু করতে স্ক্রিন স্পর্শ করুন' },
+  ta: { lang: 'ta', text: 'வரவேற்கிறோம்', native: 'தமிழ்', sublabel: 'ஓபிடி பதிவைத் தொடங்க திரையைத் தொடவும்' },
+}
+
+const LANGUAGE_TAB_OPTIONS: TabOption<SupportedKioskLanguage>[] = [
+  { id: 'en', label: 'English', nativeLabel: 'English' },
+  { id: 'mr', label: 'Marathi', nativeLabel: 'मराठी' },
+  { id: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी' },
+  { id: 'gu', label: 'Gujarati', nativeLabel: 'ગુજરાતી' },
+  { id: 'bn', label: 'Bengali', nativeLabel: 'বাংলা' },
+  { id: 'ta', label: 'Tamil', nativeLabel: 'தமிழ்' },
 ]
-
-// Available language pills shown at bottom of attract screen
-const LANGUAGE_PILLS = [
-  'English', 'हिन्दी', 'मराठी', 'ગુજરાતી', 'বাংলা', 'தமிழ்',
-]
-
 
 export default function KioskAttractPage() {
   const router = useRouter()
   const { t } = useKioskTranslation()
-  const { status, beginSession, setSessionRefs } = useKioskStore()
+  const { language, status, setLanguage, beginSession, setSessionRefs, updateActivity } = useKioskStore()
   const [isBeginning, setIsBeginning] = useState(false)
   const [showCleared, setShowCleared] = useState(false)
-  const beginBtnRef = useRef<HTMLButtonElement>(null)
+  const [selectedLang, setSelectedLang] = useState<SupportedKioskLanguage>(
+    (language as SupportedKioskLanguage) || 'en'
+  )
 
   // Show "session cleared" banner briefly if we just came from a reset
   useEffect(() => {
@@ -50,167 +61,133 @@ export default function KioskAttractPage() {
     }
   }, [status])
 
+  const handleLanguageChange = (newLang: SupportedKioskLanguage) => {
+    setSelectedLang(newLang)
+    setLanguage(newLang)
+    updateActivity()
+  }
+
   const handleBegin = useCallback(async () => {
     if (isBeginning) return
     setIsBeginning(true)
 
-    // Begin session in store immediately for snappy UX
+    // Set chosen language in store
+    setLanguage(selectedLang)
     beginSession()
 
-    // Initialize session with backend (async, non-blocking for navigation)
+    // Initialize session with backend
     kioskService.initSession().then(({ sessionId, sessionHash }) => {
       setSessionRefs(sessionId, sessionHash)
     }).catch(() => {
-      // Session init failure handled gracefully
+      // Graceful fallback
     })
 
-    // Navigate to language selection
-    router.push('/kiosk/language')
-  }, [isBeginning, beginSession, setSessionRefs, router])
+    // Navigate to identification with language primed
+    router.push('/kiosk/identify')
+  }, [isBeginning, selectedLang, setLanguage, beginSession, setSessionRefs, router])
+
+  const currentGreeting = GREETING_MAP[selectedLang] || GREETING_MAP.en
 
   return (
-    <>
-      {/* Session cleared banner */}
+    <div className="min-h-screen bg-canvas-atmospheric flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 select-none antialiased relative overflow-hidden">
+      
+      {/* Session cleared feedback banner */}
       <div
         role="status"
         aria-live="polite"
         className={[
           'fixed top-4 left-1/2 -translate-x-1/2 z-50',
           'flex items-center gap-3 px-6 py-3 rounded-2xl',
-          'bg-[#006a61] text-white shadow-lg',
+          'bg-verified text-white shadow-lg border border-verified-text',
           'transition-all duration-500 ease-out',
           showCleared ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none',
         ].join(' ')}
       >
-        <svg viewBox="0 0 20 20" className="w-5 h-5 shrink-0" fill="none" aria-hidden="true">
-          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill="currentColor"/>
-        </svg>
-        <span className="text-[14px] font-medium">{t.attract.sessionCleared}</span>
+        <ShieldCheck className="w-5 h-5 shrink-0" />
+        <span className="text-[14px] font-semibold">{t.attract.sessionCleared}</span>
       </div>
 
-      {/* Full-screen attract container */}
-      <div
-        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#faf8ff] cursor-pointer select-none"
-        onClick={handleBegin}
-        role="button"
-        tabIndex={-1}
-        aria-label="Touch anywhere to begin your kiosk session"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBegin() }}
-      >
-        {/* Ambient background blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div
-            className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full motion-safe:animate-pulse"
-            style={{
-              background: 'radial-gradient(circle, rgba(0,74,198,0.06) 0%, transparent 70%)',
-              animationDuration: '8s',
-            }}
-          />
-          <div
-            className="absolute bottom-[-10%] right-[-5%] w-[60vw] h-[60vw] rounded-full motion-safe:animate-pulse"
-            style={{
-              background: 'radial-gradient(circle, rgba(0,106,97,0.05) 0%, transparent 70%)',
-              animationDuration: '12s',
-              animationDelay: '2s',
-            }}
-          />
+      {/* Top Kiosk Terminal Header */}
+      <header className="w-full max-w-4xl flex items-center justify-between z-10">
+        <div className="flex items-center gap-3">
+          <VaidyaWordmark size="md" showDescriptor={true} variant="default" />
+          <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-pastel-mint text-verified-text border border-verified/20">
+            Station #01 Active
+          </span>
         </div>
 
-        {/* Main content area */}
-        <div className="relative z-10 flex flex-col items-center gap-10 px-6 pb-40 pt-8">
-          {/* Wordmark */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-3xl bg-[#004ac6] flex items-center justify-center shadow-[0_8px_32px_rgba(0,74,198,0.25)] motion-safe:animate-[kiosk-float_6s_ease-in-out_infinite]">
-              <svg viewBox="0 0 48 48" className="w-10 h-10 text-white" fill="none" aria-hidden="true">
-                <path
-                  d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 6a6 6 0 110 12 6 6 0 010-12zm0 28c-6.67 0-12.54-3.33-16-8.4.08-5.31 10.67-8.2 16-8.2 5.32 0 15.91 2.89 16 8.2C36.54 34.67 30.67 38 24 38z"
-                  fill="currentColor"
-                />
-              </svg>
-            </div>
+        <div className="flex items-center gap-2 text-[12px] font-bold text-text-secondary bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border shadow-2xs">
+          <Globe size={14} className="text-brand" />
+          <span>6 Regional Languages</span>
+        </div>
+      </header>
 
-            <div className="text-center">
-              <h1 className="text-[48px] font-bold text-[#004ac6] tracking-tight uppercase leading-none">
-                Vaidya
-              </h1>
-              <p className="text-[13px] font-medium text-[#737686] tracking-[0.15em] uppercase mt-1.5">
-                {t.attract.touchToBeginSub}
-              </p>
-            </div>
+      {/* ── Central Physical Kiosk Device Chassis Frame ── */}
+      <main className="w-full max-w-3xl my-auto z-10 py-4 sm:py-6">
+        <div className="kiosk-device-bezel rounded-3xl p-6 sm:p-10 lg:p-12 text-center space-y-6 sm:space-y-8 relative">
+          
+          {/* Audio Guidance Cue */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pastel-blue/60 border border-pastel-blue text-[12px] font-bold text-brand shadow-2xs">
+            <Volume2 size={15} />
+            <span>Voice &amp; Touch Assisted Intake Available</span>
           </div>
 
-          {/* Multi-script greetings */}
-          <div className="flex flex-col items-center gap-1 text-center" aria-hidden="true">
-            {GREETINGS.map((g, i) => (
-              <span
-                key={g.lang}
-                className={[
-                  'text-[32px] font-semibold text-[#191b23] leading-tight',
-                  g.opacity,
-                  'motion-safe:animate-[kiosk-slide-fade-up_0.5s_ease-out_forwards] opacity-0',
-                ].join(' ')}
-                style={{ animationDelay: `${i * 80}ms` }}
-                lang={g.lang}
-              >
-                {g.text}
-              </span>
-            ))}
+          {/* Dynamic Multilingual Greeting Hero */}
+          <div className="space-y-1.5 sm:space-y-2">
+            <h1 className="text-[40px] sm:text-[54px] font-extrabold text-ink tracking-tight leading-tight transition-all duration-300">
+              {currentGreeting.text}
+            </h1>
+            <p className="text-[14px] sm:text-[15px] font-semibold text-text-secondary max-w-lg mx-auto leading-relaxed">
+              {currentGreeting.sublabel}
+            </p>
           </div>
 
-          {/* Primary CTA */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative flex items-center justify-center" aria-hidden="true">
-              <div
-                className="absolute w-32 h-32 rounded-full bg-[#004ac6]/10 motion-safe:animate-ping"
-                style={{ animationDuration: '2.5s' }}
-              />
-              <div
-                className="absolute w-24 h-24 rounded-full bg-[#004ac6]/15 motion-safe:animate-ping"
-                style={{ animationDuration: '2.5s', animationDelay: '0.4s' }}
-              />
-              <button
-                ref={beginBtnRef}
-                type="button"
-                className="relative w-16 h-16 rounded-full bg-[#004ac6] text-white shadow-xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#004ac6]/40"
-                aria-label="Begin kiosk intake session"
-              >
-                <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="text-center">
-              <p className="text-[20px] font-bold text-[#191b23]">
-                {t.attract.touchToBegin}
-              </p>
-              <p className="text-[14px] text-[#737686] mt-0.5">
-                {t.attract.touchToBeginSub}
-              </p>
-            </div>
-          </div>
-
-          {/* Available languages pill strip */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-[11px] font-semibold text-[#737686] uppercase tracking-widest">
-              {t.attract.availableLanguages}
+          {/* ── Prominent Sliding Segmented Language Selector ── */}
+          <div className="space-y-2.5 pt-1">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-text-muted block">
+              Select Your Preferred Language / भाषा निवडा / भाषा चुनें
             </span>
-            <div className="flex flex-wrap justify-center gap-2 max-w-[480px]">
-              {LANGUAGE_PILLS.map((lang) => (
-                <span
-                  key={lang}
-                  className="px-3 py-1 bg-[#ededf9] text-[#434655] rounded-full text-[13px] font-medium"
-                >
-                  {lang}
-                </span>
-              ))}
+            
+            <div className="w-full flex justify-center overflow-x-auto pb-1">
+              <SlidingSegmentedTabs
+                options={LANGUAGE_TAB_OPTIONS}
+                selectedId={selectedLang}
+                onChange={handleLanguageChange}
+                variant="default"
+                layoutId="kiosk-attract-language-pill"
+                ariaLabel="Select Language"
+              />
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
+          {/* Tactile Big Touch Button */}
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <button
+              onClick={handleBegin}
+              disabled={isBeginning}
+              className="kiosk-tactile-btn w-full max-w-md h-16 sm:h-18 rounded-2xl bg-brand text-white text-[18px] sm:text-[19px] font-extrabold flex items-center justify-center gap-3 transition-all cursor-pointer shadow-md active:scale-98"
+              aria-label="Touch to start patient intake"
+            >
+              <span>{t.attract.touchToBegin}</span>
+              <ArrowRight size={22} className="stroke-[3]" />
+            </button>
+            <span className="text-[12px] text-text-secondary">
+              No registration card required to begin · Speech &amp; Touch enabled
+            </span>
+          </div>
+
+        </div>
+      </main>
+
+      {/* Terminal Footer with ABDM Compliance */}
+      <footer className="w-full max-w-4xl flex items-center justify-between text-[11.5px] text-text-muted z-10 pt-2">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-verified" />
+          <span>Ephemeral Session · Zero Local Storage</span>
+        </div>
         <KioskFooter currentToken={28} />
-      </div>
-    </>
+      </footer>
+
+    </div>
   )
 }

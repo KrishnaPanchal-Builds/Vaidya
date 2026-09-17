@@ -30,17 +30,17 @@ const kioskButtonVariants = cva(
     variants: {
       variant: {
         primary: [
-          'bg-[#004ac6] text-white',
-          'hover:bg-[#003ea8]',
-          'shadow-[0_2px_12px_rgba(0,74,198,0.25)]',
+          'bg-[var(--color-brand)] text-white',
+          'hover:bg-[var(--color-brand-dim)]',
+          'shadow-[0_2px_12px_rgba(41,78,74,0.22)]',
         ].join(' '),
         secondary: [
-          'bg-white border-2 border-[#004ac6] text-[#004ac6]',
-          'hover:bg-[#f3f3fe]',
+          'bg-white border-2 border-[var(--color-brand)] text-[var(--color-brand)]',
+          'hover:bg-[var(--color-brand-mist-subtle)]',
         ].join(' '),
         ghost: [
-          'bg-[#ededf9] text-[#434655]',
-          'hover:bg-[#e1e2ed]',
+          'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+          'hover:bg-[var(--color-brand-mist)] hover:text-[var(--color-text-primary)]',
         ].join(' '),
         danger: [
           'bg-white border-2 border-[var(--color-critical)] text-[var(--color-critical)]',

@@ -13,10 +13,6 @@
  * 2. TOKEN: Prominent OPD Token display (A-028), room location, wait time, processing status checklist
  * 3. PRINT: Thermal print simulation with physical dispensing feedback
  * 4. COMPLETION: Direction to OPD Waiting Area B with automated 10-second privacy reset countdown
- *
- * Stitch references:
- * - session_review_confirmation_p_20
- * - session_completion_p_21
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -91,7 +87,7 @@ export default function KioskReviewPage() {
   const lifestyle = intakeAnswers['lifestyle_ahara'] ?? 'Worse after spicy, oily, or heavy meals'
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff] text-[#191b23]">
+    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
       {/* Spacer for header */}
       <div className="h-14 shrink-0" />
 
@@ -111,43 +107,43 @@ export default function KioskReviewPage() {
             >
               {/* Header */}
               <div className="text-center space-y-1">
-                <h1 className="text-[26px] font-bold text-[#191b23] leading-tight">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)] leading-tight">
                   {t.review.title}
                 </h1>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.review.titleSub}
                 </p>
               </div>
 
               {/* Review Card 1: Patient Demographics */}
-              <div className="bg-white rounded-2xl p-4 border border-[#e1e2ed] shadow-sm flex items-center justify-between text-[14px]">
+              <div className="bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-center justify-between text-[14px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center font-bold text-[14px]">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[14px]">
                     {patientName.charAt(0)}
                   </div>
                   <div>
-                    <span className="text-[15px] font-bold text-[#191b23] block leading-tight">
+                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block leading-tight">
                       {patientName}
                     </span>
-                    <span className="text-[12px] text-[#737686]">
+                    <span className="text-[12px] text-[var(--color-text-muted)]">
                       {patientAge} yrs · {patientSex}
                     </span>
                   </div>
                 </div>
-                <span className="text-[11px] font-bold text-[#006a61] bg-[#86f2e4]/30 px-2.5 py-1 rounded-md uppercase">
+                <span className="text-[11px] font-bold text-[var(--color-verified)] bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] px-2.5 py-1 rounded-md uppercase">
                   Verified ID
                 </span>
               </div>
 
               {/* Review Card 2: Recorded Clinical Intake */}
-              <div className="bg-white rounded-2xl p-4 border border-[#e1e2ed] shadow-sm flex flex-col gap-2.5 text-[13px]">
-                <div className="flex items-center justify-between pb-1.5 border-b border-[#ededf9]">
-                  <span className="font-bold text-[#191b23] text-[14px]">
+              <div className="bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex flex-col gap-2.5 text-[13px]">
+                <div className="flex items-center justify-between pb-1.5 border-b border-[var(--color-border)]">
+                  <span className="font-bold text-[var(--color-text-primary)] text-[14px]">
                     {t.review.healthSummaryTitle}
                   </span>
                   <button
                     onClick={() => router.push('/kiosk/intake')}
-                    className="text-[12px] font-bold text-[#004ac6] hover:underline"
+                    className="text-[12px] font-bold text-[var(--color-brand)] hover:underline"
                   >
                     {t.common.edit} ✎
                   </button>
@@ -155,37 +151,37 @@ export default function KioskReviewPage() {
 
                 <div className="grid grid-cols-2 gap-2 text-left">
                   <div>
-                    <span className="text-[11px] text-[#737686] block">Complaint:</span>
-                    <span className="font-bold text-[#191b23]">{chiefComplaint}</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)] block">Complaint:</span>
+                    <span className="font-bold text-[var(--color-text-primary)]">{chiefComplaint}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-[#737686] block">Duration:</span>
-                    <span className="font-semibold text-[#191b23]">{duration}</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)] block">Duration:</span>
+                    <span className="font-semibold text-[var(--color-text-primary)]">{duration}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-[#737686] block">Sensation:</span>
-                    <span className="font-semibold text-[#191b23]">{quality}</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)] block">Sensation:</span>
+                    <span className="font-semibold text-[var(--color-text-primary)]">{quality}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-[#737686] block">Diet Factor:</span>
-                    <span className="font-semibold text-[#006a61]">{lifestyle}</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)] block">Diet Factor:</span>
+                    <span className="font-semibold text-[var(--color-verified)]">{lifestyle}</span>
                   </div>
                 </div>
               </div>
 
               {/* Review Card 3: Documents Attached */}
-              <div className="bg-white rounded-2xl p-4 border border-[#e1e2ed] shadow-sm flex items-center justify-between text-[13px]">
+              <div className="bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#ededf9] text-[#434655] flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-lg bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] flex items-center justify-center font-bold">
                     📄
                   </div>
                   <div>
-                    <span className="font-bold text-[#191b23] block">
+                    <span className="font-bold text-[var(--color-text-primary)] block">
                       {documents.length > 0
                         ? `${documents.length} Medical Document(s) Attached`
                         : 'No New Paper Documents (Existing Records Linked)'}
                     </span>
-                    <span className="text-[11px] text-[#737686]">
+                    <span className="text-[11px] text-[var(--color-text-muted)]">
                       {documents.length > 0
                         ? documents.map((d) => d.name).join(', ')
                         : 'Previous hospital visit records will be referenced'}
@@ -194,24 +190,24 @@ export default function KioskReviewPage() {
                 </div>
                 <button
                   onClick={() => router.push('/kiosk/documents')}
-                  className="text-[12px] font-bold text-[#004ac6] hover:underline"
+                  className="text-[12px] font-bold text-[var(--color-brand)] hover:underline"
                 >
                   {t.common.edit} ✎
                 </button>
               </div>
 
               {/* Review Card 4: AI-Assisted Pre-Consultation Summary */}
-              <div className="bg-[#f0fdf4] rounded-2xl p-4 border border-[#bbf7d0] shadow-sm flex flex-col gap-2 text-left text-[13px]">
+              <div className="bg-[var(--color-sage-soft)] rounded-2xl p-4 border border-[var(--color-sage-border)] shadow-sm flex flex-col gap-2 text-left text-[13px]">
                 <div className="flex items-center gap-2">
                   <span className="text-[16px]">✨</span>
-                  <span className="font-bold text-[#15803d] text-[14px]">
+                  <span className="font-bold text-[var(--color-brand)] text-[14px]">
                     {t.review.aiSummaryTitle}
                   </span>
                 </div>
-                <p className="text-[12px] text-[#166534] leading-relaxed">
+                <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
                   {t.review.aiSummaryDisclaimer}
                 </p>
-                <div className="bg-white/80 p-2.5 rounded-xl border border-[#bbf7d0] text-[12px] text-[#14532d] space-y-1">
+                <div className="bg-[var(--color-surface)]/90 p-2.5 rounded-xl border border-[var(--color-sage-border)] text-[12px] text-[var(--color-text-primary)] space-y-1">
                   <p>• <strong>Clinical synthesis:</strong> Sub-acute gastric discomfort with meal correlation.</p>
                   <p>• <strong>Pre-triage:</strong> Routine General Medicine / Ayush OPD Consultation.</p>
                 </div>
@@ -266,24 +262,24 @@ export default function KioskReviewPage() {
             >
               {/* Header */}
               <div className="space-y-0.5">
-                <span className="text-[12px] font-bold text-[#006a61] uppercase tracking-wider">
+                <span className="text-[12px] font-bold text-[var(--color-verified)] uppercase tracking-wider">
                   Registration Complete
                 </span>
-                <h1 className="text-[26px] font-bold text-[#191b23]">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)]">
                   {t.token.title}
                 </h1>
-                <p className="text-[13px] text-[#737686]">
+                <p className="text-[13px] text-[var(--color-text-secondary)]">
                   {t.token.titleSub}
                 </p>
               </div>
 
               {/* Large Dominant OPD Token Card */}
-              <div className="relative w-full rounded-3xl bg-[#004ac6] text-white shadow-xl overflow-hidden p-6 flex flex-col items-center justify-center">
+              <div className="relative w-full rounded-3xl bg-[var(--color-brand)] text-white shadow-xl overflow-hidden p-6 flex flex-col items-center justify-center">
                 {/* Decorative background glow */}
                 <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-28 h-28 bg-[#86f2e4]/20 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-28 h-28 bg-[var(--color-sage-soft)]/20 rounded-full blur-xl pointer-events-none" />
 
-                <span className="text-[12px] font-bold tracking-widest text-[#dbe1ff] uppercase">
+                <span className="text-[12px] font-bold tracking-widest text-[var(--color-sage-soft)] uppercase">
                   {t.token.tokenNumberLabel}
                 </span>
 
@@ -292,36 +288,36 @@ export default function KioskReviewPage() {
                   {t.token.tokenNumber}
                 </span>
 
-                <span className="text-[13px] text-[#dbe1ff]">
+                <span className="text-[13px] text-[var(--color-sage-soft)]">
                   Patient: <strong>{patientName}</strong>
                 </span>
               </div>
 
               {/* Location & Wait Time Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                <div className="bg-white p-3.5 rounded-2xl border border-[#e1e2ed] shadow-sm flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center text-[18px]">
+                <div className="bg-[var(--color-surface)] p-3.5 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center text-[18px]">
                     ⏱️
                   </div>
                   <div>
-                    <span className="text-[11px] text-[#737686] block uppercase font-bold">
+                    <span className="text-[11px] text-[var(--color-text-muted)] block uppercase font-bold">
                       {t.token.estimatedWaitLabel}
                     </span>
-                    <span className="text-[13px] font-bold text-[#191b23]">
+                    <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
                       {t.token.estimatedWait}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-white p-3.5 rounded-2xl border border-[#e1e2ed] shadow-sm flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#86f2e4]/30 text-[#006a61] flex items-center justify-center text-[18px]">
+                <div className="bg-[var(--color-surface)] p-3.5 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-verified-bg)] text-[var(--color-verified)] flex items-center justify-center text-[18px]">
                     🚪
                   </div>
                   <div>
-                    <span className="text-[11px] text-[#737686] block uppercase font-bold">
+                    <span className="text-[11px] text-[var(--color-text-muted)] block uppercase font-bold">
                       {t.token.locationLabel}
                     </span>
-                    <span className="text-[13px] font-bold text-[#191b23]">
+                    <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
                       {t.token.location}
                     </span>
                   </div>
@@ -329,17 +325,17 @@ export default function KioskReviewPage() {
               </div>
 
               {/* Status Checklist */}
-              <div className="bg-[#ededf9]/60 p-3 rounded-2xl border border-[#c3c6d7]/50 text-left text-[12px] text-[#434655] space-y-1.5">
+              <div className="bg-[var(--color-surface-subtle)] p-3 rounded-2xl border border-[var(--color-border)] text-left text-[12px] text-[var(--color-text-secondary)] space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#006a61] font-bold">✓</span>
+                  <span className="text-[var(--color-verified)] font-bold">✓</span>
                   <span>{t.token.status1}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#006a61] font-bold">✓</span>
+                  <span className="text-[var(--color-verified)] font-bold">✓</span>
                   <span>{t.token.status2}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#006a61] font-bold">✓</span>
+                  <span className="text-[var(--color-verified)] font-bold">✓</span>
                   <span>{t.token.status3}</span>
                 </div>
               </div>
@@ -378,7 +374,7 @@ export default function KioskReviewPage() {
             >
               {printStatus === 'PRINTING' && (
                 <>
-                  <div className="w-20 h-20 rounded-3xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center animate-bounce">
+                  <div className="w-20 h-20 rounded-3xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center animate-bounce">
                     <svg viewBox="0 0 24 24" className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="6 9 6 2 18 2 18 9" />
                       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
@@ -386,10 +382,10 @@ export default function KioskReviewPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[24px] font-bold text-[#191b23]">
+                    <h2 className="text-[24px] font-bold text-[var(--color-text-primary)]">
                       {t.token.printing}
                     </h2>
-                    <p className="text-[14px] text-[#737686] mt-1">
+                    <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                       Dispensing token slip for #{t.token.tokenNumber}
                     </p>
                   </div>
@@ -398,16 +394,16 @@ export default function KioskReviewPage() {
 
               {printStatus === 'DONE' && (
                 <>
-                  <div className="w-20 h-20 rounded-full bg-[#006a61] text-white flex items-center justify-center shadow-lg">
+                  <div className="w-20 h-20 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center shadow-lg">
                     <svg viewBox="0 0 24 24" className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[24px] font-bold text-[#191b23]">
+                    <h2 className="text-[24px] font-bold text-[var(--color-text-primary)]">
                       {t.token.printSuccess}
                     </h2>
-                    <p className="text-[14px] text-[#737686] mt-1">
+                    <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                       Proceeding to next steps…
                     </p>
                   </div>
@@ -429,40 +425,40 @@ export default function KioskReviewPage() {
               className="flex flex-col gap-5 text-center"
             >
               {/* Success Badge */}
-              <div className="w-20 h-20 rounded-full bg-[#006a61] text-white flex items-center justify-center mx-auto shadow-md">
+              <div className="w-20 h-20 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center mx-auto shadow-md">
                 <svg viewBox="0 0 24 24" className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-[28px] font-bold text-[#191b23]">
+                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
                   {t.token.proceedWaiting}
                 </h1>
-                <p className="text-[15px] text-[#434655] max-w-[480px] mx-auto leading-relaxed">
+                <p className="text-[15px] text-[var(--color-text-secondary)] max-w-[480px] mx-auto leading-relaxed">
                   {t.token.nextStepsDesc}
                 </p>
               </div>
 
               {/* Consultation Details Card */}
-              <div className="bg-white p-5 rounded-3xl border border-[#e1e2ed] shadow-sm flex flex-col gap-3 text-left text-[14px]">
-                <div className="flex justify-between items-center pb-2 border-b border-[#ededf9]">
-                  <span className="text-[#737686]">Token Number:</span>
-                  <span className="text-[22px] font-bold font-mono text-[#004ac6]">{t.token.tokenNumber}</span>
+              <div className="bg-[var(--color-surface)] p-5 rounded-3xl border border-[var(--color-border)] shadow-sm flex flex-col gap-3 text-left text-[14px]">
+                <div className="flex justify-between items-center pb-2 border-b border-[var(--color-border)]">
+                  <span className="text-[var(--color-text-secondary)]">Token Number:</span>
+                  <span className="text-[22px] font-bold font-mono text-[var(--color-brand)]">{t.token.tokenNumber}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#737686]">OPD Department:</span>
-                  <span className="font-bold text-[#191b23]">General Medicine &amp; Ayush OPD</span>
+                  <span className="text-[var(--color-text-secondary)]">OPD Department:</span>
+                  <span className="font-bold text-[var(--color-text-primary)]">General Medicine &amp; Ayush OPD</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#737686]">Assigned Room:</span>
-                  <span className="font-semibold text-[#191b23]">Room 104 (First Floor)</span>
+                  <span className="text-[var(--color-text-secondary)]">Assigned Room:</span>
+                  <span className="font-semibold text-[var(--color-text-primary)]">Room 104 (First Floor)</span>
                 </div>
               </div>
 
               {/* Automatic Privacy Reset Countdown Alert */}
-              <div className="p-3.5 bg-[#ededf9] rounded-2xl border border-[#c3c6d7] flex items-center justify-center gap-2 text-[13px] text-[#434655]">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#004ac6] animate-ping" />
+              <div className="p-3.5 bg-[var(--color-surface-subtle)] rounded-2xl border border-[var(--color-border)] flex items-center justify-center gap-2 text-[13px] text-[var(--color-text-secondary)]">
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-brand)] animate-ping" />
                 <span>
                   {t.token.resetCountdown} <strong>{countdown}s</strong>
                 </span>

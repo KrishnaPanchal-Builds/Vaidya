@@ -13,7 +13,7 @@ export function PatientShell({ children }: { children: ReactNode }) {
 
   if (isPortal) {
     return (
-      <div className="min-h-screen bg-[#FAF8FF] flex flex-col antialiased">
+      <div className="min-h-screen bg-canvas flex flex-col antialiased">
         <main className="flex-1 flex flex-col">{children}</main>
         <ToastContainer />
       </div>

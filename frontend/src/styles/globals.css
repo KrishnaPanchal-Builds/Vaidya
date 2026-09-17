@@ -1,18 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
-@font-face {
-  font-family: 'hankenGrotesk';
-  src: local('Hanken Grotesk'), local('HankenGrotesk');
-}
-@font-face {
-  font-family: 'plusJakartaSans';
-  src: local('Plus Jakarta Sans'), local('PlusJakartaSans');
-}
-@font-face {
-  font-family: 'jetbrainsMono';
-  src: local('JetBrains Mono'), local('JetBrainsMono');
-}
 
 @tailwind base;
 @tailwind components;
@@ -26,6 +13,155 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   VAIDYA — PHASE 5A CLINICAL DESIGN TOKEN SYSTEM
+   Soft, warm off-white canvas, clean clinical white surfaces,
+   deliberate pastels, strong graphite typography.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Fonts ──────────────────────────────────────────────────────── */
+  --font-display: 'Hanken Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans:    'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+
+  /* ── VAIDYA FROSTED CLINICAL DESIGN TOKENS (PHASE 1) ───────────── */
+  --clinical-canvas:          #F7F9FC;   /* Layer 0: Main Canvas           */
+  --clinical-surface:         #FFFFFF;   /* Layer 2: Clinical Content Card */
+  --clinical-tab-track-start: #F3F8FD;   /* Layer 1: Tab Rail Top          */
+  --clinical-tab-track-end:   #E8F1FA;   /* Layer 1: Tab Rail Bottom       */
+  --clinical-tab-border:      #D3E2F0;   /* Layer 1: Tab Rail Border       */
+  --clinical-card-border:     #DFE8F1;   /* Layer 2: Card Border           */
+  --clinical-tab-text:        #536A82;   /* Inactive Tab Text              */
+  --clinical-blue-start:      #347FCE;   /* Active Blue Start              */
+  --clinical-blue-mid:        #2365B5;   /* Active Blue Mid                */
+  --clinical-blue-end:        #174A91;   /* Active Blue End                */
+  --clinical-heading:         #173B59;   /* High-contrast Blue Heading     */
+
+  /* ── Phase 6A Tonal System ──────────────────────────────────────── */
+  --canvas-primary:          #F7F9FC;   /* Primary Clinical Canvas        */
+  --canvas-secondary:        #F0F3F9;   /* Supporting Structural Canvas   */
+  --canvas-wash:             #FAFBFD;   /* Atmospheric Wash               */
+  --surface-primary:         #FFFFFF;   /* Pure White Clinical Surface    */
+  --surface-raised:          #FFFFFF;   /* Raised Clinical Surface        */
+  --surface-recessed:        #F3F5FA;   /* Inset / Recessed Surface       */
+  --surface-focus:           #FFFFFF;   /* Focused Surface                */
+
+  /* ── Legacy Palette Foundation Preserved ────────────────────────── */
+  --color-canvas:            #F7F9FC;   /* Soft Warm Off-White Canvas     */
+  --color-surface:           #FFFFFF;   /* Pure White Clinical Surface    */
+  --color-surface-subtle:    #F1F3F9;   /* Light Elevated Surface         */
+  --color-surface-dim:       #E8ECF4;   /* Dimmed Surface                 */
+
+  /* ── Typography / Ink ───────────────────────────────────────────── */
+  --color-ink:               #17191F;   /* Primary Dark Graphite Ink      */
+  --color-text-primary:      #17191F;   /* Primary Text                   */
+  --color-text-secondary:    #536A82;   /* Secondary Muted Slate-Blue     */
+  --color-text-muted:        #8E9CAB;   /* Low-emphasis Text              */
+  --color-text-disabled:     #C5C9D3;   /* Disabled State Text            */
+
+  /* ── Borders ────────────────────────────────────────────────────── */
+  --color-border:            #DFE8F1;   /* Clean Neutral Blue-Tint Border */
+  --color-border-strong:     #CBD8E5;   /* Prominent Border               */
+  --color-border-focus:      #2365B5;   /* Active Focus Ring              */
+
+  /* ── Brand / Primary Blue ───────────────────────────────────────── */
+  --color-brand:             #2365B5;   /* Primary Clinical Blue          */
+  --color-brand-dim:         #174A91;   /* Hover Brand Blue               */
+  --color-brand-mist:        #F0F6FC;   /* Soft Ice Blue Background       */
+  --color-brand-mist-subtle: #F6F9FD;   /* Ultra-light Brand Surface      */
+  --color-brand-light:       #347FCE;   /* Bright Accent Blue             */
+
+  /* ── Pastel Palette Accents ─────────────────────────────────────── */
+  --color-pastel-blue:       #DCEBFA;   /* Pastel Blue (Intake/General)   */
+  --color-pastel-lavender:   #E9E7FA;   /* Pastel Lavender (Clinical AI)  */
+  --color-pastel-mint:       #DDEFE8;   /* Pastel Mint (Verified/AYUSH)   */
+  --color-pastel-peach:      #F8E6D5;   /* Pastel Peach (Patient Triage)  */
+  --color-pastel-yellow:     #F8F0D7;   /* Pastel Yellow (Attention/Wait) */
+
+  /* ── Semantic Colors (Accessible Clinical Status) ───────────────── */
+  --color-critical:          #D92D20;   /* Critical T1 Red                */
+  --color-critical-subtle:   #FEF3F2;   /* Critical Red Background        */
+  --color-critical-text:     #912018;   /* Critical Dark Red Text         */
+
+  --color-warning:           #DC6803;   /* Urgent T2 Amber                */
+  --color-warning-subtle:    #FEF6EE;   /* Urgent Amber Background        */
+  --color-warning-text:      #8E3E0B;   /* Urgent Dark Amber Text         */
+
+  --color-verified:          #079455;   /* Verified T3 Green              */
+  --color-verified-subtle:   #ECFDF3;   /* Verified Green Background      */
+  --color-verified-text:     #065935;   /* Verified Dark Green Text       */
+
+  --color-info:              #1570EF;   /* Information Blue               */
+  --color-info-subtle:       #EFF8FF;   /* Info Blue Background           */
+  --color-info-text:         #175CD3;   /* Info Dark Blue Text            */
+
+  --color-ayush:             #0E7060;   /* AYUSH Forest Green             */
+  --color-ayush-subtle:      #DDEFE8;   /* AYUSH Mint Background          */
+  --color-ayush-text:        #0B5246;   /* AYUSH Text                     */
+
+  /* ── Shadows (Gentle, Diffuse Clinical Elevations) ─────────────── */
+  --shadow-xs:      0 1px 2px rgba(23, 25, 31, 0.03);
+  --shadow-sm:      0 1px 3px rgba(23, 25, 31, 0.05), 0 1px 2px rgba(23, 25, 31, 0.03);
+  --shadow-md:      0 4px 14px rgba(23, 25, 31, 0.06), 0 1px 3px rgba(23, 25, 31, 0.02);
+  --shadow-lg:      0 14px 36px rgba(23, 25, 31, 0.08), 0 4px 10px rgba(23, 25, 31, 0.03);
+  --shadow-drawer:  -8px 0 40px rgba(23, 25, 31, 0.08);
+  --shadow-tactile: 0 4px 0 rgba(23, 25, 31, 0.08), 0 8px 20px rgba(23, 25, 31, 0.06);
+
+  /* ── Border Radii ───────────────────────────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius:     8px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+
+  /* ── Motion Tokens ──────────────────────────────────────────────── */
+  --motion-micro:    150ms;
+  --motion-normal:   260ms;
+  --motion-large:    380ms;
+  --motion-drawer:   350ms;
+  --motion-page:     320ms;
+  --ease-spring:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Kiosk Touch Tokens ─────────────────────────────────────────── */
+  --kiosk-primary:              #2D6CB5;
+  --kiosk-primary-mist:         #EBF3FC;
+  --kiosk-surface:              #FFFFFF;
+  --kiosk-surface-container:    #F7F8FC;
+  --kiosk-on-surface:           #17191F;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL RESETS & STYLING
+═══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background-color: var(--canvas-primary);
+  color: var(--color-text-primary);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--canvas-primary);
+  color: var(--color-text-primary);
+  margin: 0;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Material Symbols icon helper */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
@@ -38,259 +174,289 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
 
-:root {
-  /* Surfaces */
-  --color-canvas: #F6F6F7;
-  --color-surface: #FFFFFF;
-  --color-surface-subtle: #F9F9FA;
-
-  /* Borders */
-  --color-border: #E4E4E7;
-  --color-border-strong: #D4D4D8;
-  --color-border-focus: #2563EB;
-
-  /* Text */
-  --color-text-primary: #18181B;
-  --color-text-secondary: #52525B;
-  --color-text-muted: #A1A1AA;
-  --color-text-disabled: #D4D4D8;
-
-  /* Accent */
-  --color-accent: #2563EB;
-  --color-accent-hover: #1D4ED8;
-  --color-accent-subtle: #EFF6FF;
-  --color-accent-text: #1E40AF;
-
-  /* Verified */
-  --color-verified: #16A34A;
-  --color-verified-subtle: #F0FDF4;
-  --color-verified-text: #15803D;
-
-  /* Warning */
-  --color-warning: #D97706;
-  --color-warning-subtle: #FFFBEB;
-  --color-warning-text: #B45309;
-
-  /* Critical */
-  --color-critical: #DC2626;
-  --color-critical-subtle: #FEF2F2;
-  --color-critical-text: #B91C1C;
-
-  /* AYUSH */
-  --color-ayush: #0D9488;
-  --color-ayush-subtle: #F0FDFA;
-  --color-ayush-text: #0F766E;
-
-  /* Fonts */
-  --font-sans: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-  /* Kiosk-specific design tokens (Stitch color system) */
-  --kiosk-primary:              #004ac6;
-  --kiosk-primary-dim:          #b4c5ff;
-  --kiosk-primary-subtle:       #f3f3fe;
-  --kiosk-surface:              #faf8ff;
-  --kiosk-surface-container:    #ededf9;
-  --kiosk-surface-container-hi: #e7e7f3;
-  --kiosk-on-surface:           #191b23;
-  --kiosk-on-surface-variant:   #434655;
-  --kiosk-outline:              #737686;
-  --kiosk-outline-variant:      #c3c6d7;
-  --kiosk-inverse-surface:      #2e3039;
-  --kiosk-inverse-on-surface:   #f0f0fb;
-  --kiosk-secondary:            #006a61;
-  --kiosk-secondary-dim:        #6bd8cb;
-  --kiosk-font-display:         'Hanken Grotesk', system-ui, sans-serif;
-  --kiosk-font-body:            'Plus Jakarta Sans', system-ui, sans-serif;
+/* Custom Scrollbar for Clinical Panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Smooth Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
 }
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--color-canvas);
-  color: var(--color-text-primary);
-  margin: 0;
-  min-height: 100vh;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeLeft {
-  from { opacity: 0; transform: translateX(40px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes floatSlow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
-}
-
-@keyframes floatSlowReverse {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(12px) rotate(-1.5deg); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.08); }
-}
-
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
-}
-
-@keyframes soundWave {
-  0%, 100% { height: 6px; }
-  50% { height: 32px; }
-}
-
-.animate-fade-up {
-  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-left {
-  animation: fadeLeft 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-scale-up {
-  animation: scaleUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-float-slow {
-  animation: floatSlow 8s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-  animation: floatSlowReverse 9s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-.animate-scanline {
-  animation: scanline 2.5s linear infinite;
-}
-
-.wave-bar {
-  animation: soundWave 1.2s ease-in-out infinite;
-}
-
-/* Glassmorphism Classes */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 20px 50px rgba(0, 74, 198, 0.06), 0 4px 12px rgba(0, 0, 0, 0.02);
-}
-
-.glass-panel-dark {
-  background: rgba(25, 27, 35, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
-}
-
-.glass-card-interactive {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.glass-card-interactive:hover {
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 20px 40px rgba(0, 74, 198, 0.08);
-  border-color: rgba(37, 99, 235, 0.3);
-}
-
-.glass-panel-secondary {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s ease;
-}
-.glass-panel-secondary:hover {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
-}
-
-.perspective-container {
-  perspective: 1200px;
-  transform-style: preserve-3d;
-}
-
-.text-glow {
-  text-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; display: none; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
-
-.font-mono { font-family: var(--font-mono); }
 
 /* ═══════════════════════════════════════════════════════════════
-   KIOSK — Animations and tokens
-   All kiosk animations are prefixed kiosk- to avoid namespace conflicts.
-   All use motion-safe: in Tailwind where referenced.
+   ATMOSPHERIC CANVASES & SPATIAL LEVELS (Phase 6A)
 ═══════════════════════════════════════════════════════════════ */
 
-/* Kiosk slide-fade-up — entrance animation for tiles and headings */
+/* Atmospheric Multi-tone Canvas with Subtle Clinical Grid Texture */
+.bg-canvas-atmospheric {
+  background-color: #F7F8FC;
+  background-image:
+    radial-gradient(ellipse 60% 45% at 15% 0%, rgba(220, 235, 250, 0.45), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 85% 12%, rgba(233, 231, 250, 0.35), transparent 40%),
+    radial-gradient(ellipse 45% 35% at 50% 85%, rgba(221, 239, 232, 0.25), transparent 45%),
+    linear-gradient(155deg, #F7F8FC 0%, #FBFBFD 45%, #F2F5FA 100%);
+  position: relative;
+}
+
+.bg-canvas-atmospheric::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(23, 25, 31, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 25, 31, 0.015) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.7;
+}
+
+.bg-canvas-subtle-glow {
+  background-color: #F7F8FC;
+  background-image:
+    radial-gradient(ellipse 45% 35% at 90% 0%, rgba(220, 235, 250, 0.30), transparent 40%),
+    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(233, 231, 250, 0.20), transparent 40%),
+    linear-gradient(180deg, #F7F8FC 0%, #F4F6FB 100%);
+}
+
+/* ── VAIDYA FROSTED CLINICAL SPATIAL SYSTEM (PHASE 1) ─────────────
+   Layer 0: Clinical Canvas (#F7F9FC)
+   Layer 1: Floating Navigation / Frosted Tab Rail
+   Layer 2: Clinical Content Surface (#FFFFFF / #DFE8F1)
+────────────────────────────────────────────────────────────────── */
+
+/* Layer 0: Clinical Canvas */
+.bg-clinical-canvas {
+  background-color: var(--clinical-canvas);
+}
+
+/* Layer 1: Floating Navigation / Tab Track */
+.surface-frosted-rail {
+  background: linear-gradient(180deg, var(--clinical-tab-track-start) 0%, var(--clinical-tab-track-end) 100%);
+  border: 1px solid var(--clinical-tab-border);
+  box-shadow: 0 5px 16px rgba(41, 87, 135, 0.08), 0 2px 3px rgba(41, 87, 135, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Layer 2: Clinical Content Surface */
+.surface-clinical-card {
+  background-color: var(--clinical-surface);
+  border: 1px solid var(--clinical-card-border);
+  box-shadow: 0 2px 8px rgba(41, 87, 135, 0.04);
+}
+
+/* ── Spatial Surface Levels ── */
+/* Level 0: Direct Canvas */
+.surface-level-0 {
+  background: transparent;
+}
+
+/* Level 1: Content directly on canvas / hairline partition */
+.surface-level-1 {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Level 2: Resting Raised Surface */
+.surface-resting {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--motion-normal) var(--ease-spring);
+}
+
+.surface-resting:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* Level 2 Active: Selected or active clinical context */
+.surface-active {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* Level 3: Modal & Drawer */
 @keyframes kiosk-slide-fade-up {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
-  to {
+  100% {
     opacity: var(--final-opacity, 1);
     transform: translateY(0);
   }
 }
 
-/* Kiosk float — subtle vertical float for icon mark on attract screen */
-@keyframes kiosk-float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
+.surface-drawer {
+  background: #FFFFFF;
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-drawer);
 }
 
-/* Reduced motion overrides — ensures all kiosk animations are motion-safe */
-@media (prefers-reduced-motion: reduce) {
-  [class*="kiosk-slide-fade-up"],
-  [style*="kiosk-slide-fade-up"] {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+.surface-modal {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Non-Pill Tabs & Navigation ── */
+/* A. Underline Navigation Tabs */
+.tab-underline {
+  position: relative;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color var(--motion-micro) ease;
+  padding: 8px 14px;
+}
+
+.tab-underline:hover {
+  color: var(--color-ink);
+}
+
+.tab-underline[data-active="true"] {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.tab-underline[data-active="true"]::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background-color: var(--color-brand);
+  border-radius: 2px;
+}
+
+/* B. Segmented Control for Mutually Exclusive Modes */
+.segmented-control-container {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--surface-recessed);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.segmented-control-btn {
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 7px;
+  color: var(--color-text-secondary);
+  transition: all var(--motion-micro) ease;
+}
+
+.segmented-control-btn[data-active="true"] {
+  background: #FFFFFF;
+  color: var(--color-ink);
+  font-weight: 700;
+  box-shadow: var(--shadow-xs);
+}
+
+/* ── Kiosk Tactile Depth & Physical Framing ── */
+.kiosk-device-bezel {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F5F7FC 100%);
+  border: 1px solid rgba(209, 213, 223, 0.8);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 20px 50px -10px rgba(23, 25, 31, 0.12),
+    0 1px 3px rgba(23, 25, 31, 0.05);
+}
+
+.kiosk-tactile-btn {
+  position: relative;
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 120ms ease;
+  box-shadow: 0 4px 0 rgba(23, 25, 31, 0.08), 0 8px 16px rgba(23, 25, 31, 0.04);
+}
+
+.kiosk-tactile-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 rgba(23, 25, 31, 0.08), 0 10px 20px rgba(23, 25, 31, 0.06);
+}
+
+.kiosk-tactile-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(23, 25, 31, 0.08), 0 2px 6px rgba(23, 25, 31, 0.04);
+}
+
+/* ── Page Transitions ── */
+.page-enter {
+  animation: pageEnterTransition var(--motion-page) var(--ease-spring) forwards;
+}
+
+@keyframes pageEnterTransition {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
-  [class*="kiosk-float"],
-  [style*="kiosk-float"] {
-    animation: none !important;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.015); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--motion-normal) var(--ease-out) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--motion-normal) var(--ease-out) forwards;
+}
+
+.animate-float-gentle {
+  animation: floatGentle 5s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 3.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

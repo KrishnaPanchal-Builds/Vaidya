@@ -120,7 +120,7 @@ export default function KioskDocumentsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff] text-[#191b23]">
+    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
       {/* Spacer for fixed header */}
       <div className="h-14 shrink-0" />
 
@@ -128,16 +128,16 @@ export default function KioskDocumentsPage() {
       <div className="flex-1 w-full max-w-[640px] mx-auto px-5 py-6 flex flex-col justify-center">
         {/* Patient Context Badge */}
         {patientData && stage !== 'PHASE_5_HANDOFF' && (
-          <div className="flex items-center justify-between bg-white px-4 py-2 rounded-2xl border border-[#e1e2ed] shadow-sm mb-3">
+          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 py-2 rounded-2xl border border-[var(--color-border)] shadow-sm mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center font-bold text-[12px]">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[12px]">
                 {patientData.name.charAt(0)}
               </div>
-              <span className="text-[13px] font-bold text-[#191b23]">
+              <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
                 {patientData.name} ({patientData.age} yrs)
               </span>
             </div>
-            <span className="text-[11px] font-bold text-[#004ac6] bg-[#dbe1ff] px-2 py-0.5 rounded-md">
+            <span className="text-[11px] font-bold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2 py-0.5 rounded-md">
               {t.documents.title}
             </span>
           </div>
@@ -157,13 +157,13 @@ export default function KioskDocumentsPage() {
               className="flex flex-col gap-5 text-center"
             >
               <div className="space-y-1">
-                <span className="text-[13px] font-bold text-[#004ac6] tracking-wider uppercase">
+                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   Vaidya Documents
                 </span>
-                <h1 className="text-[28px] font-bold text-[#191b23] leading-tight">
+                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)] leading-tight">
                   {t.documents.title}
                 </h1>
-                <p className="text-[14px] text-[#737686] max-w-[460px] mx-auto mt-1">
+                <p className="text-[14px] text-[var(--color-text-secondary)] max-w-[460px] mx-auto mt-1">
                   {t.documents.titleSub}
                 </p>
               </div>
@@ -171,20 +171,20 @@ export default function KioskDocumentsPage() {
               {/* Audio Instructions Affordance */}
               <button
                 onClick={handlePlayAudioGuidance}
-                className="bg-white rounded-2xl p-3.5 shadow-sm border border-[#e1e2ed] flex items-center justify-between hover:border-[#004ac6]/40 transition-all text-left"
+                className="bg-[var(--color-surface)] rounded-2xl p-3.5 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:border-[var(--color-brand)]/40 transition-all text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
                       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                       <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
                     </svg>
                   </div>
                   <div>
-                    <span className="text-[13px] font-bold text-[#191b23] block">
+                    <span className="text-[13px] font-bold text-[var(--color-text-primary)] block">
                       {isPlayingAudio ? '🔊' : '▶'} {t.intake.hearQuestion}
                     </span>
-                    <span className="text-[11px] text-[#737686]">
+                    <span className="text-[11px] text-[var(--color-text-muted)]">
                       {language === 'mr'
                         ? 'मराठीत ऑडिओ सूचना'
                         : language === 'hi'
@@ -199,7 +199,7 @@ export default function KioskDocumentsPage() {
                     </span>
                   </div>
                 </div>
-                <span className="text-[12px] font-bold text-[#004ac6]">
+                <span className="text-[12px] font-bold text-[var(--color-brand)]">
                   {isPlayingAudio ? '🔊' : '▶'}
                 </span>
               </button>
@@ -212,9 +212,9 @@ export default function KioskDocumentsPage() {
                     setStage('SCANNER')
                     updateActivity()
                   }}
-                  className="p-5 bg-white rounded-3xl border-2 border-[#004ac6] hover:border-[#003ea8] shadow-sm hover:shadow-md transition-all flex flex-col gap-3 group active:scale-98"
+                  className="p-5 bg-[var(--color-surface)] rounded-3xl border-2 border-[var(--color-brand)] hover:border-[var(--color-brand-hover)] shadow-sm hover:shadow-md transition-all flex flex-col gap-3 group active:scale-98"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center group-hover:bg-[#004ac6] group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3" />
                       <rect x="7" y="7" width="10" height="10" rx="1.5" />
@@ -222,11 +222,11 @@ export default function KioskDocumentsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[17px] font-bold text-[#191b23]">
+                      <h2 className="text-[17px] font-bold text-[var(--color-text-primary)]">
                         {t.documents.haveDocs}
                       </h2>
                     </div>
-                    <p className="text-[13px] text-[#737686] mt-1 leading-relaxed">
+                    <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 leading-relaxed">
                       {t.documents.haveDocsDesc}
                     </p>
                   </div>
@@ -238,18 +238,18 @@ export default function KioskDocumentsPage() {
                     setStage('PHASE_5_HANDOFF')
                     updateActivity()
                   }}
-                  className="p-5 bg-white rounded-3xl border-2 border-[#e1e2ed] hover:border-[#004ac6] shadow-sm hover:shadow-md transition-all flex flex-col gap-3 group active:scale-98"
+                  className="p-5 bg-[var(--color-surface)] rounded-3xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] shadow-sm hover:shadow-md transition-all flex flex-col gap-3 group active:scale-98"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-[#ededf9] text-[#434655] flex items-center justify-center group-hover:bg-[#004ac6] group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[17px] font-bold text-[#191b23]">
+                    <h2 className="text-[17px] font-bold text-[var(--color-text-primary)]">
                       {t.documents.noDocs}
                     </h2>
-                    <p className="text-[13px] text-[#737686] mt-1 leading-relaxed">
+                    <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 leading-relaxed">
                       {t.documents.noDocsDesc}
                     </p>
                   </div>
@@ -259,7 +259,7 @@ export default function KioskDocumentsPage() {
               <div className="pt-2">
                 <button
                   onClick={() => router.push('/kiosk/intake')}
-                  className="text-[14px] font-semibold text-[#737686] hover:text-[#191b23] py-2 px-3"
+                  className="text-[14px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-2 px-3"
                 >
                   ← {t.common.back}
                 </button>
@@ -281,7 +281,7 @@ export default function KioskDocumentsPage() {
             >
               {/* Header with Type Selector */}
               <div className="flex flex-col gap-2 text-center">
-                <h1 className="text-[24px] font-bold text-[#191b23]">
+                <h1 className="text-[24px] font-bold text-[var(--color-text-primary)]">
                   {t.documents.scannerTitle}
                 </h1>
                 {/* Document Type Filter Chips */}
@@ -296,8 +296,8 @@ export default function KioskDocumentsPage() {
                       className={[
                         'px-3 py-1.5 rounded-full text-[12px] font-bold transition-all',
                         selectedType === tType
-                          ? 'bg-[#004ac6] text-white shadow-sm'
-                          : 'bg-[#ededf9] text-[#434655] hover:bg-[#e1e2ed]',
+                          ? 'bg-[var(--color-brand)] text-white shadow-sm'
+                          : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] hover:bg-[var(--color-sage-soft)]',
                       ].join(' ')}
                     >
                       {tType === 'PRESCRIPTION'
@@ -313,7 +313,7 @@ export default function KioskDocumentsPage() {
               </div>
 
               {/* Optical Scanner Viewport */}
-              <div className="relative w-full h-[320px] bg-[#191b23] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center border-4 border-[#ededf9]">
+              <div className="relative w-full h-[320px] bg-[#1d2623] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center border-4 border-[var(--color-border)]">
                 <div className="absolute inset-5 border-2 border-white/20 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
                   <div className="flex justify-between">
                     <div className="w-8 h-8 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl-lg" />
@@ -325,9 +325,9 @@ export default function KioskDocumentsPage() {
                   </div>
                 </div>
 
-                {/* Animated Green Scanline */}
+                {/* Animated Scanline */}
                 <div
-                  className="absolute left-5 right-5 h-[3px] bg-[#6bd8cb] shadow-[0_0_15px_#6bd8cb] motion-safe:animate-bounce"
+                  className="absolute left-5 right-5 h-[3px] bg-[var(--color-verified)] shadow-[0_0_15px_var(--color-verified)] motion-safe:animate-bounce"
                   style={{ animationDuration: '2s' }}
                 />
 
@@ -347,13 +347,13 @@ export default function KioskDocumentsPage() {
 
               {/* Guidance Chips */}
               <div className="flex justify-center gap-2 text-[12px]">
-                <span className="bg-[#ededf9] text-[#434655] px-3 py-1 rounded-full font-medium">
+                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3 py-1 rounded-full font-medium border border-[var(--color-border)]">
                   ✓ {t.documents.placeFlat}
                 </span>
-                <span className="bg-[#ededf9] text-[#434655] px-3 py-1 rounded-full font-medium">
+                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3 py-1 rounded-full font-medium border border-[var(--color-border)]">
                   ✓ {t.documents.goodLight}
                 </span>
-                <span className="bg-[#ededf9] text-[#434655] px-3 py-1 rounded-full font-medium">
+                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3 py-1 rounded-full font-medium border border-[var(--color-border)]">
                   ✓ {t.documents.fullPage}
                 </span>
               </div>
@@ -362,27 +362,27 @@ export default function KioskDocumentsPage() {
               <div className="flex flex-col items-center gap-3 pt-1">
                 <button
                   onClick={handleCaptureDocument}
-                  className="w-20 h-20 rounded-full bg-white border-4 border-[#004ac6] p-1.5 shadow-xl hover:scale-105 active:scale-95 transition-transform"
+                  className="w-20 h-20 rounded-full bg-white border-4 border-[var(--color-brand)] p-1.5 shadow-xl hover:scale-105 active:scale-95 transition-transform"
                   aria-label={t.documents.tapToCapture}
                 >
-                  <div className="w-full h-full rounded-full bg-[#004ac6] flex items-center justify-center text-white">
+                  <div className="w-full h-full rounded-full bg-[var(--color-brand)] flex items-center justify-center text-white">
                     <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19 4h-3.5L14 2H10L8.5 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
                     </svg>
                   </div>
                 </button>
-                <span className="text-[13px] font-bold text-[#004ac6]">
+                <span className="text-[13px] font-bold text-[var(--color-brand)]">
                   {t.documents.tapToCapture}
                 </span>
 
                 {/* Simulation toggle */}
-                <label className="flex items-center gap-2 text-[12px] text-[#737686] cursor-pointer pt-1">
+                <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] cursor-pointer pt-1">
                   <input
                     type="checkbox"
                     checked={simulateQualityIssue}
                     onChange={(e) => setSimulateQualityIssue(e.target.checked)}
-                    className="rounded border-[#c3c6d7]"
+                    className="rounded border-[var(--color-border)] text-[var(--color-brand)]"
                   />
                   <span>{t.documents.simBlurToggle}</span>
                 </label>
@@ -391,7 +391,7 @@ export default function KioskDocumentsPage() {
               <div className="flex justify-between items-center pt-2">
                 <button
                   onClick={() => setStage(documents.length > 0 ? 'REVIEW' : 'ENTRY')}
-                  className="text-[14px] font-semibold text-[#737686] hover:text-[#191b23] py-2 px-3"
+                  className="text-[14px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-2 px-3"
                 >
                   ← {t.common.cancel}
                 </button>
@@ -411,21 +411,21 @@ export default function KioskDocumentsPage() {
               className="flex flex-col items-center justify-center gap-6 py-12 text-center"
             >
               <div className="relative w-20 h-20">
-                <div className="absolute inset-0 rounded-full border-4 border-[#ededf9]" />
-                <div className="absolute inset-0 rounded-full border-4 border-[#004ac6] border-t-transparent animate-spin" />
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-surface-subtle)]" />
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-brand)] border-t-transparent animate-spin" />
               </div>
 
               <div className="space-y-2 w-full max-w-[400px]">
-                <h2 className="text-[22px] font-bold text-[#191b23]">
+                <h2 className="text-[22px] font-bold text-[var(--color-text-primary)]">
                   {t.documents.processingTitle}
                 </h2>
-                <p className="text-[14px] text-[#004ac6] font-semibold">
+                <p className="text-[14px] text-[var(--color-brand)] font-semibold">
                   {processingStageText}
                 </p>
 
-                <div className="w-full h-2 bg-[#ededf9] rounded-full overflow-hidden mt-3">
+                <div className="w-full h-2 bg-[var(--color-surface-subtle)] rounded-full overflow-hidden mt-3">
                   <div
-                    className="h-full bg-[#004ac6] transition-all duration-500 rounded-full"
+                    className="h-full bg-[var(--color-brand)] transition-all duration-500 rounded-full"
                     style={{ width: `${processingProgress}%` }}
                   />
                 </div>
@@ -445,7 +445,7 @@ export default function KioskDocumentsPage() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-5 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[#ffdbcd] text-[#943700] flex items-center justify-center mx-auto shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-warning-bg)] text-[var(--color-warning)] flex items-center justify-center mx-auto shadow-sm border border-[var(--color-warning)]/20">
                 <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -454,10 +454,10 @@ export default function KioskDocumentsPage() {
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-[26px] font-bold text-[#191b23]">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)]">
                   {t.documents.qualityWarningTitle}
                 </h1>
-                <p className="text-[13px] text-[#737686] mt-1 max-w-[420px] mx-auto">
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 max-w-[420px] mx-auto">
                   {t.documents.qualityWarningDesc}
                 </p>
               </div>
@@ -482,7 +482,7 @@ export default function KioskDocumentsPage() {
                   {t.documents.continueAnyway}
                 </KioskButton>
 
-                <p className="text-[12px] text-[#737686] pt-1">
+                <p className="text-[12px] text-[var(--color-text-muted)] pt-1">
                   {t.common.staffHelp}
                 </p>
               </div>
@@ -502,10 +502,10 @@ export default function KioskDocumentsPage() {
               className="flex flex-col gap-5"
             >
               <div className="text-center space-y-1">
-                <h1 className="text-[28px] font-bold text-[#191b23]">
+                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
                   {t.documents.yourDocsTitle}
                 </h1>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {documents.length} {t.documents.docCountLabel}
                 </p>
               </div>
@@ -515,10 +515,10 @@ export default function KioskDocumentsPage() {
                 {documents.map((doc) => (
                   <div
                     key={doc.id}
-                    className="bg-white rounded-2xl p-4 border border-[#e1e2ed] shadow-sm flex items-center justify-between gap-3"
+                    className="bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-12 h-12 rounded-xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
                         <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
@@ -526,21 +526,21 @@ export default function KioskDocumentsPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-[15px] font-bold text-[#191b23] truncate">
+                          <h3 className="text-[15px] font-bold text-[var(--color-text-primary)] truncate">
                             {doc.name}
                           </h3>
                           <span
                             className={[
-                              'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
+                              'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border',
                               doc.status === 'COMPLETE'
-                                ? 'bg-[#86f2e4]/40 text-[#005049]'
-                                : 'bg-[#ffdbcd] text-[#943700]',
+                                ? 'bg-[var(--color-verified-bg)] text-[var(--color-verified)] border-[var(--color-sage-border)]'
+                                : 'bg-[var(--color-warning-bg)] text-[var(--color-warning)] border-[var(--color-warning)]/30',
                             ].join(' ')}
                           >
                             {doc.status}
                           </span>
                         </div>
-                        <p className="text-[12px] text-[#737686] mt-0.5">
+                        <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5">
                           {doc.extractedEntitiesCount} entities extracted • {doc.confidenceScore}% clarity
                         </p>
                       </div>
@@ -548,7 +548,7 @@ export default function KioskDocumentsPage() {
 
                     <button
                       onClick={() => removeDocument(doc.id)}
-                      className="p-2 text-[#737686] hover:text-[var(--color-critical)] rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                      className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-critical)] rounded-lg hover:bg-[var(--color-critical-bg)] transition-colors shrink-0"
                       aria-label={`Remove ${doc.name}`}
                     >
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -564,7 +564,7 @@ export default function KioskDocumentsPage() {
                     setStage('SCANNER')
                     updateActivity()
                   }}
-                  className="w-full py-4 border-2 border-dashed border-[#c3c6d7] hover:border-[#004ac6] bg-white/50 hover:bg-[#faf8ff] rounded-2xl flex items-center justify-center gap-2 text-[14px] font-bold text-[#004ac6] transition-all"
+                  className="w-full py-4 border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-brand)] bg-[var(--color-surface)]/50 hover:bg-[var(--color-surface-subtle)] rounded-2xl flex items-center justify-center gap-2 text-[14px] font-bold text-[var(--color-brand)] transition-all"
                 >
                   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -607,7 +607,7 @@ export default function KioskDocumentsPage() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-6 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[#004ac6] text-white flex items-center justify-center mx-auto shadow-md">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center mx-auto shadow-md">
                 <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M9 11l3 3L22 4" />
                   <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -615,13 +615,13 @@ export default function KioskDocumentsPage() {
               </div>
 
               <div className="space-y-1">
-                <span className="text-[13px] font-bold text-[#004ac6] tracking-wider uppercase">
+                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   {t.documents.readyReviewTitle}
                 </span>
-                <h1 className="text-[28px] font-bold text-[#191b23]">
+                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
                   {t.documents.readyReviewTitle}
                 </h1>
-                <p className="text-[14px] text-[#737686] max-w-[460px] mx-auto">
+                <p className="text-[14px] text-[var(--color-text-secondary)] max-w-[460px] mx-auto">
                   {t.documents.readyReviewDesc}
                 </p>
               </div>

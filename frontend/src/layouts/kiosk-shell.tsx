@@ -29,7 +29,7 @@ import { useIdleDetection } from '@/lib/hooks/use-idle-detection'
 import { KioskHeader } from '@/components/kiosk/kiosk-header'
 import { SessionTimeoutOverlay } from '@/components/kiosk/session-timeout-overlay'
 import { kioskService } from '@/services/kiosk.service'
-import { DEFAULT_KIOSK_CONFIG } from '@/types/kiosk'
+import { DEFAULT_KIOSK_CONFIG, type KioskStep } from '@/types/kiosk'
 
 interface KioskShellProps {
   children: ReactNode
@@ -118,20 +118,37 @@ export function KioskShell({ children }: KioskShellProps) {
     handlePrivacyReset()
   }, [handlePrivacyReset])
 
-  // Language code for the header indicator
-  const langCode = language ?? null
+  // Map route pathname to canonical KioskStep
+  const PATHNAME_STEP_MAP: Record<string, KioskStep> = {
+    '/kiosk': 'ATTRACT',
+    '/kiosk/language': 'LANGUAGE',
+    '/kiosk/identify': 'IDENTIFY',
+    '/kiosk/confirm': 'CONFIRM',
+    '/kiosk/register': 'REGISTER',
+    '/kiosk/consent': 'CONSENT',
+    '/kiosk/intake': 'INTAKE',
+    '/kiosk/documents': 'DOCUMENTS',
+    '/kiosk/review': 'REVIEW',
+  }
+
+  const isAttract = pathname === '/kiosk'
+  const activeStep: KioskStep = (pathname && PATHNAME_STEP_MAP[pathname]) || (step !== 'ATTRACT' ? step : 'LANGUAGE')
+
+  // Language code for the header indicator (default to 'en' if not yet selected)
+  const langCode = language ?? 'en'
 
   return (
     <div
-      className="min-h-screen w-full bg-[#faf8ff] flex flex-col overflow-x-hidden"
+      className="min-h-screen w-full flex flex-col overflow-x-hidden"
+      style={{ background: 'var(--color-canvas)' }}
       // Inform assistive tech this is an application (kiosk mode)
       role="application"
       aria-label="Vaidya Patient Kiosk"
     >
-      {/* Persistent kiosk header — shown on all screens except attract */}
-      {step !== 'ATTRACT' && (
+      {/* Persistent kiosk header — shown on all subroutes except attract */}
+      {!isAttract && (
         <KioskHeader
-          step={step}
+          step={activeStep}
           language={langCode}
         />
       )}

@@ -15,13 +15,13 @@ export const AuthButton = forwardRef<HTMLButtonElement, AuthButtonProps>(
 
     const variants = {
       primary:
-        "bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:scale-[0.98] focus-visible:ring-[#2563EB]",
+        "bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand-dim)] active:scale-[0.98] focus-visible:ring-[var(--color-border-focus)]",
       secondary:
-        "bg-white text-[#18181B] border border-[#E4E4E7] hover:border-[#D4D4D8] hover:bg-[#F9F9FA] active:scale-[0.98] focus-visible:ring-[#2563EB]",
+        "bg-[var(--color-surface)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-subtle)] active:scale-[0.98] focus-visible:ring-[var(--color-border-focus)]",
       ghost:
-        "text-[#3F3F46] hover:text-[#18181B] hover:bg-[#F4F4F5] active:scale-[0.98] focus-visible:ring-[#2563EB]",
+        "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-subtle)] active:scale-[0.98] focus-visible:ring-[var(--color-border-focus)]",
       danger:
-        "bg-[#DC2626] text-white hover:bg-[#B91C1C] active:scale-[0.98] focus-visible:ring-[#DC2626]",
+        "bg-[var(--color-critical)] text-white hover:opacity-90 active:scale-[0.98] focus-visible:ring-[var(--color-critical)]",
     };
 
     const sizes = {
@@ -72,7 +72,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-[#3F3F46]"
+            className="text-sm font-semibold text-[var(--color-text-secondary)]"
           >
             {label}
           </label>
@@ -80,15 +80,15 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`h-10 w-full rounded border px-3 text-sm text-[#18181B] placeholder:text-[#A1A1AA] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+          className={`h-10 w-full rounded border px-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
             error
-              ? "border-[#DC2626] focus:ring-[#FECACA] bg-[#FEF2F2]"
-              : "border-[#E4E4E7] bg-white focus:border-[#2563EB] focus:ring-[#BFDBFE]"
+              ? "border-[var(--color-critical)] focus:ring-[var(--color-critical-subtle)] bg-[var(--color-critical-subtle)]"
+              : "border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-brand-mist)]"
           } ${className}`}
           {...props}
         />
-        {error && <p className="text-xs text-[#DC2626]">{error}</p>}
-        {hint && !error && <p className="text-xs text-[#71717A]">{hint}</p>}
+        {error && <p className="text-xs text-[var(--color-critical-text)]">{error}</p>}
+        {hint && !error && <p className="text-xs text-[var(--color-text-muted)]">{hint}</p>}
       </div>
     );
   }
@@ -103,7 +103,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, Omit<AuthInputProps, "
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-[#3F3F46]">
+          <label htmlFor={inputId} className="text-sm font-semibold text-[var(--color-text-secondary)]">
             {label}
           </label>
         )}
@@ -112,25 +112,25 @@ export const PasswordInput = forwardRef<HTMLInputElement, Omit<AuthInputProps, "
             ref={ref}
             id={inputId}
             type={show ? "text" : "password"}
-            className={`h-10 w-full rounded border px-3 pr-10 text-sm text-[#18181B] placeholder:text-[#A1A1AA] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+            className={`h-10 w-full rounded border px-3 pr-10 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 ${
               error
-                ? "border-[#DC2626] focus:ring-[#FECACA] bg-[#FEF2F2]"
-                : "border-[#E4E4E7] bg-white focus:border-[#2563EB] focus:ring-[#BFDBFE]"
+                ? "border-[var(--color-critical)] focus:ring-[var(--color-critical-subtle)] bg-[var(--color-critical-subtle)]"
+                : "border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-border-focus)] focus:ring-[var(--color-brand-mist)]"
             } ${className}`}
             {...props}
           />
           <button
             type="button"
             onClick={() => setShow(!show)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1AA] hover:text-[#71717A] transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
             tabIndex={-1}
             aria-label={show ? "Hide password" : "Show password"}
           >
             {show ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
         </div>
-        {error && <p className="text-xs text-[#DC2626]">{error}</p>}
-        {hint && !error && <p className="text-xs text-[#71717A]">{hint}</p>}
+        {error && <p className="text-xs text-[var(--color-critical-text)]">{error}</p>}
+        {hint && !error && <p className="text-xs text-[var(--color-text-muted)]">{hint}</p>}
       </div>
     );
   }
@@ -159,8 +159,8 @@ export function Checkbox({ label, id, checked, onChange }: CheckboxProps) {
       <div
         className={`flex items-center justify-center w-4 h-4 rounded border transition-colors duration-150 ${
           checked
-            ? "bg-[#2563EB] border-[#2563EB]"
-            : "bg-white border-[#D4D4D8] group-hover:border-[#A1A1AA]"
+            ? "bg-[var(--color-brand)] border-[var(--color-brand)]"
+            : "bg-[var(--color-surface)] border-[var(--color-border-strong)] group-hover:border-[var(--color-text-muted)]"
         }`}
       >
         {checked && (
@@ -169,19 +169,19 @@ export function Checkbox({ label, id, checked, onChange }: CheckboxProps) {
           </svg>
         )}
       </div>
-      <span className="text-sm text-[#3F3F46]">{label}</span>
+      <span className="text-sm text-[var(--color-text-secondary)]">{label}</span>
     </label>
   );
 }
 
 /* ─── Divider ─── */
 export function Divider({ label }: { label?: string }) {
-  if (!label) return <div className="h-px bg-[#E4E4E7] my-1" />;
+  if (!label) return <div className="h-px bg-[var(--color-border)] my-1" />;
   return (
     <div className="flex items-center gap-3 my-1">
-      <div className="flex-1 h-px bg-[#E4E4E7]" />
-      <span className="text-xs text-[#A1A1AA] font-medium">{label}</span>
-      <div className="flex-1 h-px bg-[#E4E4E7]" />
+      <div className="flex-1 h-px bg-[var(--color-border)]" />
+      <span className="text-xs text-[var(--color-text-muted)] font-medium">{label}</span>
+      <div className="flex-1 h-px bg-[var(--color-border)]" />
     </div>
   );
 }
@@ -190,8 +190,7 @@ export function Divider({ label }: { label?: string }) {
 export function AuthCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`w-full bg-white border border-[#E4E4E7] rounded-lg p-8 ${className}`}
-      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+      className={`w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-8 shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -212,7 +211,7 @@ export function PasswordStrength({ password }: { password: string }) {
   })();
 
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
-  const colors = ["", "#DC2626", "#D97706", "#16A34A", "#16A34A"];
+  const colors = ["", "var(--color-critical)", "var(--color-warning)", "var(--color-verified)", "var(--color-verified)"];
 
   if (!password) return null;
 
@@ -223,7 +222,7 @@ export function PasswordStrength({ password }: { password: string }) {
           <div
             key={i}
             className="h-1 flex-1 rounded-full transition-colors duration-200"
-            style={{ background: i <= score ? colors[score] : "#E4E4E7" }}
+            style={{ background: i <= score ? colors[score] : "var(--color-border)" }}
           />
         ))}
       </div>
@@ -237,9 +236,9 @@ export function PasswordStrength({ password }: { password: string }) {
 /* ─── AlertBanner ─── */
 export function AlertBanner({ type, message }: { type: "error" | "success" | "info"; message: string }) {
   const styles = {
-    error: { bg: "#FEF2F2", border: "#FECACA", text: "#991B1B", dot: "#DC2626" },
-    success: { bg: "#F0FDF4", border: "#BBF7D0", text: "#14532D", dot: "#16A34A" },
-    info: { bg: "#EFF6FF", border: "#BFDBFE", text: "#1E3A5F", dot: "#2563EB" },
+    error:   { bg: "var(--color-critical-subtle)",  border: "var(--color-critical)",  text: "var(--color-critical-text)",  dot: "var(--color-critical)" },
+    success: { bg: "var(--color-verified-subtle)",  border: "var(--color-verified)",  text: "var(--color-verified-text)",  dot: "var(--color-verified)" },
+    info:    { bg: "var(--color-info-subtle)",      border: "var(--color-info)",      text: "var(--color-info-text)",      dot: "var(--color-info)" },
   };
   const s = styles[type];
   return (

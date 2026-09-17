@@ -85,7 +85,10 @@ export default function KioskLanguagePage() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff]">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: 'var(--color-canvas)', color: 'var(--color-text-primary)' }}
+    >
       {/* Spacer for fixed header */}
       <div className="h-[59px] shrink-0" />
 
@@ -98,9 +101,9 @@ export default function KioskLanguagePage() {
             <h1
               key={line.lang}
               lang={line.lang}
-              className="text-[34px] font-bold text-[#191b23] leading-snug motion-safe:animate-[kiosk-slide-fade-up_0.4s_ease-out_forwards] opacity-0"
+              className="text-[34px] font-bold text-[var(--color-text-primary)] leading-snug motion-safe:animate-[kiosk-slide-fade-up_0.35s_ease-out]"
               style={{
-                opacity: 0,
+                opacity: line.opacity,
                 animationDelay: `${i * 60}ms`,
                 ['--final-opacity' as string]: line.opacity,
               }}
@@ -112,10 +115,10 @@ export default function KioskLanguagePage() {
 
         {/* Localized instruction */}
         <div className="flex flex-col items-center text-center gap-1">
-          <p className="text-[16px] text-[#191b23] font-semibold">
+          <p className="text-[17px] text-[var(--color-text-primary)] font-bold">
             {t.language.title}
           </p>
-          <p className="text-[14px] text-[#737686]">
+          <p className="text-[14px] text-[var(--color-text-secondary)]">
             {t.language.instructions}
           </p>
         </div>
@@ -124,7 +127,7 @@ export default function KioskLanguagePage() {
         <div
           role="radiogroup"
           aria-label="Select your preferred language"
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 w-full"
           onKeyDown={handleGridKeyDown}
         >
           {KIOSK_LANGUAGES.map((lang, idx) => (
@@ -139,7 +142,7 @@ export default function KioskLanguagePage() {
         </div>
 
         {/* Help note */}
-        <p className="text-center text-[13px] text-[#737686]">
+        <p className="text-center text-[13px] text-[var(--color-text-muted)]">
           {t.common.staffHelp}
         </p>
       </div>
@@ -153,7 +156,7 @@ export default function KioskLanguagePage() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-            className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-8 pt-4 bg-gradient-to-t from-[#faf8ff] via-[#faf8ff]/95 to-transparent"
+            className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-8 pt-4 bg-gradient-to-t from-[var(--color-canvas)] via-[var(--color-canvas)]/95 to-transparent"
             role="navigation"
             aria-label="Session navigation"
           >

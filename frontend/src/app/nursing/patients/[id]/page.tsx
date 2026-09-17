@@ -3,294 +3,267 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Stethoscope,
+  ShieldAlert,
+  AlertTriangle,
+} from 'lucide-react'
+import { useUIStore } from '@/store'
 
 export default function NursingPatientDetailPage() {
   const router = useRouter()
-  const [priority, setPriority] = useState('standard')
+  const { addToast } = useUIStore()
+  const [priority, setPriority] = useState<'STANDARD' | 'URGENT' | 'HIGH_PRIORITY'>('STANDARD')
 
   const handleUpdatePriority = () => {
-    alert(`Priority updated to ${priority.toUpperCase()}`)
+    addToast({
+      type: 'success',
+      title: 'Triage Priority Updated',
+      body: `Priority set to ${priority} for Dhananjay Patil.`,
+    })
+  }
+
+  const handleTransferToPhysician = () => {
+    addToast({
+      type: 'success',
+      title: 'Ready for Physician',
+      body: 'Patient transferred to Active OPD Consultation queue.',
+    })
+    router.push('/doctor/encounter/enc-001')
   }
 
   return (
-    <div className="bg-[#F6F6F7] font-body-primary text-on-surface min-h-screen">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col border-r border-outline-variant/30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="px-lg py-lg flex items-center gap-md border-b border-outline-variant/20 mb-md">
-          <span className="font-page-title text-page-title text-primary font-bold text-[22px]">Vaidya Nursing</span>
-        </div>
-        <nav className="flex-1 px-md flex flex-col gap-xs">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* ── Top Header Bar ──────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
           <Link
             href="/nursing/dashboard"
-            className="flex items-center gap-md px-md py-sm rounded-lg transition-all bg-primary-container text-on-primary-container font-semibold shadow-sm"
+            className="text-[12px] font-medium text-text-secondary hover:text-text-primary flex items-center gap-1 mb-1"
           >
-            <span className="material-symbols-outlined text-[20px]">view_list</span>
-            <span className="text-body-compact">Patient Queue</span>
+            <ArrowLeft size={13} /> Back to Triage Queue
           </Link>
-          <Link
-            href="/nursing/alerts/enc-002"
-            className="flex items-center justify-between px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+          <div className="flex items-center gap-3">
+            <h1 className="text-[22px] font-bold text-text-primary tracking-tight">
+              Nursing Case Assessment
+            </h1>
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+              style={{
+                background: 'var(--color-verified-subtle)',
+                color: 'var(--color-verified-text)',
+              }}
+            >
+              Intake Complete
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleTransferToPhysician}
+            className="h-9 px-4 rounded-lg text-white font-bold text-[13px] flex items-center gap-1.5 shadow-xs transition-all hover:opacity-90 active:scale-98"
+            style={{ background: 'var(--color-brand)' }}
           >
-            <div className="flex items-center gap-md">
-              <span className="material-symbols-outlined text-[20px]">notification_important</span>
-              <span className="text-body-compact">Triage Alerts</span>
-            </div>
-            <span className="bg-error text-on-error text-metadata-mono px-xs py-[2px] rounded-full min-w-[20px] text-center font-bold">8</span>
-          </Link>
-          <Link
-            href="/nursing/history"
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
-          >
-            <span className="material-symbols-outlined text-[20px]">history</span>
-            <span className="text-body-compact">History</span>
-          </Link>
-        </nav>
-        <div className="px-md py-lg border-t border-outline-variant/20 flex flex-col gap-xs">
-          <button className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all text-left">
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-            <span className="text-body-compact">Settings</span>
+            <CheckCircle2 size={14} />
+            <span>Mark Ready for Physician</span>
           </button>
         </div>
-      </aside>
+      </div>
 
-      {/* Main Container */}
-      <div className="pl-72">
-        {/* Top Header */}
-        <header className="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-lg flex items-center justify-between">
-          <div className="flex-1 max-w-xl">
-            <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-md text-outline">search</span>
-              <input
-                className="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg py-sm pl-xl pr-md text-body-compact focus:outline-none focus:border-primary transition-colors"
-                placeholder="Search patient ID, name, or MRN..."
-                type="text"
-              />
-            </div>
+      {/* ── Patient Identity Card ───────────────────────────────────── */}
+      <div
+        className="p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
+        style={{
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+        }}
+      >
+        <div className="flex items-center gap-3.5">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-[16px] shrink-0"
+            style={{
+              background: 'var(--color-brand)',
+              color: '#FFFFFF',
+            }}
+          >
+            DP
           </div>
-          <div className="flex items-center gap-lg">
-            <div className="flex items-center gap-md pr-md border-r border-outline-variant/30">
-              <button className="text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined">help_outline</span>
-              </button>
-              <button className="text-on-surface-variant hover:text-primary transition-colors relative">
-                <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-surface" />
-              </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-[18px] font-bold text-text-primary">Dhananjay Patil</h2>
+              <span className="text-[12px] text-text-secondary font-medium">67 YRS • MALE</span>
+              <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded bg-surface-subtle border border-border">
+                Token #31
+              </span>
             </div>
-            <div className="flex items-center gap-md cursor-pointer group">
-              <div className="text-right hidden sm:block">
-                <div className="text-body-compact font-semibold text-on-surface">Dr. Ananya Rao</div>
-                <div className="text-metadata-mono text-on-surface-variant">Triage Lead</div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center border-2 border-primary-fixed group-hover:shadow-md transition-all text-white">
-                <span className="material-symbols-outlined text-[18px]">person</span>
-              </div>
-            </div>
+            <p className="text-[12px] text-text-muted mt-0.5">
+              MRN: 849-221 • ABHA: 12-3456-7890-1234 • Arrival: 09:15 AM (Wait: 1h 27m)
+            </p>
           </div>
-        </header>
+        </div>
 
-        {/* Content Body */}
-        <main className="relative pt-16 w-full min-h-screen">
-          <div className="flex flex-col w-full p-lg gap-lg">
-            {/* Header Top Row */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-md">
-                <div className="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-page-title font-page-title text-primary font-bold text-[24px]">
-                  DP
-                </div>
-                <div className="flex flex-col gap-xs">
-                  <div className="flex items-center gap-sm">
-                    <h1 className="text-display-lg font-display-lg text-on-surface m-0 font-bold text-[32px]">Dhananjay Patil</h1>
-                    <span className="px-sm py-xs bg-surface-container rounded-full text-metadata-mono font-metadata-mono text-on-surface-variant font-bold">MRN: 8849-2A</span>
-                  </div>
-                  <div className="flex items-center gap-md text-body-primary font-body-primary text-on-surface-variant">
-                    <span>42 Yrs</span>
-                    <span className="w-1 h-1 rounded-full bg-outline-variant" />
-                    <span>Male</span>
-                    <span className="w-1 h-1 rounded-full bg-outline-variant" />
-                    <span>Blood: O+</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => router.push('/nursing/dashboard')}
-                className="px-md py-sm bg-surface-container rounded-lg text-body-compact font-body-compact font-semibold text-on-surface flex items-center gap-sm hover:bg-surface-container-high transition-colors border border-outline-variant/30 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                <span>Back to Queue</span>
-              </button>
+        {/* Priority Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-semibold text-text-secondary">Triage Level:</span>
+          <select
+            value={priority}
+            onChange={(e) => {
+              setPriority(e.target.value as 'STANDARD' | 'URGENT' | 'HIGH_PRIORITY')
+              handleUpdatePriority()
+            }}
+            className="h-8 text-[12px] font-semibold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-brand"
+            style={{
+              background: 'var(--color-surface-subtle)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            <option value="STANDARD">Routine Priority</option>
+            <option value="URGENT">Urgent Care</option>
+            <option value="HIGH_PRIORITY">High Priority OPD</option>
+          </select>
+        </div>
+      </div>
+
+      {/* ── Known Allergy Banner ────────────────────────────────────── */}
+      <div
+        className="p-4 rounded-xl flex items-center justify-between gap-3"
+        style={{
+          background: 'var(--color-critical-subtle)',
+          border: '1px solid var(--color-critical)',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <ShieldAlert size={20} className="text-critical shrink-0" />
+          <div>
+            <p className="text-[13px] font-bold text-critical">
+              Flagged Conflict: Penicillin Allergy Discrepancy
+            </p>
+            <p className="text-[12px] text-text-primary">
+              Patient reported no allergies during voice intake, but 2022 AIIMS discharge document lists Penicillin allergy.
+            </p>
+          </div>
+        </div>
+        <span
+          className="text-[11px] font-bold px-2 py-0.5 rounded uppercase shrink-0"
+          style={{
+            background: 'var(--color-critical)',
+            color: '#FFFFFF',
+          }}
+        >
+          Flagged for OPD Doctor
+        </span>
+      </div>
+
+      {/* ── 2-Column Clinical Layout ─────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left 8 Cols: Vitals & Chief Complaint */}
+        <div className="lg:col-span-8 space-y-5">
+          {/* Triage Vitals */}
+          <div
+            className="p-5 rounded-2xl space-y-4"
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-[15px] font-bold text-text-primary">
+                Triage Vitals
+              </h3>
+              <span className="text-[11px] font-medium text-text-muted">Recorded 12 mins ago</span>
             </div>
 
-            {/* Known Allergy Banner */}
-            <div className="w-full bg-error rounded-xl p-md flex items-center justify-between text-on-error shadow-sm mb-sm">
-              <div className="flex items-center gap-md">
-                <span className="material-symbols-outlined text-[24px]">warning</span>
-                <div className="flex flex-col">
-                  <span className="text-body-compact font-body-compact font-semibold uppercase tracking-wider">Known Allergy</span>
-                  <span className="text-body-primary font-body-primary font-bold">Penicillin - Severe Anaphylaxis</span>
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-xl bg-surface-subtle border border-border">
+                <span className="text-[11px] font-semibold text-text-secondary">Blood Pressure</span>
+                <p className="text-[18px] font-mono font-bold text-text-primary mt-1">128/82</p>
+                <span className="text-[10px] text-text-muted">mmHg (Normal)</span>
               </div>
-              <button className="px-md py-sm bg-on-error/20 rounded-lg text-body-compact font-body-compact text-on-error hover:bg-on-error/30 transition-colors font-semibold">
-                Acknowledged (Dr. Rao)
-              </button>
-            </div>
-
-            {/* Grid layout */}
-            <div className="grid grid-cols-12 gap-lg">
-              {/* Left Column (8 cols) */}
-              <div className="col-span-8 flex flex-col gap-lg">
-                {/* Triage Vitals */}
-                <div className="bg-surface-container-lowest rounded-xl shadow-sm p-lg flex flex-col gap-md relative overflow-hidden border border-outline-variant/30">
-                  <div className="flex items-center justify-between z-10">
-                    <h2 className="text-section-heading font-section-heading text-on-surface m-0 font-bold text-[20px]">Triage Vitals</h2>
-                    <div className="flex items-center gap-sm px-sm py-xs bg-surface-container rounded-full border border-outline-variant/50">
-                      <span className="w-2 h-2 rounded-full bg-secondary" />
-                      <span className="text-metadata-mono font-metadata-mono text-on-surface-variant">Recorded 12 mins ago</span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-md z-10">
-                    <div className="flex flex-col gap-xs p-md bg-surface rounded-lg border border-outline-variant/20">
-                      <span className="text-body-compact font-body-compact text-on-surface-variant font-bold">Blood Pressure</span>
-                      <div className="flex items-baseline gap-xs">
-                        <span className="text-page-title font-page-title text-on-surface font-bold text-[24px]">138/85</span>
-                        <span className="text-metadata-mono font-metadata-mono text-outline">mmHg</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-xs p-md bg-surface rounded-lg border border-outline-variant/20">
-                      <span className="text-body-compact font-body-compact text-on-surface-variant font-bold">SpO2</span>
-                      <div className="flex items-baseline gap-xs">
-                        <span className="text-page-title font-page-title text-on-surface font-bold text-[24px]">98</span>
-                        <span className="text-metadata-mono font-metadata-mono text-outline">%</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-xs p-md bg-surface rounded-lg border border-outline-variant/20">
-                      <span className="text-body-compact font-body-compact text-on-surface-variant font-bold">Pulse</span>
-                      <div className="flex items-baseline gap-xs">
-                        <span className="text-page-title font-page-title text-on-surface font-bold text-[24px]">88</span>
-                        <span className="text-metadata-mono font-metadata-mono text-outline">bpm</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Chief Complaint & Current Medications */}
-                <div className="grid grid-cols-2 gap-md">
-                  <div className="bg-surface-container-lowest rounded-xl shadow-sm p-md flex flex-col gap-sm border border-outline-variant/30">
-                    <h3 className="text-body-compact font-body-compact font-semibold text-on-surface-variant uppercase tracking-wider">Chief Complaint</h3>
-                    <p className="text-body-primary font-body-primary text-on-surface">Patient reports persistent dull ache in lower right abdomen for the past 24 hours. Accompanied by mild nausea but no vomiting.</p>
-                    <div className="mt-auto pt-sm flex items-center gap-xs">
-                      <span className="px-sm py-[2px] rounded-full bg-surface-container text-metadata-mono font-metadata-mono text-on-surface-variant border border-outline-variant/50 font-bold">T1: Verified</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-surface-container-lowest rounded-xl shadow-sm p-md flex flex-col gap-sm border border-outline-variant/30">
-                    <h3 className="text-body-compact font-body-compact font-semibold text-on-surface-variant uppercase tracking-wider">Current Medications</h3>
-                    <ul className="flex flex-col gap-xs text-body-primary font-body-primary text-on-surface">
-                      <li className="flex items-center gap-sm"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Metformin 500mg (Daily)</li>
-                      <li className="flex items-center gap-sm"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Atorvastatin 20mg (Nightly)</li>
-                    </ul>
-                    <div className="mt-auto pt-sm flex items-center gap-xs">
-                      <span className="px-sm py-[2px] rounded-full bg-surface-container text-metadata-mono font-metadata-mono text-on-surface-variant border border-outline-variant/50 font-bold">T2: Patient Reported</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="p-3 rounded-xl bg-surface-subtle border border-border">
+                <span className="text-[11px] font-semibold text-text-secondary">Heart Rate</span>
+                <p className="text-[18px] font-mono font-bold text-text-primary mt-1">88</p>
+                <span className="text-[10px] text-text-muted">bpm (Regular)</span>
               </div>
-
-              {/* Right Column (4 cols) */}
-              <div className="col-span-4 flex flex-col gap-lg">
-                {/* Queue Priority */}
-                <div className="bg-surface-container-lowest rounded-xl shadow-sm p-lg flex flex-col gap-md border border-outline-variant/30">
-                  <h2 className="text-section-heading font-section-heading text-on-surface m-0 font-bold text-[18px]">Queue Priority</h2>
-                  <div className="flex flex-col gap-sm">
-                    <label className={`flex items-center p-md rounded-lg cursor-pointer transition-colors border ${priority === 'standard' ? 'bg-surface border-outline-variant' : 'bg-surface border-outline-variant/20'}`}>
-                      <input
-                        className="w-4 h-4 text-primary focus:ring-primary border-outline-variant cursor-pointer"
-                        name="priority"
-                        type="radio"
-                        value="standard"
-                        checked={priority === 'standard'}
-                        onChange={() => setPriority('standard')}
-                      />
-                      <div className="ml-sm flex flex-col">
-                        <span className="text-body-primary font-body-primary font-semibold text-on-surface">Standard</span>
-                        <span className="text-metadata-mono font-metadata-mono text-on-surface-variant">Wait time: ~45 mins</span>
-                      </div>
-                    </label>
-
-                    <label className={`flex items-center p-md rounded-lg cursor-pointer transition-colors border ${priority === 'priority' ? 'bg-tertiary-container/20 border-tertiary-container/40' : 'bg-tertiary-container/10 border-tertiary-container/30'}`}>
-                      <input
-                        className="w-4 h-4 text-tertiary focus:ring-tertiary border-tertiary-container cursor-pointer"
-                        name="priority"
-                        type="radio"
-                        value="priority"
-                        checked={priority === 'priority'}
-                        onChange={() => setPriority('priority')}
-                      />
-                      <div className="ml-sm flex flex-col">
-                        <span className="text-body-primary font-body-primary font-semibold text-tertiary">Priority</span>
-                        <span className="text-metadata-mono font-metadata-mono text-tertiary">Wait time: ~15 mins</span>
-                      </div>
-                    </label>
-
-                    <label className={`flex items-center p-md rounded-lg cursor-pointer transition-colors border ${priority === 'urgent' ? 'bg-error-container/30 border-error-container/60' : 'bg-error-container/20 border-error-container/50'}`}>
-                      <input
-                        className="w-4 h-4 text-error focus:ring-error border-error-container cursor-pointer"
-                        name="priority"
-                        type="radio"
-                        value="urgent"
-                        checked={priority === 'urgent'}
-                        onChange={() => setPriority('urgent')}
-                      />
-                      <div className="ml-sm flex flex-col">
-                        <span className="text-body-primary font-body-primary font-semibold text-error">Urgent</span>
-                        <span className="text-metadata-mono font-metadata-mono text-error">Immediate attention</span>
-                      </div>
-                    </label>
-                  </div>
-                  <button
-                    onClick={handleUpdatePriority}
-                    className="mt-sm w-full py-sm bg-primary text-on-primary rounded-lg text-body-compact font-body-compact font-semibold hover:bg-primary-fixed-variant transition-colors shadow-sm cursor-pointer h-10"
-                  >
-                    Update Priority
-                  </button>
-                </div>
-
-                {/* Intake Progress */}
-                <div className="bg-surface-container-lowest rounded-xl shadow-sm p-lg flex flex-col gap-md border border-outline-variant/30">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-section-heading font-section-heading text-on-surface m-0 font-bold text-[18px]">Intake Progress</h2>
-                    <span className="text-body-compact font-body-compact font-semibold text-secondary text-[16px]">80%</span>
-                  </div>
-                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                    <div className="h-full bg-secondary w-4/5 rounded-full" />
-                  </div>
-                  <div className="flex flex-col gap-xs mt-sm space-y-1">
-                    <div className="flex items-center justify-between text-body-compact font-body-compact">
-                      <span className="text-on-surface flex items-center gap-sm font-medium">
-                        <span className="material-symbols-outlined text-[16px] text-secondary">check_circle</span> Demographics
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-body-compact font-body-compact">
-                      <span className="text-on-surface flex items-center gap-sm font-medium">
-                        <span className="material-symbols-outlined text-[16px] text-secondary">check_circle</span> Vitals
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-body-compact font-body-compact">
-                      <span className="text-on-surface flex items-center gap-sm font-medium">
-                        <span className="material-symbols-outlined text-[16px] text-secondary">check_circle</span> History
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-body-compact font-body-compact">
-                      <span className="text-on-surface-variant flex items-center gap-sm">
-                        <span className="material-symbols-outlined text-[16px]">radio_button_unchecked</span> Imaging Upload
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div className="p-3 rounded-xl bg-surface-subtle border border-border">
+                <span className="text-[11px] font-semibold text-text-secondary">Temperature</span>
+                <p className="text-[18px] font-mono font-bold text-text-primary mt-1">98.6°F</p>
+                <span className="text-[10px] text-text-muted">Afebrile</span>
+              </div>
+              <div className="p-3 rounded-xl bg-surface-subtle border border-border">
+                <span className="text-[11px] font-semibold text-text-secondary">SpO2</span>
+                <p className="text-[18px] font-mono font-bold text-text-primary mt-1">98%</p>
+                <span className="text-[10px] text-text-muted">Room Air</span>
               </div>
             </div>
           </div>
-        </main>
+
+          {/* Chief Complaint & HPI Excerpt */}
+          <div
+            className="p-5 rounded-2xl space-y-3"
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <h3 className="text-[15px] font-bold text-text-primary">
+              Chief Complaint &amp; Intake Notes
+            </h3>
+            <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-2">
+              <p className="text-[14px] font-semibold text-text-primary">
+                Epigastric pain, 2 days duration.
+              </p>
+              <p className="text-[13px] text-text-secondary leading-relaxed">
+                Patient reports dull ache in upper abdomen, worsening after meals. No vomiting. Mild nausea present. History of Type 2 Diabetes on Metformin.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 4 Cols: Quick Actions & Status */}
+        <div className="lg:col-span-4 space-y-4">
+          <div
+            className="p-5 rounded-2xl space-y-4 shadow-xs"
+            style={{
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <h3 className="text-[15px] font-bold text-text-primary">
+              Intake Checklist
+            </h3>
+            <div className="space-y-2 text-[12.5px]">
+              <div className="flex items-center gap-2 text-verified">
+                <CheckCircle2 size={15} />
+                <span className="text-text-primary">ABHA Identity Verified</span>
+              </div>
+              <div className="flex items-center gap-2 text-verified">
+                <CheckCircle2 size={15} />
+                <span className="text-text-primary">Marathi Voice Intake Captured</span>
+              </div>
+              <div className="flex items-center gap-2 text-verified">
+                <CheckCircle2 size={15} />
+                <span className="text-text-primary">3 Optical Documents Processed</span>
+              </div>
+              <div className="flex items-center gap-2 text-warning">
+                <AlertTriangle size={15} />
+                <span className="text-text-primary">1 Allergy Contradiction Detected</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleTransferToPhysician}
+              className="w-full h-10 rounded-lg text-white font-bold text-[13px] flex items-center justify-center gap-2 shadow-xs transition-all hover:opacity-90 active:scale-98 mt-2"
+              style={{ background: 'var(--color-brand)' }}
+            >
+              <Stethoscope size={15} />
+              <span>Transfer to OPD Room 3</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

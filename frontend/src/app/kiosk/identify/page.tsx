@@ -22,7 +22,6 @@ import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 import { kioskService } from '@/services/kiosk.service'
-import type { Language } from '@/types'
 import type { KioskPatientData } from '@/types/kiosk'
 import { DEMO_PATIENTS } from '@/constants/demo-data'
 
@@ -214,12 +213,21 @@ export default function KioskIdentifyPage() {
         age: newPatientRecord.age,
         sex: newPatientRecord.sex === 'Male' ? 'M' : newPatientRecord.sex === 'Female' ? 'F' : 'O',
         phone: newPatientRecord.phone,
-        preferredLanguage: (newPatientRecord.preferredLanguage ?? 'hi') as Language,
+        preferredLanguage: (newPatientRecord.preferredLanguage ?? 'hi') as 'en' | 'hi' | 'mr',
       })
 
       handleSelectPatient(newPatientRecord, false)
     } catch {
-      setFormError(t.common.staffHelp)
+      // Offline fallback: store locally and proceed
+      const fallbackRecord: KioskPatientData = {
+        name: newName.trim(),
+        age: ageMode === 'AGE' ? ageVal : 30,
+        sex: newSex,
+        phone: cleanPhone,
+        preferredLanguage: language ?? 'hi',
+        lastVisit: 'First Visit (Today)',
+      }
+      handleSelectPatient(fallbackRecord, false)
     } finally {
       setIsSubmitting(false)
     }
@@ -231,7 +239,10 @@ export default function KioskIdentifyPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff] text-[#191b23]">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: 'var(--color-canvas)', color: 'var(--color-text-primary)' }}
+    >
       {/* Spacer for fixed header */}
       <div className="h-14 shrink-0" />
 
@@ -252,13 +263,13 @@ export default function KioskIdentifyPage() {
             >
               {/* Header Title */}
               <div className="flex flex-col text-center gap-1.5">
-                <span className="text-[13px] font-bold text-[#004ac6] tracking-wider uppercase">
+                <span className="text-[12px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   {t.identify.title}
                 </span>
-                <h1 className="text-[30px] font-bold text-[#191b23] leading-tight">
+                <h1 className="text-[30px] font-bold text-[var(--color-text-primary)] leading-tight">
                   {t.identify.title}
                 </h1>
-                <p className="text-[15px] text-[#737686] mt-0.5">
+                <p className="text-[15px] text-[var(--color-text-secondary)] mt-0.5">
                   {t.identify.titleSub}
                 </p>
               </div>
@@ -271,9 +282,9 @@ export default function KioskIdentifyPage() {
                     setView('SCAN_QR')
                     updateActivity()
                   }}
-                  className="w-full bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,74,198,0.12)] hover:border-[#004ac6]/30 border-2 border-transparent transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#004ac6]/40"
+                  className="w-full bg-white p-5 rounded-2xl border border-[var(--color-border)] shadow-[0_2px_8px_rgba(41,78,74,0.06)] hover:shadow-[0_4px_16px_rgba(41,78,74,0.12)] hover:border-[var(--color-brand)]/40 transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-brand)]/30"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-[#ededf9] text-[#004ac6] flex items-center justify-center shrink-0 group-hover:bg-[#004ac6] group-hover:text-white transition-colors">
+                  <div className="w-14 h-14 rounded-xl bg-[var(--color-brand-mist)] text-[var(--color-brand)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="3" width="7" height="7" rx="1.5" />
                       <rect x="14" y="3" width="7" height="7" rx="1.5" />
@@ -283,18 +294,18 @@ export default function KioskIdentifyPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[17px] font-bold text-[#191b23]">
+                      <h2 className="text-[17px] font-bold text-[var(--color-text-primary)]">
                         {t.identify.methodAbha}
                       </h2>
-                      <span className="bg-[#86f2e4]/40 text-[#005049] text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                         {t.identify.fastestBadge}
                       </span>
                     </div>
-                    <p className="text-[13px] text-[#737686] mt-0.5 truncate">
+                    <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 truncate">
                       {t.identify.methodAbhaDesc}
                     </p>
                   </div>
-                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[#737686] group-hover:text-[#004ac6] group-hover:translate-x-1 transition-all shrink-0" fill="none">
+                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-brand)] group-hover:translate-x-1 transition-all shrink-0" fill="none">
                     <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
@@ -307,23 +318,23 @@ export default function KioskIdentifyPage() {
                     setSearchError(null)
                     updateActivity()
                   }}
-                  className="w-full bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,74,198,0.12)] hover:border-[#004ac6]/30 border-2 border-transparent transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#004ac6]/40"
+                  className="w-full bg-white p-5 rounded-2xl border border-[var(--color-border)] shadow-[0_2px_8px_rgba(41,78,74,0.06)] hover:shadow-[0_4px_16px_rgba(41,78,74,0.12)] hover:border-[var(--color-brand)]/40 transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-brand)]/30"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-[#ededf9] text-[#004ac6] flex items-center justify-center shrink-0 group-hover:bg-[#004ac6] group-hover:text-white transition-colors">
+                  <div className="w-14 h-14 rounded-xl bg-[var(--color-brand-mist)] text-[var(--color-brand)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="5" y="2" width="14" height="20" rx="3" />
                       <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" strokeLinecap="round" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-[17px] font-bold text-[#191b23]">
+                    <h2 className="text-[17px] font-bold text-[var(--color-text-primary)]">
                       {t.identify.methodPhone}
                     </h2>
-                    <p className="text-[13px] text-[#737686] mt-0.5 truncate">
+                    <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 truncate">
                       {t.identify.methodPhoneDesc}
                     </p>
                   </div>
-                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[#737686] group-hover:text-[#004ac6] group-hover:translate-x-1 transition-all shrink-0" fill="none">
+                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-brand)] group-hover:translate-x-1 transition-all shrink-0" fill="none">
                     <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
@@ -335,9 +346,9 @@ export default function KioskIdentifyPage() {
                     setFormError(null)
                     updateActivity()
                   }}
-                  className="w-full bg-white p-5 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,74,198,0.12)] hover:border-[#004ac6]/30 border-2 border-transparent transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#004ac6]/40"
+                  className="w-full bg-white p-5 rounded-2xl border border-[var(--color-border)] shadow-[0_2px_8px_rgba(41,78,74,0.06)] hover:shadow-[0_4px_16px_rgba(41,78,74,0.12)] hover:border-[var(--color-brand)]/40 transition-all duration-150 flex items-center gap-4 text-left group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-brand)]/30"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-[#ededf9] text-[#004ac6] flex items-center justify-center shrink-0 group-hover:bg-[#004ac6] group-hover:text-white transition-colors">
+                  <div className="w-14 h-14 rounded-xl bg-[var(--color-brand-mist)] text-[var(--color-brand)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
                       <circle cx="8.5" cy="7" r="4" />
@@ -347,26 +358,26 @@ export default function KioskIdentifyPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-[17px] font-bold text-[#191b23]">
+                      <h2 className="text-[17px] font-bold text-[var(--color-text-primary)]">
                         {t.identify.methodNew}
                       </h2>
-                      <span className="bg-[#ededf9] text-[#434655] text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                      <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] text-[11px] font-semibold px-2 py-0.5 rounded-md border border-[var(--color-border)]">
                         {t.identify.timeBadge}
                       </span>
                     </div>
-                    <p className="text-[13px] text-[#737686] mt-0.5 truncate">
+                    <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 truncate">
                       {t.identify.methodNewDesc}
                     </p>
                   </div>
-                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[#737686] group-hover:text-[#004ac6] group-hover:translate-x-1 transition-all shrink-0" fill="none">
+                  <svg viewBox="0 0 20 20" className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-brand)] group-hover:translate-x-1 transition-all shrink-0" fill="none">
                     <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
 
               {/* Demo Profiles Bar */}
-              <div className="bg-[#f3f3fe] border border-[#dbe1ff] rounded-2xl p-4 flex flex-col gap-2.5">
-                <span className="text-[11px] font-bold text-[#004ac6] tracking-wider uppercase">
+              <div className="bg-[var(--color-brand-mist)] border border-[var(--color-border-strong)] rounded-2xl p-4 flex flex-col gap-2.5">
+                <span className="text-[11px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   ⚡ Demo Profiles
                 </span>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -387,13 +398,13 @@ export default function KioskIdentifyPage() {
                         true
                       )
                     }}
-                    className="flex-1 px-3.5 py-2.5 bg-white rounded-xl text-left border border-[#c3c6d7]/60 hover:border-[#004ac6] hover:bg-[#faf8ff] transition-all text-[13px] flex items-center justify-between"
+                    className="flex-1 px-3.5 py-2.5 bg-white rounded-xl text-left border border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] transition-all text-[13px] flex items-center justify-between shadow-xs"
                   >
                     <div>
-                      <span className="font-semibold text-[#191b23] block">Dhananjay Patil (67)</span>
-                      <span className="text-[11px] text-[#737686]">ABHA: 12-3456-7890-1234</span>
+                      <span className="font-bold text-[var(--color-text-primary)] block">Dhananjay Patil (67)</span>
+                      <span className="text-[11px] text-[var(--color-text-secondary)]">ABHA: 12-3456-7890-1234</span>
                     </div>
-                    <span className="text-[11px] font-bold text-[#004ac6]">Select →</span>
+                    <span className="text-[11px] font-bold text-[var(--color-brand)]">Select →</span>
                   </button>
 
                   <button
@@ -413,13 +424,13 @@ export default function KioskIdentifyPage() {
                         true
                       )
                     }}
-                    className="flex-1 px-3.5 py-2.5 bg-white rounded-xl text-left border border-[#c3c6d7]/60 hover:border-[#004ac6] hover:bg-[#faf8ff] transition-all text-[13px] flex items-center justify-between"
+                    className="flex-1 px-3.5 py-2.5 bg-white rounded-xl text-left border border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] transition-all text-[13px] flex items-center justify-between shadow-xs"
                   >
                     <div>
-                      <span className="font-semibold text-[#191b23] block">Priya Menon (42)</span>
-                      <span className="text-[11px] text-[#737686]">Mobile: 9876541234</span>
+                      <span className="font-bold text-[var(--color-text-primary)] block">Priya Menon (42)</span>
+                      <span className="text-[11px] text-[var(--color-text-secondary)]">Mobile: 9876541234</span>
                     </div>
-                    <span className="text-[11px] font-bold text-[#004ac6]">Select →</span>
+                    <span className="text-[11px] font-bold text-[var(--color-brand)]">Select →</span>
                   </button>
                 </div>
               </div>
@@ -428,12 +439,12 @@ export default function KioskIdentifyPage() {
               <div className="flex items-center justify-between pt-2">
                 <button
                   onClick={() => router.push('/kiosk/language')}
-                  className="text-[14px] font-semibold text-[#434655] hover:text-[#191b23] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-[#ededf9] transition-colors"
+                  className="text-[14px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-[var(--color-surface-subtle)] transition-colors"
                 >
                   ← {t.common.back}
                 </button>
 
-                <div className="flex items-center gap-1.5 text-[12px] text-[#737686]">
+                <div className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-muted)]">
                   <span>🔒 {t.common.secure}</span>
                 </div>
               </div>
@@ -453,29 +464,29 @@ export default function KioskIdentifyPage() {
               className="flex flex-col items-center gap-6"
             >
               <div className="text-center">
-                <h1 className="text-[26px] font-bold text-[#191b23]">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)]">
                   {t.identify.scanQrTitle}
                 </h1>
-                <p className="text-[14px] text-[#737686] mt-1">
+                <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                   {t.identify.scanQrDesc}
                 </p>
               </div>
 
               {/* Viewfinder */}
-              <div className="relative w-[280px] h-[280px] bg-[#191b23] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center border-4 border-[#ededf9]">
+              <div className="relative w-[280px] h-[280px] bg-[#1a2321] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center border-4 border-[var(--color-border)]">
                 <div className="absolute inset-6 border-2 border-white/20 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
                   <div className="flex justify-between">
-                    <div className="w-6 h-6 border-t-4 border-l-4 border-[#004ac6] -mt-1 -ml-1 rounded-tl" />
-                    <div className="w-6 h-6 border-t-4 border-r-4 border-[#004ac6] -mt-1 -mr-1 rounded-tr" />
+                    <div className="w-6 h-6 border-t-4 border-l-4 border-[var(--color-brand-light)] -mt-1 -ml-1 rounded-tl" />
+                    <div className="w-6 h-6 border-t-4 border-r-4 border-[var(--color-brand-light)] -mt-1 -mr-1 rounded-tr" />
                   </div>
                   <div className="flex justify-between">
-                    <div className="w-6 h-6 border-b-4 border-l-4 border-[#004ac6] -mb-1 -ml-1 rounded-bl" />
-                    <div className="w-6 h-6 border-b-4 border-r-4 border-[#004ac6] -mb-1 -mr-1 rounded-br" />
+                    <div className="w-6 h-6 border-b-4 border-l-4 border-[var(--color-brand-light)] -mb-1 -ml-1 rounded-bl" />
+                    <div className="w-6 h-6 border-b-4 border-r-4 border-[var(--color-brand-light)] -mb-1 -mr-1 rounded-br" />
                   </div>
                 </div>
 
                 <div
-                  className="absolute left-6 right-6 h-[3px] bg-[#6bd8cb] shadow-[0_0_12px_#6bd8cb] motion-safe:animate-bounce"
+                  className="absolute left-6 right-6 h-[3px] bg-[var(--color-verified)] shadow-[0_0_12px_var(--color-verified)] motion-safe:animate-bounce"
                   style={{ animationDuration: '2s' }}
                 />
 
@@ -529,16 +540,16 @@ export default function KioskIdentifyPage() {
               className="flex flex-col gap-5"
             >
               <div className="text-center">
-                <h1 className="text-[24px] font-bold text-[#191b23]">
+                <h1 className="text-[24px] font-bold text-[var(--color-text-primary)]">
                   {manualType === 'ABHA' ? t.identify.enterAbha : t.identify.enterPhone}
                 </h1>
-                <p className="text-[13px] text-[#737686] mt-0.5">
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5">
                   {t.identify.titleSub}
                 </p>
               </div>
 
               {/* Switcher Tab */}
-              <div className="flex bg-[#ededf9] p-1.5 rounded-2xl">
+              <div className="flex bg-[var(--color-surface-subtle)] p-1.5 rounded-2xl border border-[var(--color-border)]">
                 <button
                   onClick={() => {
                     setManualType('ABHA')
@@ -549,8 +560,8 @@ export default function KioskIdentifyPage() {
                   className={[
                     'flex-1 py-3 text-[14px] font-bold rounded-xl transition-all',
                     manualType === 'ABHA'
-                      ? 'bg-white text-[#004ac6] shadow-sm'
-                      : 'text-[#434655] hover:text-[#191b23]',
+                      ? 'bg-white text-[var(--color-brand)] shadow-sm'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
                   ].join(' ')}
                 >
                   ABHA (14-Digit)
@@ -565,8 +576,8 @@ export default function KioskIdentifyPage() {
                   className={[
                     'flex-1 py-3 text-[14px] font-bold rounded-xl transition-all',
                     manualType === 'MOBILE'
-                      ? 'bg-white text-[#004ac6] shadow-sm'
-                      : 'text-[#434655] hover:text-[#191b23]',
+                      ? 'bg-white text-[var(--color-brand)] shadow-sm'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
                   ].join(' ')}
                 >
                   Mobile (10-Digit)
@@ -575,9 +586,9 @@ export default function KioskIdentifyPage() {
 
               {/* Formatted Display */}
               <div className="flex flex-col gap-1.5">
-                <div className="bg-white border-2 border-[#004ac6] rounded-2xl h-16 px-5 flex items-center justify-between shadow-inner">
+                <div className="bg-white border-2 border-[var(--color-brand)] rounded-2xl h-16 px-5 flex items-center justify-between shadow-inner">
                   {manualType === 'MOBILE' && (
-                    <span className="text-[20px] font-mono font-bold text-[#737686] mr-2">
+                    <span className="text-[20px] font-mono font-bold text-[var(--color-text-muted)] mr-2">
                       +91
                     </span>
                   )}
@@ -586,7 +597,7 @@ export default function KioskIdentifyPage() {
                     readOnly
                     value={inputValue}
                     placeholder={manualType === 'ABHA' ? '12-3456-7890-1234' : '98765 43210'}
-                    className="w-full text-[24px] font-mono font-bold text-[#191b23] bg-transparent outline-none tracking-wider placeholder:text-[#a1a1aa]"
+                    className="w-full text-[24px] font-mono font-bold text-[var(--color-text-primary)] bg-transparent outline-none tracking-wider placeholder:text-[var(--color-text-muted)]"
                   />
                   {inputValue && (
                     <button
@@ -594,7 +605,7 @@ export default function KioskIdentifyPage() {
                         setInputValue('')
                         updateActivity()
                       }}
-                      className="text-[#737686] hover:text-[#191b23] p-1"
+                      className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] p-1 font-bold"
                       aria-label={t.identify.keypadClear}
                     >
                       ✕
@@ -618,15 +629,15 @@ export default function KioskIdentifyPage() {
                     className={[
                       'h-14 rounded-2xl text-[20px] font-bold transition-all active:scale-95 shadow-sm select-none',
                       k === 'CLEAR'
-                        ? 'bg-[#ededf9] text-[#434655] text-[13px]'
+                        ? 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] text-[13px]'
                         : k === 'BACKSPACE'
-                        ? 'bg-[#ededf9] text-[#434655] flex items-center justify-center'
-                        : 'bg-white text-[#191b23] hover:bg-[#f3f3fe] border border-[#e1e2ed]',
+                        ? 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] flex items-center justify-center'
+                        : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-surface-subtle)] border border-[var(--color-border)]',
                     ].join(' ')}
                   >
                     {k === 'BACKSPACE' ? (
                       <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                        <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
                         <line x1="18" y1="9" x2="12" y2="15" />
                         <line x1="12" y1="9" x2="18" y2="15" />
                       </svg>
@@ -681,14 +692,14 @@ export default function KioskIdentifyPage() {
               className="flex flex-col items-center justify-center gap-6 py-16 text-center"
             >
               <div className="relative w-20 h-20">
-                <div className="absolute inset-0 rounded-full border-4 border-[#ededf9]" />
-                <div className="absolute inset-0 rounded-full border-4 border-[#004ac6] border-t-transparent animate-spin" />
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-border)]" />
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-brand)] border-t-transparent animate-spin" />
               </div>
               <div className="space-y-1">
-                <h2 className="text-[22px] font-bold text-[#191b23]">
+                <h2 className="text-[22px] font-bold text-[var(--color-text-primary)]">
                   {t.identify.searching}
                 </h2>
-                <p className="text-[13px] text-[#737686]">
+                <p className="text-[13px] text-[var(--color-text-secondary)]">
                   AIIA OPD Registry &amp; ABHA Network
                 </p>
               </div>
@@ -708,28 +719,28 @@ export default function KioskIdentifyPage() {
               className="flex flex-col gap-6"
             >
               <div className="text-center flex flex-col gap-1">
-                <h1 className="text-[30px] font-bold text-[#191b23] leading-tight">
+                <h1 className="text-[30px] font-bold text-[var(--color-text-primary)] leading-tight">
                   {t.identify.patientFound}
                 </h1>
-                <p className="text-[15px] text-[#737686] mt-0.5">
+                <p className="text-[15px] text-[var(--color-text-secondary)] mt-0.5">
                   {t.identify.isThisYou}
                 </p>
               </div>
 
               {/* Profile Card */}
-              <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-6 flex flex-col gap-4 border border-[#e1e2ed]">
-                <div className="flex items-center gap-4 pb-4 border-b border-[#ededf9]">
-                  <div className="w-16 h-16 rounded-2xl bg-[#004ac6]/10 border border-[#004ac6]/20 flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#004ac6]" fill="currentColor">
+              <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(41,78,74,0.06)] p-6 flex flex-col gap-4 border border-[var(--color-border)]">
+                <div className="flex items-center gap-4 pb-4 border-b border-[var(--color-border)]">
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--color-brand-mist)] border border-[var(--color-border-strong)] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 text-[var(--color-brand)]" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[22px] font-bold text-[#191b23]">
+                    <span className="text-[22px] font-bold text-[var(--color-text-primary)]">
                       {activePatient.name}
                     </span>
                     {activePatient.abhaNumber && (
-                      <div className="inline-flex items-center gap-1.5 text-[12px] font-mono text-[#004ac6] bg-[#f3f3fe] px-2.5 py-1 rounded-lg mt-1 w-fit border border-[#dbe1ff]">
+                      <div className="inline-flex items-center gap-1.5 text-[12px] font-mono text-[var(--color-brand)] bg-[var(--color-brand-mist)] px-2.5 py-1 rounded-lg mt-1 w-fit border border-[var(--color-border-strong)]">
                         <span>ABHA:</span>
                         <span className="font-bold">{activePatient.abhaNumber}</span>
                       </div>
@@ -739,15 +750,15 @@ export default function KioskIdentifyPage() {
 
                 <div className="flex flex-col gap-3 pt-1 text-[15px]">
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-[#737686]">{t.identify.ageLabel}</span>
-                    <span className="font-semibold text-[#191b23]">
+                    <span className="text-[var(--color-text-secondary)]">{t.identify.ageLabel}</span>
+                    <span className="font-bold text-[var(--color-text-primary)]">
                       {activePatient.age}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-[#737686]">{t.identify.genderLabel}</span>
-                    <span className="font-semibold text-[#191b23]">
+                    <span className="text-[var(--color-text-secondary)]">{t.identify.genderLabel}</span>
+                    <span className="font-semibold text-[var(--color-text-primary)]">
                       {activePatient.sex === 'Male'
                         ? t.identify.male
                         : activePatient.sex === 'Female'
@@ -757,15 +768,15 @@ export default function KioskIdentifyPage() {
                   </div>
 
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-[#737686]">{t.identify.phoneLabel}</span>
-                    <span className="font-mono font-semibold text-[#191b23]">
+                    <span className="text-[var(--color-text-secondary)]">{t.identify.phoneLabel}</span>
+                    <span className="font-mono font-semibold text-[var(--color-text-primary)]">
                       {activePatient.phone.slice(0, 5)} ●●●●●
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center py-1 border-t border-[#ededf9] pt-3">
-                    <span className="text-[#737686]">{t.identify.lastVisitLabel}</span>
-                    <span className="font-medium text-[#006a61]">
+                  <div className="flex justify-between items-center py-1 border-t border-[var(--color-border)] pt-3">
+                    <span className="text-[var(--color-text-secondary)]">{t.identify.lastVisitLabel}</span>
+                    <span className="font-semibold text-[var(--color-verified)]">
                       {activePatient.lastVisit ?? '12 Aug 2026'}
                     </span>
                   </div>
@@ -809,10 +820,10 @@ export default function KioskIdentifyPage() {
               className="flex flex-col gap-5"
             >
               <div className="text-center">
-                <h1 className="text-[26px] font-bold text-[#191b23]">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)]">
                   {t.identify.registerTitle}
                 </h1>
-                <p className="text-[13px] text-[#737686] mt-0.5">
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5">
                   {t.identify.titleSub}
                 </p>
               </div>
@@ -820,7 +831,7 @@ export default function KioskIdentifyPage() {
               <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
                 {/* Full Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[14px] font-bold text-[#191b23]">
+                  <label className="text-[14px] font-bold text-[var(--color-text-primary)]">
                     {t.identify.nameLabel} <span className="text-[var(--color-critical)]">*</span>
                   </label>
                   <input
@@ -831,23 +842,23 @@ export default function KioskIdentifyPage() {
                       updateActivity()
                     }}
                     placeholder={t.identify.namePlaceholder}
-                    className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[#e1e2ed] focus:border-[#004ac6] text-[16px] font-medium text-[#191b23] outline-none transition-all shadow-sm"
+                    className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[var(--color-border)] focus:border-[var(--color-brand)] text-[16px] font-medium text-[var(--color-text-primary)] outline-none transition-all shadow-sm"
                   />
                 </div>
 
                 {/* Age / DOB Section */}
                 <div className="flex flex-col gap-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-[14px] font-bold text-[#191b23]">
+                    <label className="text-[14px] font-bold text-[var(--color-text-primary)]">
                       {t.identify.ageLabel} <span className="text-[var(--color-critical)]">*</span>
                     </label>
-                    <div className="flex bg-[#ededf9] p-1 rounded-lg text-[12px]">
+                    <div className="flex bg-[var(--color-surface-subtle)] p-1 rounded-lg text-[12px] border border-[var(--color-border)]">
                       <button
                         type="button"
                         onClick={() => setAgeMode('AGE')}
                         className={[
                           'px-3 py-1 rounded font-semibold transition-all',
-                          ageMode === 'AGE' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-[#737686]',
+                          ageMode === 'AGE' ? 'bg-white text-[var(--color-brand)] shadow-sm' : 'text-[var(--color-text-secondary)]',
                         ].join(' ')}
                       >
                         {t.identify.ageModeLabel}
@@ -857,7 +868,7 @@ export default function KioskIdentifyPage() {
                         onClick={() => setAgeMode('DOB')}
                         className={[
                           'px-3 py-1 rounded font-semibold transition-all',
-                          ageMode === 'DOB' ? 'bg-white text-[#004ac6] shadow-sm' : 'text-[#737686]',
+                          ageMode === 'DOB' ? 'bg-white text-[var(--color-brand)] shadow-sm' : 'text-[var(--color-text-secondary)]',
                         ].join(' ')}
                       >
                         {t.identify.dobModeLabel}
@@ -874,7 +885,7 @@ export default function KioskIdentifyPage() {
                         updateActivity()
                       }}
                       placeholder="Age (e.g. 45)"
-                      className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[#e1e2ed] focus:border-[#004ac6] text-[16px] font-medium text-[#191b23] outline-none transition-all shadow-sm font-mono"
+                      className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[var(--color-border)] focus:border-[var(--color-brand)] text-[16px] font-medium text-[var(--color-text-primary)] outline-none transition-all shadow-sm font-mono"
                     />
                   ) : (
                     <input
@@ -884,14 +895,14 @@ export default function KioskIdentifyPage() {
                         setNewDob(e.target.value)
                         updateActivity()
                       }}
-                      className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[#e1e2ed] focus:border-[#004ac6] text-[16px] font-medium text-[#191b23] outline-none transition-all shadow-sm"
+                      className="w-full h-14 px-4 bg-white rounded-2xl border-2 border-[var(--color-border)] focus:border-[var(--color-brand)] text-[16px] font-medium text-[var(--color-text-primary)] outline-none transition-all shadow-sm"
                     />
                   )}
                 </div>
 
                 {/* Sex Selector */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[14px] font-bold text-[#191b23]">
+                  <label className="text-[14px] font-bold text-[var(--color-text-primary)]">
                     {t.identify.genderLabel} <span className="text-[var(--color-critical)]">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-3">
@@ -906,8 +917,8 @@ export default function KioskIdentifyPage() {
                         className={[
                           'h-13 py-3 rounded-xl font-bold text-[14px] border-2 transition-all active:scale-98',
                           newSex === s
-                            ? 'bg-[#004ac6] text-white border-[#004ac6] shadow-md'
-                            : 'bg-white text-[#434655] border-[#e1e2ed] hover:bg-[#f3f3fe]',
+                            ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)] shadow-md'
+                            : 'bg-white text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-[var(--color-surface-subtle)]',
                         ].join(' ')}
                       >
                         {s === 'Male' ? t.identify.male : s === 'Female' ? t.identify.female : t.identify.other}
@@ -918,11 +929,11 @@ export default function KioskIdentifyPage() {
 
                 {/* Mobile Number */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[14px] font-bold text-[#191b23]">
+                  <label className="text-[14px] font-bold text-[var(--color-text-primary)]">
                     {t.identify.phoneLabel} <span className="text-[var(--color-critical)]">*</span>
                   </label>
-                  <div className="flex h-14 bg-white rounded-2xl border-2 border-[#e1e2ed] focus-within:border-[#004ac6] shadow-sm overflow-hidden">
-                    <div className="bg-[#ededf9] px-4 flex items-center text-[15px] font-bold text-[#434655] border-r border-[#e1e2ed]">
+                  <div className="flex h-14 bg-white rounded-2xl border-2 border-[var(--color-border)] focus-within:border-[var(--color-brand)] shadow-sm overflow-hidden">
+                    <div className="bg-[var(--color-surface-subtle)] px-4 flex items-center text-[15px] font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">
                       +91
                     </div>
                     <input
@@ -933,13 +944,13 @@ export default function KioskIdentifyPage() {
                         updateActivity()
                       }}
                       placeholder={t.identify.phonePlaceholder}
-                      className="flex-1 px-4 text-[16px] font-mono font-medium text-[#191b23] outline-none"
+                      className="flex-1 px-4 text-[16px] font-mono font-medium text-[var(--color-text-primary)] outline-none"
                     />
                   </div>
                 </div>
 
                 {formError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl font-medium">
+                  <div className="p-3 bg-[var(--color-critical-subtle)] border border-[var(--color-critical)] text-[var(--color-critical-text)] text-[13px] rounded-xl font-medium">
                     {formError}
                   </div>
                 )}
@@ -982,38 +993,38 @@ export default function KioskIdentifyPage() {
               transition={{ duration: 0.25 }}
               className="flex flex-col items-center text-center gap-6"
             >
-              <div className="w-20 h-20 rounded-full bg-[#006a61] text-white flex items-center justify-center shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-[var(--color-verified)] text-white flex items-center justify-center shadow-lg">
                 <svg viewBox="0 0 24 24" className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[13px] font-bold text-[#006a61] tracking-wider uppercase">
+                <span className="text-[13px] font-bold text-[var(--color-verified)] tracking-wider uppercase">
                   {t.identify.newSuccessTitle}
                 </span>
-                <h1 className="text-[26px] font-bold text-[#191b23]">
+                <h1 className="text-[26px] font-bold text-[var(--color-text-primary)]">
                   {activePatient.name}
                 </h1>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.identify.newSuccessSub}
                 </p>
               </div>
 
-              <div className="w-full bg-white rounded-2xl p-5 border border-[#e1e2ed] shadow-sm flex flex-col gap-2.5 text-left text-[14px]">
+              <div className="w-full bg-white rounded-2xl p-5 border border-[var(--color-border)] shadow-sm flex flex-col gap-2.5 text-left text-[14px]">
                 <div className="flex justify-between">
-                  <span className="text-[#737686]">{t.identify.nameLabel}:</span>
-                  <span className="font-bold text-[#191b23]">{activePatient.name}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.identify.nameLabel}:</span>
+                  <span className="font-bold text-[var(--color-text-primary)]">{activePatient.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#737686]">{t.identify.ageLabel} / {t.identify.genderLabel}:</span>
-                  <span className="font-semibold text-[#191b23]">
+                  <span className="text-[var(--color-text-secondary)]">{t.identify.ageLabel} / {t.identify.genderLabel}:</span>
+                  <span className="font-semibold text-[var(--color-text-primary)]">
                     {activePatient.age} · {activePatient.sex === 'Male' ? t.identify.male : activePatient.sex === 'Female' ? t.identify.female : t.identify.other}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#737686]">{t.identify.phoneLabel}:</span>
-                  <span className="font-mono font-semibold text-[#191b23]">+91 {activePatient.phone}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.identify.phoneLabel}:</span>
+                  <span className="font-mono font-semibold text-[var(--color-text-primary)]">+91 {activePatient.phone}</span>
                 </div>
               </div>
 

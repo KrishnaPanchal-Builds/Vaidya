@@ -146,7 +146,7 @@ export default function KioskIntakePage() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff] text-[#191b23]">
+    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
       {/* Spacer for fixed header */}
       <div className="h-14 shrink-0" />
 
@@ -154,16 +154,16 @@ export default function KioskIntakePage() {
       <div className="flex-1 w-full max-w-[620px] mx-auto px-5 py-6 flex flex-col justify-center">
         {/* Patient header chip */}
         {patientData && stage !== 'SUMMARY' && (
-          <div className="flex items-center justify-between bg-white px-4 py-2 rounded-2xl border border-[#e1e2ed] shadow-sm mb-3">
+          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 py-2 rounded-2xl border border-[var(--color-border)] shadow-sm mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center font-bold text-[12px]">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[12px]">
                 {patientData.name.charAt(0)}
               </div>
-              <span className="text-[13px] font-bold text-[#191b23]">
+              <span className="text-[13px] font-bold text-[var(--color-text-primary)]">
                 {patientData.name} ({patientData.age} yrs)
               </span>
             </div>
-            <span className="text-[11px] font-bold text-[#006a61] bg-[#86f2e4]/30 px-2 py-0.5 rounded-md">
+            <span className="text-[11px] font-bold text-[var(--color-verified)] bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] px-2 py-0.5 rounded-md">
               {t.intake.title}
             </span>
           </div>
@@ -176,51 +176,51 @@ export default function KioskIntakePage() {
               className={[
                 'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
                 stage === 'CHIEF_COMPLAINT'
-                  ? 'bg-[#004ac6] text-white shadow-sm'
-                  : 'bg-[#ededf9] text-[#004ac6]',
+                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
+                  : 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]',
               ].join(' ')}
             >
               <span>{t.intake.timelineComplaint}</span>
               {stage !== 'CHIEF_COMPLAINT' && <span>✓</span>}
             </div>
-            <span className="text-[#a1a1aa]">→</span>
+            <span className="text-[var(--color-text-muted)]">→</span>
 
             <div
               className={[
                 'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
                 stage === 'DURATION'
-                  ? 'bg-[#004ac6] text-white shadow-sm'
+                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
                   : stage === 'CHARACTER' || stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[#ededf9] text-[#004ac6]'
-                  : 'bg-[#f3f3fe] text-[#a1a1aa]',
+                  ? 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]'
+                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
               ].join(' ')}
             >
               <span>{t.intake.timelineDuration}</span>
               {(stage === 'CHARACTER' || stage === 'AYUSH_LIFESTYLE') && <span>✓</span>}
             </div>
-            <span className="text-[#a1a1aa]">→</span>
+            <span className="text-[var(--color-text-muted)]">→</span>
 
             <div
               className={[
                 'px-3 py-1 rounded-full font-semibold transition-all flex items-center gap-1',
                 stage === 'CHARACTER'
-                  ? 'bg-[#004ac6] text-white shadow-sm'
+                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
                   : stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[#ededf9] text-[#004ac6]'
-                  : 'bg-[#f3f3fe] text-[#a1a1aa]',
+                  ? 'bg-[var(--color-sage-soft)] text-[var(--color-brand)]'
+                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
               ].join(' ')}
             >
               <span>{t.intake.timelineQuality}</span>
               {stage === 'AYUSH_LIFESTYLE' && <span>✓</span>}
             </div>
-            <span className="text-[#a1a1aa]">→</span>
+            <span className="text-[var(--color-text-muted)]">→</span>
 
             <div
               className={[
                 'px-3 py-1 rounded-full font-semibold transition-all',
                 stage === 'AYUSH_LIFESTYLE'
-                  ? 'bg-[#004ac6] text-white shadow-sm'
-                  : 'bg-[#f3f3fe] text-[#a1a1aa]',
+                  ? 'bg-[var(--color-brand)] text-white shadow-sm'
+                  : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]',
               ].join(' ')}
             >
               <span>{t.intake.timelineLifestyle}</span>
@@ -242,21 +242,21 @@ export default function KioskIntakePage() {
               className="flex flex-col gap-6 text-center"
             >
               <div className="space-y-1.5">
-                <span className="text-[13px] font-bold text-[#004ac6] tracking-wider uppercase">
+                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   Vaidya Clinical Intake
                 </span>
-                <h1 className="text-[30px] font-bold text-[#191b23] leading-tight">
+                <h1 className="text-[30px] font-bold text-[var(--color-text-primary)] leading-tight">
                   {t.intake.title}
                 </h1>
-                <p className="text-[14px] text-[#737686] max-w-[480px] mx-auto leading-relaxed">
+                <p className="text-[14px] text-[var(--color-text-secondary)] max-w-[480px] mx-auto leading-relaxed">
                   {t.intake.introDesc}
                 </p>
               </div>
 
               {/* Multimodal Feature Cards */}
-              <div className="bg-white rounded-3xl p-6 border border-[#e1e2ed] shadow-sm flex flex-col gap-4 text-left">
+              <div className="bg-[var(--color-surface)] rounded-3xl p-6 border border-[var(--color-border)] shadow-sm flex flex-col gap-4 text-left">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
                     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -264,23 +264,23 @@ export default function KioskIntakePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-[#191b23]">{t.intake.voiceFeatureTitle}</h3>
-                    <p className="text-[13px] text-[#737686]">{t.intake.voiceFeatureDesc}</p>
+                    <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceFeatureTitle}</h3>
+                    <p className="text-[13px] text-[var(--color-text-secondary)]">{t.intake.voiceFeatureDesc}</p>
                   </div>
                 </div>
 
-                <div className="h-[1px] bg-[#ededf9]" />
+                <div className="h-[1px] bg-[var(--color-border)]" />
 
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-[#86f2e4]/30 text-[#006a61] flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[var(--color-verified-bg)] text-[var(--color-verified)] flex items-center justify-center shrink-0">
                     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <path d="M9 9h6M9 13h6M9 17h4" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-[#191b23]">{t.intake.touchFeatureTitle}</h3>
-                    <p className="text-[13px] text-[#737686]">{t.intake.touchFeatureDesc}</p>
+                    <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">{t.intake.touchFeatureTitle}</h3>
+                    <p className="text-[13px] text-[var(--color-text-secondary)]">{t.intake.touchFeatureDesc}</p>
                   </div>
                 </div>
               </div>
@@ -323,12 +323,12 @@ export default function KioskIntakePage() {
               {/* Question Header with Audio Affordance */}
               <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[25px] font-bold text-[#191b23] leading-tight">
+                  <h1 className="text-[25px] font-bold text-[var(--color-text-primary)] leading-tight">
                     {t.intake.complaintTitle}
                   </h1>
                   <button
                     onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[#ededf9] text-[#004ac6] hover:bg-[#dbe1ff] transition-colors"
+                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)] transition-colors"
                     aria-label="Hear question audio"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -337,18 +337,18 @@ export default function KioskIntakePage() {
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.intake.complaintSub}
                 </p>
                 {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[#004ac6] bg-[#f3f3fe] px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
                     {t.intake.playingAudio}
                   </span>
                 )}
               </div>
 
               {/* Voice Primary Widget */}
-              <div className="bg-white rounded-3xl p-4 border border-[#e1e2ed] shadow-sm flex flex-col items-center gap-2 text-center">
+              <div className="bg-[var(--color-surface)] rounded-3xl p-4 border border-[var(--color-border)] shadow-sm flex flex-col items-center gap-2 text-center">
                 <button
                   onClick={() => {
                     const samples: Record<string, string> = {
@@ -366,7 +366,7 @@ export default function KioskIntakePage() {
                       t.intake.catStomach
                     )
                   }}
-                  className="w-16 h-16 rounded-full bg-[#004ac6] text-white flex items-center justify-center shadow-[0_4px_16px_rgba(0,74,198,0.25)] hover:scale-105 active:scale-95 transition-transform"
+                  className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-transform"
                   aria-label="Speak symptoms"
                 >
                   <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2">
@@ -375,18 +375,17 @@ export default function KioskIntakePage() {
                     <line x1="12" y1="19" x2="12" y2="22" />
                   </svg>
                 </button>
-                <span className="text-[13px] font-bold text-[#004ac6]">
+                <span className="text-[13px] font-bold text-[var(--color-brand)]">
                   {t.intake.complaintVoicePrompt}
                 </span>
               </div>
 
-
               <div className="flex items-center gap-2">
-                <div className="h-[1px] flex-1 bg-[#e1e2ed]" />
-                <span className="text-[10px] font-bold text-[#737686] uppercase tracking-wider">
+                <div className="h-[1px] flex-1 bg-[var(--color-border)]" />
+                <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                   {t.intake.orSelectCat}
                 </span>
-                <div className="h-[1px] flex-1 bg-[#e1e2ed]" />
+                <div className="h-[1px] flex-1 bg-[var(--color-border)]" />
               </div>
 
               {/* Touch Category Grid */}
@@ -402,10 +401,10 @@ export default function KioskIntakePage() {
                   <button
                     key={cat.name}
                     onClick={() => handleSelectComplaint(cat.name)}
-                    className="p-3 bg-white rounded-2xl border-2 border-[#e1e2ed] hover:border-[#004ac6] hover:bg-[#faf8ff] shadow-sm flex items-center gap-2.5 text-left transition-all active:scale-98"
+                    className="p-3 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center gap-2.5 text-left transition-all active:scale-98"
                   >
                     <span className="text-[20px] shrink-0">{cat.icon}</span>
-                    <span className="text-[13px] font-bold text-[#191b23] block truncate">
+                    <span className="text-[13px] font-bold text-[var(--color-text-primary)] block truncate">
                       {cat.name}
                     </span>
                   </button>
@@ -428,12 +427,12 @@ export default function KioskIntakePage() {
             >
               <div className="space-y-1 text-center">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[#191b23] leading-tight">
+                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
                     {t.intake.durationTitle}
                   </h1>
                   <button
                     onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[#ededf9] text-[#004ac6] hover:bg-[#dbe1ff]"
+                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
                     aria-label="Hear question audio"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -442,20 +441,20 @@ export default function KioskIntakePage() {
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.intake.durationSub}
                 </p>
                 {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[#004ac6] bg-[#f3f3fe] px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
                     {t.intake.playingAudio}
                   </span>
                 )}
               </div>
 
               {/* Multimodal Speak Action Bar */}
-              <div className="bg-[#f3f3fe] p-3 rounded-2xl border border-[#dbe1ff] flex items-center justify-between">
-                <span className="text-[13px] text-[#434655]">
-                  {t.intake.durationRegarding} <strong className="text-[#004ac6]">{selectedComplaint}</strong>
+              <div className="bg-[var(--color-surface-subtle)] p-3 rounded-2xl border border-[var(--color-border)] flex items-center justify-between">
+                <span className="text-[13px] text-[var(--color-text-secondary)]">
+                  {t.intake.durationRegarding} <strong className="text-[var(--color-brand)]">{selectedComplaint}</strong>
                 </span>
                 <button
                   onClick={() => {
@@ -474,7 +473,7 @@ export default function KioskIntakePage() {
                       t.intake.durWeeks
                     )
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#004ac6] text-white rounded-xl text-[12px] font-bold hover:bg-[#003ea8]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
                 >
                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -495,19 +494,19 @@ export default function KioskIntakePage() {
                   <button
                     key={opt}
                     onClick={() => handleSelectDuration(opt)}
-                    className="p-3.5 bg-white rounded-2xl border-2 border-[#e1e2ed] hover:border-[#004ac6] hover:bg-[#faf8ff] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
                   >
-                    <span className="text-[15px] font-bold text-[#191b23] block">
+                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
                       {opt}
                     </span>
-                    <span className="text-[16px] text-[#004ac6]">→</span>
+                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
                   </button>
                 ))}
               </div>
 
               <button
                 onClick={() => setStage('CHIEF_COMPLAINT')}
-                className="text-[13px] font-semibold text-[#737686] hover:text-[#191b23] py-1 text-left"
+                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
               >
                 ← {t.common.back}
               </button>
@@ -528,12 +527,12 @@ export default function KioskIntakePage() {
             >
               <div className="space-y-1 text-center">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[#191b23] leading-tight">
+                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
                     {t.intake.qualityTitle}
                   </h1>
                   <button
                     onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[#ededf9] text-[#004ac6] hover:bg-[#dbe1ff]"
+                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
                     aria-label="Hear question audio"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -542,19 +541,19 @@ export default function KioskIntakePage() {
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.intake.qualitySub}
                 </p>
                 {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[#004ac6] bg-[#f3f3fe] px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-0.5 rounded-full animate-pulse">
                     {t.intake.playingAudio}
                   </span>
                 )}
               </div>
 
               {/* Multimodal Speak Action Bar */}
-              <div className="bg-[#f3f3fe] p-3 rounded-2xl border border-[#dbe1ff] flex items-center justify-between">
-                <span className="text-[13px] text-[#434655]">
+              <div className="bg-[var(--color-surface-subtle)] p-3 rounded-2xl border border-[var(--color-border)] flex items-center justify-between">
+                <span className="text-[13px] text-[var(--color-text-secondary)]">
                   {t.intake.qualityRegarding}
                 </span>
                 <button
@@ -574,7 +573,7 @@ export default function KioskIntakePage() {
                       t.intake.qualBurning
                     )
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#004ac6] text-white rounded-xl text-[12px] font-bold hover:bg-[#003ea8]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
                 >
                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -596,19 +595,19 @@ export default function KioskIntakePage() {
                   <button
                     key={opt}
                     onClick={() => handleSelectCharacter(opt)}
-                    className="p-3.5 bg-white rounded-2xl border-2 border-[#e1e2ed] hover:border-[#004ac6] hover:bg-[#faf8ff] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
                   >
-                    <span className="text-[15px] font-bold text-[#191b23] block">
+                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
                       {opt}
                     </span>
-                    <span className="text-[16px] text-[#004ac6]">→</span>
+                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
                   </button>
                 ))}
               </div>
 
               <button
                 onClick={() => setStage('DURATION')}
-                className="text-[13px] font-semibold text-[#737686] hover:text-[#191b23] py-1 text-left"
+                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
               >
                 ← {t.common.back}
               </button>
@@ -629,12 +628,12 @@ export default function KioskIntakePage() {
             >
               <div className="space-y-1 text-center">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[24px] font-bold text-[#191b23] leading-tight">
+                  <h1 className="text-[24px] font-bold text-[var(--color-text-primary)] leading-tight">
                     {t.intake.lifestyleTitle}
                   </h1>
                   <button
                     onClick={() => handleHearQuestion()}
-                    className="p-1.5 rounded-full bg-[#ededf9] text-[#006a61] hover:bg-[#dbe1ff]"
+                    className="p-1.5 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] hover:bg-[var(--color-sage-border)]"
                     aria-label="Hear question audio"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -643,19 +642,19 @@ export default function KioskIntakePage() {
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.intake.lifestyleSub}
                 </p>
                 {isSpeakingQuestion && (
-                  <span className="text-[11px] font-semibold text-[#006a61] bg-[#f0fdfa] px-2.5 py-0.5 rounded-full animate-pulse">
+                  <span className="text-[11px] font-semibold text-[var(--color-verified)] bg-[var(--color-verified-bg)] px-2.5 py-0.5 rounded-full animate-pulse">
                     {t.intake.playingAudio}
                   </span>
                 )}
               </div>
 
               {/* Multimodal Speak Action Bar */}
-              <div className="bg-[#f0fdfa] p-3 rounded-2xl border border-[#99f6e4] flex items-center justify-between">
-                <span className="text-[13px] text-[#006a61] font-medium">
+              <div className="bg-[var(--color-verified-bg)] p-3 rounded-2xl border border-[var(--color-sage-border)] flex items-center justify-between">
+                <span className="text-[13px] text-[var(--color-verified)] font-medium">
                   {t.intake.lifestyleTag}
                 </span>
                 <button
@@ -675,7 +674,7 @@ export default function KioskIntakePage() {
                       t.intake.lifeSpicy
                     )
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#006a61] text-white rounded-xl text-[12px] font-bold hover:bg-[#005049]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-brand)] text-white rounded-xl text-[12px] font-bold hover:bg-[var(--color-brand-hover)] transition-colors"
                 >
                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -696,19 +695,19 @@ export default function KioskIntakePage() {
                   <button
                     key={opt}
                     onClick={() => handleSelectLifestyle(opt)}
-                    className="p-3.5 bg-white rounded-2xl border-2 border-[#e1e2ed] hover:border-[#006a61] hover:bg-[#f0fdfa] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
+                    className="p-3.5 bg-[var(--color-surface)] rounded-2xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] shadow-sm flex items-center justify-between text-left transition-all active:scale-98"
                   >
-                    <span className="text-[15px] font-bold text-[#191b23] block">
+                    <span className="text-[15px] font-bold text-[var(--color-text-primary)] block">
                       {opt}
                     </span>
-                    <span className="text-[16px] text-[#006a61]">→</span>
+                    <span className="text-[16px] text-[var(--color-brand)]">→</span>
                   </button>
                 ))}
               </div>
 
               <button
                 onClick={() => setStage('CHARACTER')}
-                className="text-[13px] font-semibold text-[#737686] hover:text-[#191b23] py-1 text-left"
+                className="text-[13px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-1 text-left"
               >
                 ← {t.common.back}
               </button>
@@ -727,54 +726,54 @@ export default function KioskIntakePage() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-5 text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[#006a61] text-white flex items-center justify-center mx-auto shadow-md">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center mx-auto shadow-md">
                 <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[13px] font-bold text-[#006a61] tracking-wider uppercase">
+                <span className="text-[13px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
                   Vaidya Intake Complete
                 </span>
-                <h1 className="text-[28px] font-bold text-[#191b23]">
+                <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
                   {t.intake.summaryTitle}
                 </h1>
-                <p className="text-[14px] text-[#737686]">
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
                   {t.intake.summarySubtitle}
                 </p>
               </div>
 
               {/* Structured Summary Card */}
-              <div className="bg-white rounded-3xl p-5 border border-[#e1e2ed] shadow-sm flex flex-col gap-3 text-left text-[14px]">
-                <div className="flex justify-between items-center pb-2 border-b border-[#ededf9]">
-                  <span className="font-bold text-[#191b23]">Patient:</span>
-                  <span className="font-semibold text-[#004ac6]">
+              <div className="bg-[var(--color-surface)] rounded-3xl p-5 border border-[var(--color-border)] shadow-sm flex flex-col gap-3 text-left text-[14px]">
+                <div className="flex justify-between items-center pb-2 border-b border-[var(--color-border)]">
+                  <span className="font-bold text-[var(--color-text-primary)]">Patient:</span>
+                  <span className="font-semibold text-[var(--color-brand)]">
                     {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
                   </span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[#737686]">{t.intake.timelineComplaint}:</span>
-                  <span className="font-bold text-[#191b23] text-right">{selectedComplaint}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineComplaint}:</span>
+                  <span className="font-bold text-[var(--color-text-primary)] text-right">{selectedComplaint}</span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[#737686]">{t.intake.timelineDuration}:</span>
-                  <span className="font-semibold text-[#191b23] text-right">{selectedDuration}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineDuration}:</span>
+                  <span className="font-semibold text-[var(--color-text-primary)] text-right">{selectedDuration}</span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[#737686]">{t.intake.timelineQuality}:</span>
-                  <span className="font-semibold text-[#191b23] text-right">{selectedCharacter}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineQuality}:</span>
+                  <span className="font-semibold text-[var(--color-text-primary)] text-right">{selectedCharacter}</span>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-[#737686]">{t.intake.timelineLifestyle}:</span>
-                  <span className="font-semibold text-[#006a61] text-right">{selectedLifestyle}</span>
+                  <span className="text-[var(--color-text-secondary)]">{t.intake.timelineLifestyle}:</span>
+                  <span className="font-semibold text-[var(--color-verified)] text-right">{selectedLifestyle}</span>
                 </div>
 
-                <div className="mt-2 p-2.5 bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl flex items-center gap-2 text-[12px] text-[#15803d]">
+                <div className="mt-2 p-2.5 bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] rounded-xl flex items-center gap-2 text-[12px] text-[var(--color-verified)]">
                   <span className="font-bold">✓</span>
                   <span>{t.intake.triageNotice}</span>
                 </div>
@@ -827,50 +826,50 @@ export default function KioskIntakePage() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl p-6 max-w-[480px] w-full shadow-2xl flex flex-col items-center gap-5 text-center"
+                className="bg-[var(--color-surface)] rounded-3xl p-6 max-w-[480px] w-full shadow-2xl flex flex-col items-center gap-5 text-center border border-[var(--color-border)]"
               >
                 {voiceModal === 'LISTENING' && (
                   <>
-                    <div className="w-20 h-20 rounded-full bg-[#004ac6]/10 text-[#004ac6] flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center">
                       <div className="flex items-center gap-1.5 h-10">
                         {[40, 70, 100, 60, 90, 45, 80, 50].map((h, i) => (
                           <div
                             key={i}
-                            className="w-1.5 bg-[#004ac6] rounded-full motion-safe:animate-pulse"
+                            className="w-1.5 bg-[var(--color-brand)] rounded-full motion-safe:animate-pulse"
                             style={{ height: `${h}%`, animationDelay: `${i * 120}ms` }}
                           />
                         ))}
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-[22px] font-bold text-[#191b23]">{t.intake.voiceModalListening}</h2>
-                      <p className="text-[14px] text-[#737686] mt-1">{t.intake.voiceModalListeningDesc}</p>
+                      <h2 className="text-[22px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceModalListening}</h2>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">{t.intake.voiceModalListeningDesc}</p>
                     </div>
                   </>
                 )}
 
                 {voiceModal === 'PROCESSING' && (
                   <div className="py-6 flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 rounded-full border-4 border-[#004ac6] border-t-transparent animate-spin" />
-                    <h2 className="text-[18px] font-bold text-[#191b23]">{t.intake.voiceModalTranscribing}</h2>
+                    <div className="w-10 h-10 rounded-full border-4 border-[var(--color-brand)] border-t-transparent animate-spin" />
+                    <h2 className="text-[18px] font-bold text-[var(--color-text-primary)]">{t.intake.voiceModalTranscribing}</h2>
                   </div>
                 )}
 
                 {voiceModal === 'CONFIRMING' && (
                   <div className="w-full flex flex-col gap-4">
-                    <span className="text-[11px] font-bold text-[#004ac6] uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-[var(--color-brand)] uppercase tracking-wider">
                       {t.intake.voiceResultTitle}
                     </span>
-                    <div className="bg-[#f3f3fe] p-4 rounded-2xl border border-[#dbe1ff] text-left">
-                      <p className="text-[16px] font-bold text-[#191b23] italic">
+                    <div className="bg-[var(--color-surface-subtle)] p-4 rounded-2xl border border-[var(--color-border)] text-left">
+                      <p className="text-[16px] font-bold text-[var(--color-text-primary)] italic">
                         &quot;{recognizedText.native}&quot;
                       </p>
-                      <div className="w-8 h-[1px] bg-[#c3c6d7] my-2" />
-                      <p className="text-[13px] text-[#434655]">
+                      <div className="w-8 h-[1px] bg-[var(--color-border)] my-2" />
+                      <p className="text-[13px] text-[var(--color-text-secondary)]">
                         &quot;{recognizedText.english}&quot;
                       </p>
                     </div>
-                    <div className="bg-[#f0fdf4] p-3 rounded-xl border border-[#bbf7d0] text-left text-[13px] text-[#15803d]">
+                    <div className="bg-[var(--color-verified-bg)] p-3 rounded-xl border border-[var(--color-sage-border)] text-left text-[13px] text-[var(--color-verified)]">
                       <span>{t.intake.matchedOption} <strong>{matchedOption}</strong></span>
                     </div>
 

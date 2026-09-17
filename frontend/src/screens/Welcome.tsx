@@ -2,654 +2,844 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   ArrowRight,
   ShieldCheck,
-  Sparkles,
-  Heart,
-  Stethoscope,
-  FileText,
-  Activity,
+  FileSearch,
+  ArrowUpRight,
+  Check,
   CheckCircle2,
-  Lock,
-  Layers,
-  ChevronRight,
-  Search,
-  AlertTriangle,
+  Languages,
   Mic,
-  QrCode,
 } from 'lucide-react'
-import VaidyaWordmark from '@/components/VaidyaWordmark'
+import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
 import type { Screen } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface WelcomeProps {
   onNavigate?: (screen: Screen) => void
 }
 
+// ── Step definitions for Section 02 (Product In Motion) ──
+interface MotionStep {
+  id: string
+  num: string
+  title: string
+  stageName: string
+  description: string
+  rawSpeech: string
+  language: string
+  extractedFacts: string[]
+  ocrDetail: string
+  triageSeverity: 'T1 CRITICAL' | 'T2 URGENT' | 'T3 ROUTINE'
+  physicianSynthesis: string
+}
+
+const MOTION_STEPS: MotionStep[] = [
+  {
+    id: 'step-speech',
+    num: '01',
+    title: 'Patient Speaks',
+    stageName: 'Ambient Voice Capture',
+    description: 'Patient speaks naturally in Marathi at the waiting hall kiosk.',
+    rawSpeech: '"माझ्या छातीत दोन तासांपासून तीव्र दुखत आहे आणि ते दुखणे डाव्या हाताकडे आणि जबड्याकडे पसरत आहे..."',
+    language: 'Marathi (मराठी) · Bhashini ASR',
+    extractedFacts: ['Retrosternal Chest Pain (Duration: 2h)', 'Radiation to Left Arm & Jaw', 'Associated Diaphoresis'],
+    ocrDetail: 'Prior Discharge Summary: Metformin 500mg, Atorvastatin 20mg',
+    triageSeverity: 'T1 CRITICAL',
+    physicianSynthesis: 'Acute Coronary Syndrome (ACS) workup indicated. Immediate 12-lead ECG dispatched.',
+  },
+  {
+    id: 'step-ocr',
+    num: '02',
+    title: 'Documents Scanned',
+    stageName: 'Optical Clinical Provenance',
+    description: 'Paper prescription and hospital discharge slip digitized with optical bounding boxes.',
+    rawSpeech: '"मागील आठवड्यात डॉक्टरांनी दिलेली औषधांची चिठ्ठी इथे स्कॅन केली."',
+    language: 'Hindi & Marathi Bilingual Optical OCR',
+    extractedFacts: ['Known Type 2 Diabetes Mellitus (HbA1c 7.8%)', 'Hypertension stage 1', 'No documented penicillin allergy'],
+    ocrDetail: 'Optical Bounding Box: Dr. R. Verma OPD Slip · 08-Sep-2026',
+    triageSeverity: 'T2 URGENT',
+    physicianSynthesis: 'Baseline metabolic risk factors validated with primary hospital records.',
+  },
+  {
+    id: 'step-triage',
+    num: '03',
+    title: 'Triage Flags Triggered',
+    stageName: 'Deterministic Safety Rule Engine',
+    description: 'Protocol rules detect acute cardiac trajectory and alert nursing station in under 400ms.',
+    rawSpeech: '"मला खूप घाम येत आहे आणि चक्कर येत आहे..."',
+    language: 'Real-time Symptom Ingestion',
+    extractedFacts: ['Severe Diaphoresis', 'Pre-syncopal Episode', 'Heart Rate 104 bpm · BP 150/95'],
+    ocrDetail: 'Rule Trigger: #CARD-01 (Chest Pain + Radiation + Diaphoresis)',
+    triageSeverity: 'T1 CRITICAL',
+    physicianSynthesis: 'Emergency bypass triggered: Direct escalation to Priority Bay #01.',
+  },
+  {
+    id: 'step-brief',
+    num: '04',
+    title: 'Physician Brief Assembled',
+    stageName: 'Clinician-Ready 30-Second Summary',
+    description: 'Physician enters the room with complete structured context, provenance, and timeline.',
+    rawSpeech: 'Full multivariable dialogue synthesized into ICD-10 & SNOMED CT clinical brief.',
+    language: 'Synthesized Clinical Standard (ABDM FHIR R4)',
+    extractedFacts: ['Suspected Acute Inferior Wall STEMI', 'Risk: HTN + T2DM', 'Zero Black-box Hallucinations'],
+    ocrDetail: '100% Provenance Linkage: Spoken audio clip + Scanned paper clip',
+    triageSeverity: 'T1 CRITICAL',
+    physicianSynthesis: 'Physician begins with informed differential, saving 8.5 minutes of repetitive questioning.',
+  },
+]
+
+// ── Journey Nodes for Section 03 ──
+const JOURNEY_NODES = [
+  { step: 'ARRIVE', title: 'Waiting Hall Arrival', sub: 'Patient walks to multilingual kiosk terminal without queue delay' },
+  { step: 'SPEAK', title: 'Natural Speech', sub: 'Comfortable conversation in 6 regional languages via Bhashini' },
+  { step: 'CAPTURE', title: 'Paper Scanning', sub: 'Camera scans past prescriptions, lab slips, and discharge notes' },
+  { step: 'UNDERSTAND', title: 'Entity Extraction', sub: 'Medical facts normalized into clinical concepts' },
+  { step: 'TRIAGE', title: 'Emergency Flagging', sub: 'Nursing desk receives instant red-flag alerts for critical cases' },
+  { step: 'CONSULT', title: 'Physician Brief', sub: 'Doctor reviews evidence brief before calling the patient in' },
+]
+
 export default function Welcome({ onNavigate }: WelcomeProps) {
   const router = useRouter()
-  const [activeStage, setActiveStage] = useState(0)
+  const [activeMotionStep, setActiveMotionStep] = useState<number>(0)
+  const [selectedProductView, setSelectedProductView] = useState<'kiosk' | 'nursing' | 'physician'>('physician')
 
-  const handleLaunchKiosk = () => {
-    router.push('/kiosk')
-  }
-
-  const handlePatientLogin = () => {
-    router.push('/patient/login')
-  }
-
-  const handleStaffLogin = () => {
+  const handleStartIntake = () => {
     if (onNavigate) {
-      onNavigate('staff-role')
+      onNavigate('patient-intake')
     } else {
-      router.push('/auth/login')
+      router.push('/kiosk')
     }
   }
 
-  const STAGES = [
-    {
-      num: '01',
-      title: 'Patient Identification',
-      icon: QrCode,
-      short: 'ABHA QR or Mobile Lookup',
-      desc: 'Patients scan their ABHA QR code or enter their mobile number to link past health records instantly.',
-    },
-    {
-      num: '02',
-      title: 'Voice & Touch Intake',
-      icon: Mic,
-      short: '6 Indian Languages',
-      desc: 'Patients describe symptoms naturally in Hindi, Marathi, Gujarati, Bengali, Tamil, or English.',
-    },
-    {
-      num: '03',
-      title: 'Document Digitization',
-      icon: FileText,
-      short: 'Optical Camera Scanner',
-      desc: 'Previous physical prescriptions, discharge summaries, and lab reports are scanned with sub-second OCR.',
-    },
-    {
-      num: '04',
-      title: 'Information Structuring',
-      icon: Layers,
-      short: 'Domain & Entity Extraction',
-      desc: 'Raw speech and text are mapped into 11 clinical domains, extracting dosages, dates, and lifestyle factors.',
-    },
-    {
-      num: '05',
-      title: 'AI-Assisted Brief',
-      icon: Sparkles,
-      short: 'Contradiction Detection',
-      desc: 'Synthesizes an organized pre-consultation brief, highlighting allergy discrepancies and red flag alerts.',
-    },
-    {
-      num: '06',
-      title: 'Physician Review',
-      icon: Stethoscope,
-      short: 'Clinician Decision',
-      desc: 'The OPD doctor reviews the brief, inspects source evidence crops, and conducts an informed consultation.',
-    },
-  ]
+  const handleStaffLogin = () => {
+    router.push('/auth/login')
+  }
+
+  const currentStep = MOTION_STEPS[activeMotionStep]
 
   return (
-    <div className="bg-[#FAF8FF] min-h-screen w-full flex flex-col text-[#191B23] antialiased selection:bg-[#2563EB] selection:text-white">
-      {/* Background Ambient Glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] bg-[#004AC6]/5 rounded-full blur-[140px]" />
-        <div className="absolute top-[35%] left-[-10%] w-[600px] h-[600px] bg-[#006A61]/5 rounded-full blur-[130px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[800px] h-[800px] bg-[#004AC6]/4 rounded-full blur-[160px]" />
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          1. NAVIGATION HEADER
-      ───────────────────────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-[#E1E2ED] shadow-xs">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Brand Wordmark */}
+    <div className="min-h-screen bg-canvas-atmospheric text-ink selection:bg-pastel-blue selection:text-ink antialiased">
+      
+      {/* ── Top Header Navigation ──────────────────────────────────── */}
+      <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-white/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <VaidyaWordmark size="md" showDescriptor={false} />
-            <div className="h-4 w-px bg-[#E1E2ED] hidden sm:block" />
-            <span className="hidden sm:inline-block font-mono text-[11px] tracking-widest text-[#004AC6] font-bold uppercase">
-              Clinical Intelligence
-            </span>
+            <Link href="/" className="flex items-center gap-2 group">
+              <VaidyaWordmark size="md" showDescriptor={true} variant="default" />
+            </Link>
           </div>
 
-          {/* Nav Anchors */}
-          <nav className="hidden lg:flex items-center gap-7 text-[14px] font-semibold text-[#52525B]">
-            <a href="#how-it-works" className="hover:text-[#004AC6] transition-colors">
+          <div className="hidden md:flex items-center gap-6 text-[13px] font-semibold text-text-secondary">
+            <a href="#how-it-works" className="hover:text-ink transition-colors">
               How It Works
             </a>
-            <a href="#for-patients" className="hover:text-[#004AC6] transition-colors">
-              For Patients
+            <a href="#journey" className="hover:text-ink transition-colors">
+              Patient Journey
             </a>
-            <a href="#for-clinicians" className="hover:text-[#004AC6] transition-colors">
-              For Clinicians
+            <a href="#product" className="hover:text-ink transition-colors">
+              Product Workspaces
             </a>
-            <a href="#abha-ecosystem" className="hover:text-[#004AC6] transition-colors">
-              ABHA Ecosystem
+            <a href="#evidence" className="hover:text-ink transition-colors">
+              Clinical Evidence
             </a>
-          </nav>
+            <a href="#ecosystem" className="hover:text-ink transition-colors">
+              ABDM &amp; Ecosystem
+            </a>
+          </div>
 
-          {/* Action CTAs */}
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={handlePatientLogin}
-              className="px-3.5 py-1.5 rounded-xl text-[13px] font-bold text-[#006A61] hover:bg-[#F0FDF4] transition-all flex items-center gap-1.5"
-            >
-              <Heart size={15} />
-              <span>Patient Login</span>
-            </button>
-
+          <div className="flex items-center gap-3">
             <button
               onClick={handleStaffLogin}
-              className="px-3.5 py-1.5 rounded-xl text-[13px] font-bold text-[#52525B] hover:text-[#004AC6] hover:bg-[#EFF6FF] transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-lg border border-border bg-white text-ink text-[12.5px] font-bold hover:bg-surface-subtle transition-all cursor-pointer shadow-2xs"
             >
-              <ShieldCheck size={16} className="text-[#004AC6]" />
-              <span>Clinical Login</span>
+              Staff Workspace
             </button>
-
             <button
-              onClick={handleLaunchKiosk}
-              className="px-4 py-2 rounded-xl text-[13px] font-bold bg-[#004AC6] text-white hover:bg-[#003EA8] shadow-xs hover:shadow transition-all flex items-center gap-1.5 active:scale-98"
+              onClick={handleStartIntake}
+              className="px-4 py-1.5 rounded-lg bg-brand text-white text-[12.5px] font-bold hover:bg-brand-dim transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
-              <span>Launch Kiosk</span>
+              <span>Begin Intake</span>
               <ArrowRight size={14} />
             </button>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 flex-1 flex flex-col">
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            2. HERO SECTION
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section className="w-full max-w-7xl mx-auto px-5 md:px-8 pt-10 pb-16 lg:py-20 flex-1 flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-            {/* Left Column: Product Value & CTAs */}
-            <div className="lg:col-span-6 flex flex-col justify-center space-y-7">
-              {/* Context Pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#1E40AF] text-[12px] font-semibold tracking-wide w-fit">
-                <span className="w-2 h-2 rounded-full bg-[#004AC6] animate-pulse" />
-                <span>Smart India Hackathon • SIH26047</span>
-                <span className="text-[#93C5FD]">|</span>
-                <span className="text-[#004AC6] font-bold">OPD Pre-Consultation Synthesis</span>
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 01 — OPENING (Hero with Signature Clinical Visual)
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            
+            {/* Left Narrative Column (6 cols) */}
+            <div className="lg:col-span-6 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-border shadow-2xs text-[12px] font-bold text-text-secondary">
+                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+                <span>MULTILINGUAL PRE-CONSULTATION INTELLIGENCE</span>
               </div>
 
-              {/* Headline */}
-              <div className="space-y-3">
-                <h1 className="text-[42px] sm:text-[54px] lg:text-[58px] font-bold text-[#18181B] tracking-tight leading-[1.08]">
-                  Your clinical story, <br />
-                  <span className="text-[#004AC6]">prepared before</span> the consultation.
-                </h1>
-                <p className="text-[17px] sm:text-[18px] text-[#52525B] max-w-xl leading-relaxed">
-                  VAIDYA captures patient history, voice responses and medical documents through a multilingual kiosk — then prepares structured clinical context for physician review.
-                </p>
-              </div>
+              <h1 className="text-[36px] sm:text-[46px] lg:text-[52px] font-extrabold text-ink tracking-tight leading-[1.12]">
+                Every consultation starts before the doctor enters the room.
+              </h1>
 
-              {/* CTA Hierarchy */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <p className="text-[16px] sm:text-[17px] text-text-secondary leading-relaxed max-w-xl">
+                VAIDYA captures the patient&apos;s story, documents, and vital signals before the consultation — so clinicians begin with context, not repetition.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3.5 pt-2">
                 <button
-                  onClick={handleLaunchKiosk}
-                  className="px-6 py-3.5 rounded-2xl bg-[#004AC6] hover:bg-[#003EA8] text-white text-[15px] font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-98"
+                  onClick={handleStartIntake}
+                  className="h-12 px-6 rounded-xl bg-brand text-white text-[14px] font-bold flex items-center gap-2 hover:bg-brand-dim transition-all shadow-sm cursor-pointer active:scale-98"
                 >
                   <span>Begin Patient Intake</span>
                   <ArrowRight size={16} />
                 </button>
 
-                <button
-                  onClick={handlePatientLogin}
-                  className="px-5 py-3.5 rounded-2xl bg-white border border-[#E1E2ED] hover:border-[#006A61] text-[#006A61] text-[15px] font-bold shadow-xs hover:bg-[#F0FDF4] transition-all flex items-center gap-2 active:scale-98"
+                <a
+                  href="#how-it-works"
+                  className="h-12 px-5 rounded-xl border border-border bg-white text-ink text-[13.5px] font-bold flex items-center justify-center gap-2 hover:bg-surface-subtle transition-colors shadow-2xs"
                 >
-                  <Heart size={16} />
-                  <span>Patient Login</span>
-                </button>
-
-                <button
-                  onClick={handleStaffLogin}
-                  className="px-4 py-3.5 text-[14px] font-bold text-[#52525B] hover:text-[#004AC6] transition-colors flex items-center gap-1"
-                >
-                  <span>Clinical Login</span>
-                  <ArrowRight size={14} />
-                </button>
+                  <span>See How VAIDYA Works</span>
+                </a>
               </div>
 
               {/* Trust Indicators */}
-              <div className="pt-4 border-t border-[#E1E2ED] flex flex-wrap items-center gap-6 text-[12px] text-[#71717A]">
-                <div className="flex items-center gap-1.5 font-medium">
-                  <CheckCircle2 size={15} className="text-[#16A34A]" />
-                  <span>6 Indian Languages</span>
+              <div className="pt-6 border-t border-border/80 flex flex-wrap items-center gap-y-2 gap-x-6 text-[12px] text-text-secondary">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck size={15} className="text-verified" />
+                  <span>ABDM FHIR R4 Ready</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-medium">
-                  <CheckCircle2 size={15} className="text-[#16A34A]" />
-                  <span>ABHA &amp; FHIR R4 Ready</span>
+                <div className="flex items-center gap-1.5">
+                  <Languages size={15} className="text-brand" />
+                  <span>6 Indic Languages</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-medium">
-                  <CheckCircle2 size={15} className="text-[#16A34A]" />
-                  <span>Physician Decision Centric</span>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-verified" />
+                  <span>Zero Black-Box Hallucinations</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Layered 3D Clinical Intelligence Product Mockup */}
+            {/* Right Signature Clinical Scene Visual (6 cols) */}
             <div className="lg:col-span-6 relative">
-              <div className="relative mx-auto w-full max-w-lg space-y-4">
-                {/* Floating 3D Badge 1: Physician Verified */}
-                <div className="absolute -top-4 -right-3 z-30 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-[#BBF7D0] shadow-md flex items-center gap-2 text-[11px] font-bold text-[#166534] animate-bounce-subtle">
-                  <CheckCircle2 size={14} className="text-[#16A34A]" />
-                  <span>PHYSICIAN VERIFIED</span>
-                </div>
-
-                {/* Floating 3D Badge 2: ABHA Linked */}
-                <div className="absolute -bottom-3 -left-3 z-30 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-[#BFDBFE] shadow-md flex items-center gap-2 text-[11px] font-bold text-[#1E40AF]">
-                  <span className="w-2 h-2 rounded-full bg-[#004AC6] animate-pulse" />
-                  <span>ABHA LINKED • 12-3456-7890-1234</span>
-                </div>
-
-                {/* Top Card: Live Patient Token & Kiosk Intake */}
-                <div className="bg-white rounded-3xl p-5 border border-[#E1E2ED] shadow-sm transform hover:-translate-y-1 transition-all duration-300 relative z-20">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#E1E2ED]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex flex-col items-center justify-center font-mono">
-                        <span className="text-[8px] font-bold uppercase">OPD</span>
-                        <span className="text-[14px] font-extrabold leading-none">A-028</span>
-                      </div>
-                      <div>
-                        <h4 className="text-[15px] font-bold text-[#18181B]">Dhananjay Patil</h4>
-                        <p className="text-[11px] text-[#71717A]">67 yrs • Male • Marathi (मराठी)</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0] px-2.5 py-1 rounded-full">
-                      ● Kiosk Intake Complete
+              <div className="relative rounded-2xl bg-white/95 border border-border-strong shadow-md p-5 sm:p-6 space-y-4">
+                
+                {/* Visual Header */}
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-verified animate-pulse" />
+                    <span className="text-[11.5px] font-bold text-ink uppercase tracking-wider">
+                      Live Pre-Consultation Synthesis
                     </span>
                   </div>
+                  <span className="text-[11px] font-mono text-text-muted">
+                    Station #04 · Triage T1
+                  </span>
+                </div>
 
-                  <div className="pt-3 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-[#71717A]">
-                      <span className="flex items-center gap-1 text-[#004AC6] font-semibold">
-                        <Mic size={12} />
-                        <span>Marathi Voice Intake Transcript</span>
+                {/* Ambient Speech Waveform Fragment */}
+                <div className="p-3.5 rounded-xl bg-pastel-blue/30 border border-pastel-blue flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center shrink-0">
+                      <Mic size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand block">
+                        Patient Spoken Dialogue (Marathi)
                       </span>
-                      <span className="font-mono">10:28 AM</span>
-                    </div>
-                    <p className="text-[13px] text-[#18181B] italic bg-[#FAF8FF] p-3 rounded-2xl border border-[#E1E2ED]">
-                      &quot;३ महिन्यांपासून जेवणानंतर पोटात तीव्र जळजळ आणि दुखणे जाणवते...&quot;
-                    </p>
-                  </div>
-                </div>
-
-                {/* Middle Card: AI-Assisted Clinical Summary Brief */}
-                <div className="bg-[#FAF8FF] rounded-3xl p-5 border border-[#004AC6]/30 shadow-md transform hover:-translate-y-1 transition-all duration-300 relative z-10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[#004AC6]">
-                      <Sparkles size={16} />
-                      <span className="text-[12px] font-bold uppercase tracking-wider">
-                        AI-ASSISTED CLINICAL SUMMARY
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase text-[#004AC6] bg-[#EFF6FF] px-2 py-0.5 rounded border border-[#BFDBFE]">
-                      Physician Review Required
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-[12px]">
-                    <div className="bg-white p-2.5 rounded-xl border border-[#E1E2ED]">
-                      <span className="text-[10px] font-bold text-[#71717A] uppercase block">Chief Complaint</span>
-                      <strong className="text-[#18181B]">Epigastric burning pain</strong>
-                    </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-[#E1E2ED]">
-                      <span className="text-[10px] font-bold text-[#71717A] uppercase block">Duration</span>
-                      <strong className="text-[#18181B]">3 months duration</strong>
-                    </div>
-                  </div>
-
-                  {/* Optical Document Preview & Confidence */}
-                  <div className="p-3 bg-white rounded-2xl border border-[#E1E2ED] flex items-center justify-between text-[12px]">
-                    <div className="flex items-center gap-2">
-                      <FileText size={15} className="text-[#004AC6]" />
-                      <span className="font-semibold text-[#18181B]">Prescription_Jan2025.jpg</span>
-                    </div>
-                    <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#F0FDF4] px-2 py-0.5 rounded border border-[#BBF7D0]">
-                      94% OCR CONFIDENCE
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom Card: Physician Examination & Decision */}
-                <div className="bg-white rounded-3xl p-5 border border-[#E1E2ED] shadow-sm transform hover:-translate-y-1 transition-all duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Stethoscope size={16} className="text-[#16A34A]" />
-                      <span className="text-[13px] font-bold text-[#18181B]">Physician Verified Consultation</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-[#16A34A] flex items-center gap-1">
-                      <CheckCircle2 size={13} />
-                      <span>EHR Sync Ready</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            3. HOW VAIDYA PREPARES THE CONSULTATION (6 STAGES)
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section id="how-it-works" className="w-full bg-white py-20 border-y border-[#E1E2ED]">
-          <div className="max-w-7xl mx-auto px-5 md:px-8 space-y-12">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#004AC6] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE]">
-                End-to-End Pipeline
-              </span>
-              <h2 className="text-[32px] sm:text-[38px] font-bold text-[#18181B] tracking-tight">
-                How VAIDYA prepares the consultation
-              </h2>
-              <p className="text-[15px] text-[#71717A]">
-                A 6-stage clinical intelligence workflow connecting waiting hall patients with OPD physicians.
-              </p>
-            </div>
-
-            {/* Interactive Stages Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {STAGES.map((stage, idx) => {
-                const Icon = stage.icon
-                const isSelected = activeStage === idx
-                return (
-                  <div
-                    key={stage.num}
-                    onClick={() => setActiveStage(idx)}
-                    className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between gap-4 ${
-                      isSelected
-                        ? 'bg-[#FAF8FF] border-[#004AC6] ring-2 ring-[#004AC6]/10 shadow-sm'
-                        : 'bg-white border-[#E1E2ED] hover:border-[#C3C6D7]'
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-[13px] font-bold text-[#004AC6]">
-                          Stage {stage.num}
-                        </span>
-                        <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                          <Icon size={18} />
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-[17px] font-bold text-[#18181B]">
-                          {stage.title}
-                        </h3>
-                        <p className="text-[12px] font-semibold text-[#004AC6] mt-0.5">
-                          {stage.short}
-                        </p>
-                      </div>
-
-                      <p className="text-[13px] text-[#52525B] leading-relaxed">
-                        {stage.desc}
+                      <p className="text-[12.5px] font-medium text-ink italic truncate">
+                        &quot;छातीत तीव्र दुखत आहे आणि ते दुखणे डाव्या हाताकडे जात आहे...&quot;
                       </p>
                     </div>
+                  </div>
+                  <div className="flex items-end gap-1 h-5 shrink-0 px-2">
+                    <span className="w-1 bg-brand h-2 animate-pulse rounded-full" />
+                    <span className="w-1 bg-brand h-5 animate-pulse rounded-full" />
+                    <span className="w-1 bg-brand h-3 animate-pulse rounded-full" />
+                    <span className="w-1 bg-brand h-4 animate-pulse rounded-full" />
+                  </div>
+                </div>
 
-                    <span className="text-[11px] font-bold text-[#71717A] flex items-center gap-1">
-                      <span>Interactive Stage</span>
-                      <ChevronRight size={12} />
+                {/* Optical Evidence Document Crop Fragment */}
+                <div className="p-3.5 rounded-xl bg-pastel-lavender/30 border border-pastel-lavender flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-[#5925DC] text-white flex items-center justify-center shrink-0">
+                      <FileSearch size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5925DC] block">
+                        Optical OCR Extraction · Verified Prescription
+                      </span>
+                      <p className="text-[12px] font-mono text-ink truncate">
+                        Tab. Metformin 500mg BD · Dr. R. Verma OPD
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-verified text-white shrink-0">
+                    98.4% Match
+                  </span>
+                </div>
+
+                {/* Physician Brief Ready Panel */}
+                <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                      Physician Differential Brief
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-critical text-white">
+                      T1 High Priority
                     </span>
                   </div>
-                )
-              })}
+                  <h4 className="text-[14px] font-bold text-ink">
+                    Priya Menon, 52F · Suspected Acute Coronary Syndrome
+                  </h4>
+                  <p className="text-[12px] text-text-secondary leading-snug">
+                    Spoken chest discomfort radiating to left arm + scanned history of T2DM. 12-lead ECG and emergency bed allocated.
+                  </p>
+                </div>
+
+                {/* Doctor Decision Bar */}
+                <div className="pt-2 flex items-center justify-between text-[11.5px] text-text-secondary">
+                  <span>Clinician: <strong>Dr. Sunita Rao, MD</strong></span>
+                  <span className="text-brand font-bold">Ready for Consultation →</span>
+                </div>
+              </div>
             </div>
+
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            4. PATIENT EXPERIENCE & PORTAL
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section id="for-patients" className="w-full py-20 max-w-7xl mx-auto px-5 md:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-6 space-y-6">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#006A61] bg-[#F0FDF4] px-3 py-1 rounded-full border border-[#BBF7D0]">
-                For Outpatients
-              </span>
-              <h2 className="text-[32px] sm:text-[38px] font-bold text-[#18181B] tracking-tight leading-tight">
-                Your information stays with <br />
-                your clinical record.
-              </h2>
-              <p className="text-[16px] text-[#52525B] leading-relaxed">
-                Review your consultation history, active prescriptions, and digitized medical documents securely from anywhere using your ABHA ID or mobile number.
-              </p>
-
-              <div className="space-y-3 text-[14px]">
-                <div className="flex items-center gap-3 text-[#18181B]">
-                  <CheckCircle2 size={18} className="text-[#16A34A] shrink-0" />
-                  <span>Previous hospital visit summaries and active prescriptions</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#18181B]">
-                  <CheckCircle2 size={18} className="text-[#16A34A] shrink-0" />
-                  <span>Scanned optical copies of lab investigations and discharge summaries</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#18181B]">
-                  <CheckCircle2 size={18} className="text-[#16A34A] shrink-0" />
-                  <span>Consent-controlled access linked to your national ABHA health ID</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handlePatientLogin}
-                className="px-6 py-3.5 rounded-2xl bg-[#006A61] hover:bg-[#00524B] text-white text-[14px] font-bold transition-all shadow-xs flex items-center gap-2 active:scale-98"
-              >
-                <Heart size={16} />
-                <span>Open Patient Portal</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-
-            {/* Patient Portal Preview Card */}
-            <div className="lg:col-span-6 bg-white p-7 rounded-3xl border border-[#E1E2ED] shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E1E2ED]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#006A61]/10 text-[#006A61] flex items-center justify-center font-bold text-sm">
-                    DP
-                  </div>
-                  <div>
-                    <h4 className="text-[15px] font-bold text-[#18181B]">Dhananjay Patil</h4>
-                    <p className="text-[11px] font-mono text-[#71717A]">ABHA: 12-3456-7890-1234</p>
-                  </div>
-                </div>
-                <span className="text-[11px] font-bold text-[#166534] bg-[#F0FDF4] px-2.5 py-0.5 rounded border border-[#BBF7D0]">
-                  ● Live Record
-                </span>
-              </div>
-
-              <div className="space-y-2.5 text-[13px]">
-                <div className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#E1E2ED] flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-[#004AC6]">Current OPD Visit</span>
-                    <p className="font-bold text-[#18181B]">Token A-028 • Internal Medicine</p>
-                  </div>
-                  <span className="text-[11px] font-semibold text-[#16A34A]">In Review</span>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#E1E2ED] flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-[#006A61]">Active Medication</span>
-                    <p className="font-bold text-[#18181B]">Tab. Metformin 500mg BID &amp; Amlodipine 5mg</p>
-                  </div>
-                  <span className="text-[11px] text-[#71717A]">AIIMS Delhi</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            5. CLINICIAN EXPERIENCE
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section id="for-clinicians" className="w-full bg-white py-20 border-y border-[#E1E2ED]">
-          <div className="max-w-7xl mx-auto px-5 md:px-8 space-y-12">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#004AC6] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE]">
-                For Physicians &amp; OPD Staff
-              </span>
-              <h2 className="text-[32px] sm:text-[38px] font-bold text-[#18181B] tracking-tight">
-                Structured clinical context before the patient enters
-              </h2>
-              <p className="text-[15px] text-[#71717A]">
-                Empowering hospital physicians with synthesized briefs, optical document provenance, and contradiction detection.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-3xl bg-[#FAF8FF] border border-[#E1E2ED] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                  <Activity size={20} />
-                </div>
-                <h3 className="text-[17px] font-bold text-[#18181B]">Real-Time OPD Queue</h3>
-                <p className="text-[13px] text-[#52525B]">
-                  Live status indicators, triage priority flags, and waiting time tracking for seamless clinical pacing.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-3xl bg-[#FAF8FF] border border-[#E1E2ED] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                  <Search size={20} />
-                </div>
-                <h3 className="text-[17px] font-bold text-[#18181B]">Optical Evidence Drawer</h3>
-                <p className="text-[13px] text-[#52525B]">
-                  Click any extracted clinical entity to instantly inspect the exact physical document crop and OCR score.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-3xl bg-[#FAF8FF] border border-[#E1E2ED] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                  <AlertTriangle size={20} />
-                </div>
-                <h3 className="text-[17px] font-bold text-[#18181B]">Contradiction Detection</h3>
-                <p className="text-[13px] text-[#52525B]">
-                  Surfaces discrepancies between patient verbal claims and historical prescriptions for physical examination.
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center pt-4">
-              <button
-                onClick={handleStaffLogin}
-                className="px-6 py-3.5 rounded-2xl bg-[#004AC6] hover:bg-[#003EA8] text-white text-[14px] font-bold transition-all shadow-xs inline-flex items-center gap-2 active:scale-98"
-              >
-                <Stethoscope size={16} />
-                <span>Clinical Login</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            6. MULTILINGUAL & MULTIMODAL INTAKE
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section className="w-full py-20 max-w-7xl mx-auto px-5 md:px-8">
-          <div className="bg-[#FAF8FF] rounded-3xl p-8 sm:p-12 border border-[#E1E2ED] space-y-8 text-center max-w-4xl mx-auto">
-            <div className="space-y-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#004AC6] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE]">
-                Accessibility
-              </span>
-              <h2 className="text-[30px] sm:text-[36px] font-bold text-[#18181B] tracking-tight">
-                6 Indian Languages • Speech, Touch &amp; Scans
-              </h2>
-              <p className="text-[15px] text-[#71717A] max-w-2xl mx-auto">
-                Designed for inclusive outpatient engagement across regional demographics.
-              </p>
-            </div>
-
-            {/* Language Badges */}
-            <div className="flex flex-wrap justify-center gap-3">
-              {[
-                { code: 'hi', name: 'हिन्दी', label: 'Hindi' },
-                { code: 'en', name: 'English', label: 'English' },
-                { code: 'mr', name: 'मराठी', label: 'Marathi' },
-                { code: 'gu', name: 'ગુજરાતી', label: 'Gujarati' },
-                { code: 'bn', name: 'বাংলা', label: 'Bengali' },
-                { code: 'ta', name: 'தமிழ்', label: 'Tamil' },
-              ].map((lang) => (
-                <div
-                  key={lang.code}
-                  className="bg-white px-4 py-2 rounded-2xl border border-[#E1E2ED] shadow-xs flex items-center gap-2"
-                >
-                  <span className="text-[14px] font-bold text-[#18181B]">{lang.name}</span>
-                  <span className="text-[11px] font-mono text-[#71717A]">({lang.label})</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            7. CLINICAL SAFETY & ABHA ECOSYSTEM
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <section id="abha-ecosystem" className="w-full bg-white py-20 border-t border-[#E1E2ED]">
-          <div className="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-6 space-y-6">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-[#166534] bg-[#F0FDF4] px-3 py-1 rounded-full border border-[#BBF7D0]">
-                Safety Principles
-              </span>
-              <h2 className="text-[32px] sm:text-[38px] font-bold text-[#18181B] tracking-tight leading-tight">
-                AI assists. <br />
-                Physicians decide.
-              </h2>
-              <p className="text-[15px] text-[#52525B] leading-relaxed">
-                VAIDYA never generates autonomous clinical diagnoses. It structures raw symptoms, cross-checks previous prescription records, and provides transparent provenance so physicians make fully informed treatment decisions.
-              </p>
-            </div>
-
-            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl border border-[#E1E2ED] bg-[#FAF8FF] space-y-2">
-                <Lock size={18} className="text-[#004AC6]" />
-                <h4 className="font-bold text-[#18181B] text-[15px]">ABDM &amp; ABHA Ready</h4>
-                <p className="text-[12px] text-[#71717A]">
-                  Built on India&apos;s Ayushman Bharat Digital Mission standards with explicit consent verification.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl border border-[#E1E2ED] bg-[#FAF8FF] space-y-2">
-                <FileText size={18} className="text-[#006A61]" />
-                <h4 className="font-bold text-[#18181B] text-[15px]">FHIR R4 Bundle Export</h4>
-                <p className="text-[12px] text-[#71717A]">
-                  Standardized JSON exports ready for integration with existing Hospital Information Systems (HIS).
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            8. FOOTER
-        ───────────────────────────────────────────────────────────────────────────── */}
-        <footer className="w-full bg-[#FAF8FF] border-t border-[#E1E2ED] py-12">
-          <div className="max-w-7xl mx-auto px-5 md:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-[13px] text-[#71717A]">
-            <div className="flex items-center gap-3">
-              <VaidyaWordmark size="sm" showDescriptor={false} />
-              <div className="h-4 w-px bg-[#E1E2ED]" />
-              <span>Smart India Hackathon • SIH26047</span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-6 font-semibold">
-              <button onClick={handlePatientLogin} className="hover:text-[#004AC6]">
-                Patient Login
-              </button>
-              <button onClick={handleStaffLogin} className="hover:text-[#004AC6]">
-                Clinical Login
-              </button>
-              <button onClick={handleLaunchKiosk} className="hover:text-[#004AC6]">
-                Launch Kiosk
-              </button>
-              <a href="#how-it-works" className="hover:text-[#004AC6]">
-                How It Works
-              </a>
-            </div>
-
-            <p className="text-[12px] text-[#A1A1AA]">
-              © 2026 VAIDYA Clinical Intelligence. All rights reserved.
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 02 — PRODUCT IN MOTION (Interactive Journey Canvas)
+      ════════════════════════════════════════════════════════════════ */}
+      <section id="how-it-works" className="py-20 border-t border-border bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="max-w-3xl space-y-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+              02 · Product In Motion
+            </span>
+            <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+              Watch how raw patient dialogue transforms into clinical intelligence.
+            </h2>
+            <p className="text-[15px] text-text-secondary leading-relaxed">
+              Step through the pre-consultation sequence. Each stage occurs automatically while the patient is in the waiting area.
             </p>
           </div>
-        </footer>
-      </div>
+
+          {/* Step Selector Navigation (Non-pill underline/border tabs) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 border-b border-border pb-4">
+            {MOTION_STEPS.map((st, idx) => (
+              <button
+                key={st.id}
+                onClick={() => setActiveMotionStep(idx)}
+                className={cn(
+                  'text-left p-3.5 rounded-xl border transition-all cursor-pointer relative',
+                  activeMotionStep === idx
+                    ? 'bg-pastel-blue/30 border-brand text-ink shadow-2xs'
+                    : 'bg-white border-border text-text-secondary hover:border-border-strong hover:text-ink'
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-mono font-bold text-brand">{st.num}</span>
+                  {activeMotionStep === idx && (
+                    <span className="w-2 h-2 rounded-full bg-brand" />
+                  )}
+                </div>
+                <h3 className="text-[13.5px] font-bold text-ink">{st.title}</h3>
+                <p className="text-[11.5px] text-text-secondary truncate mt-0.5">{st.stageName}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Demonstration Surface */}
+          <div className="rounded-2xl border border-border-strong bg-canvas p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center shadow-xs">
+            
+            {/* Left Context & Inputs (5 cols) */}
+            <div className="lg:col-span-5 space-y-5">
+              <div>
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-brand font-mono">
+                  STAGE {currentStep.num} · {currentStep.stageName.toUpperCase()}
+                </span>
+                <h3 className="text-[22px] font-bold text-ink mt-1">
+                  {currentStep.title}
+                </h3>
+                <p className="text-[13.5px] text-text-secondary mt-1 leading-relaxed">
+                  {currentStep.description}
+                </p>
+              </div>
+
+              {/* Patient Input Voice Card */}
+              <div className="p-4 rounded-xl bg-white border border-border space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-text-muted">
+                  <span>SPOKEN PATIENT INPUT</span>
+                  <span className="font-mono text-brand">{currentStep.language}</span>
+                </div>
+                <p className="text-[13px] font-medium text-ink italic leading-relaxed">
+                  {currentStep.rawSpeech}
+                </p>
+              </div>
+
+              {/* Provenance Metadata */}
+              <div className="flex items-center gap-3 text-[12px] text-text-secondary pt-1">
+                <ShieldCheck size={15} className="text-verified shrink-0" />
+                <span>Cryptographic provenance attached to hospital EHR</span>
+              </div>
+            </div>
+
+            {/* Right Output Transformation Card (7 cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="p-5 rounded-xl bg-white border border-border-strong shadow-2xs space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <span className="text-[12px] font-bold text-ink uppercase tracking-wider">
+                    Structured Extraction Matrix
+                  </span>
+                  <span
+                    className={cn(
+                      'px-2.5 py-0.5 rounded text-[10.5px] font-bold text-white',
+                      currentStep.triageSeverity === 'T1 CRITICAL' ? 'bg-critical' : 'bg-warning'
+                    )}
+                  >
+                    {currentStep.triageSeverity}
+                  </span>
+                </div>
+
+                {/* Extracted Facts */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                    Normalized Clinical Entities
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {currentStep.extractedFacts.map((fact, i) => (
+                      <div
+                        key={i}
+                        className="p-2 rounded-lg bg-surface-subtle border border-border text-[12px] font-medium text-ink flex items-center gap-2"
+                      >
+                        <Check size={13} className="text-verified shrink-0" />
+                        <span className="truncate">{fact}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optical OCR Detail */}
+                <div className="p-3 rounded-lg bg-pastel-mint/30 border border-pastel-mint">
+                  <span className="text-[10.5px] font-bold text-verified-text uppercase tracking-wider block">
+                    Optical Document Scan Provenance
+                  </span>
+                  <p className="text-[12px] text-ink font-mono mt-0.5">
+                    {currentStep.ocrDetail}
+                  </p>
+                </div>
+
+                {/* Physician Output Result */}
+                <div className="p-3.5 rounded-lg bg-surface-subtle border border-border">
+                  <span className="text-[10.5px] font-bold text-text-muted uppercase tracking-wider block">
+                    Clinician Synthesis
+                  </span>
+                  <p className="text-[12.5px] font-bold text-ink mt-0.5">
+                    {currentStep.physicianSynthesis}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 03 — THE PATIENT JOURNEY (Horizontal Editorial Flow)
+      ════════════════════════════════════════════════════════════════ */}
+      <section id="journey" className="py-20 border-t border-border bg-canvas">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="max-w-2xl space-y-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+              03 · The Patient Journey
+            </span>
+            <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+              A smooth 6-stage outpatient journey from entry to consultation.
+            </h2>
+          </div>
+
+          {/* Non-card curved horizontal timeline */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 relative">
+            {JOURNEY_NODES.map((node, i) => (
+              <div key={node.step} className="space-y-3 relative">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-white border border-border-strong text-ink text-[11px] font-bold flex items-center justify-center shadow-2xs font-mono">
+                    0{i + 1}
+                  </span>
+                  <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+                    {node.step}
+                  </span>
+                </div>
+                <h4 className="text-[14.5px] font-bold text-ink">
+                  {node.title}
+                </h4>
+                <p className="text-[12.5px] text-text-secondary leading-snug">
+                  {node.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 04 — SHOW THE ACTUAL PRODUCT (Cropped Perspectives)
+      ════════════════════════════════════════════════════════════════ */}
+      <section id="product" className="py-20 border-t border-border bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="max-w-2xl space-y-3">
+              <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+                04 · Purpose-Built Interfaces
+              </span>
+              <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+                Designed for clinical speed, operational clarity, and patient ease.
+              </h2>
+            </div>
+
+            {/* View Selector (Non-pill segmented control) */}
+            <div className="inline-flex p-1 bg-surface-subtle rounded-xl border border-border">
+              <button
+                onClick={() => setSelectedProductView('physician')}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-[12.5px] font-bold transition-all cursor-pointer',
+                  selectedProductView === 'physician'
+                    ? 'bg-white text-ink shadow-2xs'
+                    : 'text-text-secondary hover:text-ink'
+                )}
+              >
+                Physician OPD Brief
+              </button>
+              <button
+                onClick={() => setSelectedProductView('nursing')}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-[12.5px] font-bold transition-all cursor-pointer',
+                  selectedProductView === 'nursing'
+                    ? 'bg-white text-ink shadow-2xs'
+                    : 'text-text-secondary hover:text-ink'
+                )}
+              >
+                Nursing Triage Desk
+              </button>
+              <button
+                onClick={() => setSelectedProductView('kiosk')}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-[12.5px] font-bold transition-all cursor-pointer',
+                  selectedProductView === 'kiosk'
+                    ? 'bg-white text-ink shadow-2xs'
+                    : 'text-text-secondary hover:text-ink'
+                )}
+              >
+                Patient Touch &amp; Voice Kiosk
+              </button>
+            </div>
+          </div>
+
+          {/* Product View Display */}
+          <div className="rounded-2xl border border-border-strong bg-canvas p-6 sm:p-8 shadow-xs">
+            {selectedProductView === 'physician' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-border">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-brand block">
+                      Physician OPD Workspace · Room 12
+                    </span>
+                    <h3 className="text-[20px] font-bold text-ink">
+                      Synthesized Pre-Consultation Evidence Review
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleStaffLogin}
+                    className="px-3.5 py-1.5 rounded-lg bg-brand text-white text-[12px] font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <span>Open Doctor Queue</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-white border border-border space-y-2">
+                    <span className="text-[10.5px] font-bold text-text-muted uppercase tracking-wider">Chief Complaint</span>
+                    <p className="text-[13px] font-bold text-ink">Retrosternal chest pressure with arm radiation (2h onset)</p>
+                    <span className="text-[11px] text-critical font-bold">T1 Critical Alert Acknowledged</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white border border-border space-y-2">
+                    <span className="text-[10.5px] font-bold text-text-muted uppercase tracking-wider">OCR Verified History</span>
+                    <p className="text-[13px] font-bold text-ink">T2DM (Metformin 500mg BD), HTN stage 1</p>
+                    <span className="text-[11px] text-verified font-bold">Scanned Paper Slip Match 98%</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white border border-border space-y-2">
+                    <span className="text-[10.5px] font-bold text-text-muted uppercase tracking-wider">Differential Focus</span>
+                    <p className="text-[13px] font-bold text-ink">Acute Coronary Syndrome vs. Angina Pectoris</p>
+                    <span className="text-[11px] text-brand font-bold">12-Lead ECG Ordered</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedProductView === 'nursing' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-border">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-warning block">
+                      Nursing Triage Operations · Intake Desk 01
+                    </span>
+                    <h3 className="text-[20px] font-bold text-ink">
+                      Emergency Alert Stream &amp; Queue Management
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleStaffLogin}
+                    className="px-3.5 py-1.5 rounded-lg bg-warning text-white text-[12px] font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <span>Open Triage Station</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-critical/40 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-critical text-white">T1 CRITICAL</span>
+                      <span className="text-[14px] font-bold text-ink">Priya Menon, 52F (Token #28)</span>
+                    </div>
+                    <p className="text-[12.5px] text-text-secondary">
+                      Severe chest pain radiating to left arm · SpO2 94% · Pulse 104 bpm · Diaphoretic
+                    </p>
+                  </div>
+                  <span className="px-3 py-1.5 rounded-lg bg-pastel-peach text-ink font-bold text-[12px] border border-border shrink-0">
+                    Escalated to Bay 01
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {selectedProductView === 'kiosk' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-border">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-verified block">
+                      Outpatient Kiosk Station #01
+                    </span>
+                    <h3 className="text-[20px] font-bold text-ink">
+                      Patient Self-Intake in 6 Regional Indic Languages
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleStartIntake}
+                    className="px-3.5 py-1.5 rounded-lg bg-verified text-white text-[12px] font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <span>Launch Live Kiosk</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-center">
+                  {['English', 'हिन्दी', 'मराठी', 'ગુજરાતી', 'বাংলা', 'தமிழ்'].map((l) => (
+                    <div key={l} className="p-3 rounded-xl bg-white border border-border text-[13px] font-bold text-ink shadow-2xs">
+                      {l}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 05 — CLINICAL EVIDENCE TRANSFORMATION DIAGRAM
+      ════════════════════════════════════════════════════════════════ */}
+      <section id="evidence" className="py-20 border-t border-border bg-canvas">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="max-w-2xl space-y-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+              05 · Clinical Evidence
+            </span>
+            <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+              From messy spoken words to structured medical intelligence.
+            </h2>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-white p-6 sm:p-8 space-y-6 shadow-xs">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+              
+              <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-1">
+                <span className="text-[10px] font-bold text-text-muted uppercase">1. Patient Speech</span>
+                <p className="text-[12.5px] font-medium text-ink italic">&quot;Pain goes to my left arm and jaw...&quot;</p>
+              </div>
+
+              <div className="text-center font-mono text-text-muted font-bold text-[14px]">→</div>
+
+              <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-1">
+                <span className="text-[10px] font-bold text-text-muted uppercase">2. Entity Extraction</span>
+                <p className="text-[12.5px] font-bold text-brand">Retrosternal Chest Pain with Radiation</p>
+              </div>
+
+              <div className="text-center font-mono text-text-muted font-bold text-[14px]">→</div>
+
+              <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-1">
+                <span className="text-[10px] font-bold text-text-muted uppercase">3. Triage &amp; Evidence</span>
+                <p className="text-[12.5px] font-bold text-critical">T1 Critical Escalation + Physician Brief</p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 06 — HUMAN + AI BOUNDARY
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="py-20 border-t border-border bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="max-w-2xl space-y-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+              06 · Clinical Safety
+            </span>
+            <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+              Strict Human-in-the-Loop Clinical Boundaries.
+            </h2>
+            <p className="text-[15px] text-text-secondary leading-relaxed">
+              VAIDYA assists with intake and organization. All medical diagnoses and prescriptions remain solely in physician control.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-6 rounded-2xl bg-surface-subtle border border-border space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-brand" />
+                <h3 className="text-[16px] font-bold text-ink">What AI Does</h3>
+              </div>
+              <ul className="space-y-2.5 text-[13px] text-text-secondary">
+                <li className="flex items-center gap-2"><Check size={14} className="text-brand shrink-0" /> Captures multilingual audio in 6 regional languages</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-brand shrink-0" /> Digitizes past prescriptions and lab reports via OCR</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-brand shrink-0" /> Normalizes symptoms into clinical entity concepts</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-brand shrink-0" /> Triggers deterministic red-flag triage rules</li>
+              </ul>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-surface-subtle border border-border space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-verified" />
+                <h3 className="text-[16px] font-bold text-ink">What Clinicians Do</h3>
+              </div>
+              <ul className="space-y-2.5 text-[13px] text-text-secondary">
+                <li className="flex items-center gap-2"><Check size={14} className="text-verified shrink-0" /> Interprets findings and cross-examines patient</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-verified shrink-0" /> Confirms or rejects AI pre-consultation findings</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-verified shrink-0" /> Makes absolute diagnostic and treatment decisions</li>
+                <li className="flex items-center gap-2"><Check size={14} className="text-verified shrink-0" /> Signs and cryptographically authorizes prescriptions</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 07 — ECOSYSTEM ARCHITECTURE MAP
+      ════════════════════════════════════════════════════════════════ */}
+      <section id="ecosystem" className="py-20 border-t border-border bg-canvas">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="max-w-2xl space-y-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-wider text-brand">
+              07 · Ecosystem Architecture
+            </span>
+            <h2 className="text-[28px] sm:text-[36px] font-extrabold text-ink tracking-tight">
+              Standard-compliant digital healthcare infrastructure.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-5 rounded-xl bg-white border border-border space-y-2 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand block">ABDM &amp; FHIR R4</span>
+              <h4 className="text-[14px] font-bold text-ink">Ayushman Bharat Ready</h4>
+              <p className="text-[12px] text-text-secondary leading-snug">Standardized health record exchange protocols.</p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-white border border-border space-y-2 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand block">Bhashini ASR</span>
+              <h4 className="text-[14px] font-bold text-ink">Indic Speech Engine</h4>
+              <p className="text-[12px] text-text-secondary leading-snug">Real-time dialect speech recognition for OPDs.</p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-white border border-border space-y-2 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand block">Vision OCR</span>
+              <h4 className="text-[14px] font-bold text-ink">Optical Provenance</h4>
+              <p className="text-[12px] text-text-secondary leading-snug">Direct crop bounding boxes with 100% trace.</p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-white border border-border space-y-2 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand block">AYUSH Module</span>
+              <h4 className="text-[14px] font-bold text-ink">Integrative Care</h4>
+              <p className="text-[12px] text-text-secondary leading-snug">Prakriti assessment and NAMASTE ontology.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 08 — FINAL CTA & FOOTER
+      ════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 border-t border-border bg-white text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <h2 className="text-[32px] sm:text-[42px] font-extrabold text-ink tracking-tight">
+            Give clinicians the story before the consultation.
+          </h2>
+          <p className="text-[16px] text-text-secondary max-w-xl mx-auto">
+            Experience the automated pre-consultation intelligence platform for high-density outpatient departments.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <button
+              onClick={handleStartIntake}
+              className="h-12 px-7 rounded-xl bg-brand text-white text-[14px] font-bold flex items-center gap-2 hover:bg-brand-dim transition-all shadow-sm cursor-pointer active:scale-98"
+            >
+              <span>Begin Patient Intake</span>
+              <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={handleStaffLogin}
+              className="h-12 px-6 rounded-xl border border-border bg-white text-ink text-[13.5px] font-bold flex items-center gap-2 hover:bg-surface-subtle transition-colors shadow-2xs cursor-pointer"
+            >
+              <span>Staff Workspace</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Institutional Footer */}
+      <footer className="border-t border-border bg-canvas py-8 text-center text-[12px] text-text-muted">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <VaidyaWordmark size="sm" showDescriptor={false} />
+            <span>· Clinical Intelligence Platform</span>
+          </div>
+          <div>
+            All Patient Intake Data Encrypted · Smart India Hackathon 2026
+          </div>
+        </div>
+      </footer>
+
     </div>
   )
 }

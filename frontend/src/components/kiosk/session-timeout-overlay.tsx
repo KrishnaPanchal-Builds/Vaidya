@@ -2,7 +2,7 @@
 /**
  * SessionTimeoutOverlay — Full-screen overlay shown when the patient becomes idle.
  *
- * From Stitch design system:
+ * Design system:
  * - Privacy-first: warns patient their session will reset
  * - Countdown timer (seconds remaining)
  * - Two actions: "Continue Session" or "End Session"
@@ -48,16 +48,16 @@ export function SessionTimeoutOverlay({
       aria-describedby="timeout-body"
     >
       {/* Dialog panel */}
-      <div className="bg-white rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.20)] p-10 max-w-[480px] w-full mx-6 flex flex-col items-center gap-6">
+      <div className="bg-[var(--color-surface)] rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.20)] border border-[var(--color-border)] p-10 max-w-[480px] w-full mx-6 flex flex-col items-center gap-6">
         {/* Countdown ring */}
         <div className="relative w-24 h-24 shrink-0" aria-hidden="true">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r="42" stroke="#e1e2ed" strokeWidth="6" fill="none" />
+            <circle cx="48" cy="48" r="42" stroke="var(--color-border)" strokeWidth="6" fill="none" />
             <circle
               cx="48"
               cy="48"
               r="42"
-              stroke="#004ac6"
+              stroke="var(--color-brand)"
               strokeWidth="6"
               fill="none"
               strokeLinecap="round"
@@ -66,7 +66,7 @@ export function SessionTimeoutOverlay({
               className="transition-all duration-1000 ease-linear"
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[28px] font-bold text-[#004ac6] font-mono">
+          <span className="absolute inset-0 flex items-center justify-center text-[28px] font-bold text-[var(--color-brand)] font-mono">
             {secondsRemaining}
           </span>
         </div>
@@ -75,16 +75,16 @@ export function SessionTimeoutOverlay({
         <div className="text-center space-y-2">
           <h2
             id="timeout-title"
-            className="text-[22px] font-semibold text-[#191b23] leading-snug"
+            className="text-[22px] font-semibold text-[var(--color-text-primary)] leading-snug"
           >
             {t.timeout.warningTitle}
           </h2>
           <p
             id="timeout-body"
-            className="text-[15px] text-[#434655] leading-relaxed"
+            className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed"
           >
             {t.timeout.warningDesc}{' '}
-            <span aria-live="polite" aria-atomic="true" className="font-semibold text-[#004ac6]">
+            <span aria-live="polite" aria-atomic="true" className="font-semibold text-[var(--color-brand)]">
               {secondsRemaining} {t.timeout.secondsLeft}
             </span>
             .

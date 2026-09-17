@@ -17,6 +17,15 @@ import {
   RotateCcw,
   Heart,
   X,
+  AlertTriangle,
+  FileText,
+  Mic,
+  Activity,
+  HeartPulse,
+  Thermometer,
+  Clock,
+  CheckSquare,
+  BookOpen,
 } from 'lucide-react'
 import {
   DEMO_ENCOUNTERS,
@@ -38,6 +47,14 @@ import {
 import { useUIStore } from '@/store'
 import type { ClinicalConflict, ClinicalFact, Encounter, Patient } from '@/types'
 import { cn } from '@/lib/utils'
+import { SlidingSegmentedTabs, type TabOption } from '@/components/ui/SlidingSegmentedTabs'
+
+const DOCTOR_EVIDENCE_TABS: TabOption<'NARRATIVE' | 'DOCUMENTS' | 'TIMELINE' | 'COMPLETENESS'>[] = [
+  { id: 'NARRATIVE', label: 'Evidence Narrative & Facts', icon: FileText },
+  { id: 'DOCUMENTS', label: 'Scanned Documents (2)', icon: BookOpen },
+  { id: 'TIMELINE', label: 'Longitudinal Timeline', icon: Clock },
+  { id: 'COMPLETENESS', label: 'Intake Completeness', icon: CheckSquare },
+]
 
 export default function DoctorEncounterPage() {
   const params = useParams()
@@ -47,12 +64,15 @@ export default function DoctorEncounterPage() {
 
   const [encounter, setEncounter] = useState<Encounter | null>(null)
   const [patient, setPatient] = useState<Patient | null>(null)
-  const [facts, setFacts] = useState<ClinicalFact[]>([])
+  const [, setFacts] = useState<ClinicalFact[]>([])
   const [conflicts, setConflicts] = useState<ClinicalConflict[]>([])
   const [consultationStatus, setConsultationStatus] = useState<'READY' | 'IN_PROGRESS' | 'COMPLETED'>('READY')
-  const [physicianNotes, setPhysicianNotes] = useState('Abdomen soft, non-tender on palpation. Mild epigastric tenderness. Diagnosis: Chronic Acid Peptic Disease / Dyspepsia. Advised dietary modifications (avoid spicy food) and prescribed Pantoprazole.')
+  const [physicianNotes, setPhysicianNotes] = useState(
+    'Abdomen soft, non-tender on general palpation. Mild epigastric tenderness elicited. Diagnosis: Chronic Acid Peptic Disease / Dyspepsia with functional heartburn. Advised dietary modifications (avoid spicy/fried foods, elevate head of bed) and prescribed Tab. Pantoprazole 40mg.'
+  )
   const [isIntakeVerified, setIsIntakeVerified] = useState(false)
   const [prescriptionModalOpen, setPrescriptionModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'NARRATIVE' | 'DOCUMENTS' | 'TIMELINE' | 'COMPLETENESS'>('NARRATIVE')
 
   useEffect(() => {
     const foundEnc = DEMO_ENCOUNTERS.find((e) => e.id === encounterId) || DEMO_ENCOUNTERS[0]
@@ -76,7 +96,7 @@ export default function DoctorEncounterPage() {
     await new Promise((r) => setTimeout(r, 300))
     addToast({
       type: 'success',
-      title: 'Clinical Conflict Decision Saved',
+      title: 'Clinical Discrepancy Resolved',
       body: `Decision: ${resolution}${note ? ` • Note: "${note}"` : ''}`,
     })
   }
@@ -96,7 +116,7 @@ export default function DoctorEncounterPage() {
     addToast({
       type: 'success',
       title: 'Consultation Finalized & EHR Synced',
-      body: `Prescription issued for ${patient?.name}. Records synced to ABDM Health Locker.`,
+      body: `Prescription issued for ${patient?.name}. Records bundled into FHIR R4 DiagnosticReport and synced to ABDM Health Locker.`,
     })
   }
 
@@ -111,57 +131,92 @@ export default function DoctorEncounterPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#FAF8FF] overflow-y-auto">
-      {/* ─── 1. TOP: Patient Identity Header Bar ────────────────────────────── */}
-      <header className="bg-white border-b border-[#E1E2ED] px-6 py-4 sticky top-0 z-20 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto" style={{ background: 'var(--color-canvas)' }}>
+      {/* ── 1. PATIENT CLINICAL CONTEXT BANNER ────────────────────────── */}
+      <header
+        className="px-4 lg:px-8 py-3.5 sticky top-0 z-20 shadow-xs border-b"
+        style={{
+          background: 'var(--color-surface)',
+          borderColor: 'var(--color-border)',
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Left: Navigation & Core Identity */}
           <div className="flex items-center gap-3.5">
             <button
               onClick={() => router.push('/doctor/queue')}
-              className="p-2 rounded-xl border border-[#E1E2ED] bg-white text-[#52525B] hover:text-[#18181B] hover:bg-[#F4F4F5] transition-all"
-              title="Back to Today's OPD"
+              className="p-2 rounded-xl border text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-all"
+              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              title="Return to OPD Queue"
             >
               <ArrowLeft size={16} />
             </button>
 
             {/* Token Badge */}
-            <div className="w-12 h-12 rounded-2xl bg-[#004AC6]/10 border border-[#004AC6]/20 text-[#004AC6] flex flex-col items-center justify-center shrink-0">
-              <span className="text-[8px] font-bold uppercase text-[#004AC6]">OPD</span>
-              <span className="text-[16px] font-extrabold font-mono leading-none">{encounter?.tokenNumber || 'A-028'}</span>
+            <div
+              className="w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0 border"
+              style={{
+                background: 'var(--color-brand-mist)',
+                borderColor: 'var(--color-border-strong)',
+                color: 'var(--color-brand)',
+              }}
+            >
+              <span className="text-[8px] font-bold uppercase tracking-wider">TOKEN</span>
+              <span className="text-[15px] font-extrabold font-mono leading-none">{encounter?.tokenNumber || 'A-028'}</span>
             </div>
 
             <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-[20px] font-bold text-[#18181B] tracking-tight">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[18px] font-extrabold text-text-primary tracking-tight">
                   {patient?.name || 'Dhananjay Patil'}
                 </h1>
-                <span className="text-[12px] font-semibold text-[#52525B] bg-[#FAF8FF] px-2.5 py-0.5 rounded-full border border-[#E1E2ED]">
-                  {patient?.age || 67}M • Male
+                <span className="text-[12px] font-semibold text-text-secondary px-2 py-0.5 rounded bg-surface-subtle border border-border">
+                  {patient?.age || 67}Y • {patient?.gender === 'FEMALE' ? 'Female' : 'Male'}
                 </span>
-                <span className="text-[11px] font-bold text-[#166534] bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-0.5 rounded-md">
-                  ABHA Linked (12-3456-7890-1234)
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/20 flex items-center gap-1">
+                  <ShieldCheck size={11} /> ABHA: 12-3456-7890-1234
                 </span>
               </div>
-              <p className="text-[11px] text-[#71717A] mt-0.5">
-                Preferred Language: Marathi (मराठी) • Kiosk Session: Station 01 • Attending: Dr. Sunita Rao
+              <p className="text-[11.5px] text-text-muted mt-0.5 flex items-center gap-2 flex-wrap">
+                <span>Intake Language: <strong className="text-text-secondary font-medium">Marathi (मराठी)</strong></span>
+                <span>•</span>
+                <span>Attending: <strong className="text-text-secondary font-medium">Dr. Sunita Rao, MD</strong></span>
+                <span>•</span>
+                <span>Station: <strong className="text-text-secondary font-mono">OPD 04</strong></span>
               </p>
             </div>
           </div>
 
-          {/* Right Header Status & Action */}
-          <div className="flex items-center gap-3 self-start md:self-auto">
-            <div className="text-right hidden sm:block">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
-                Prepared by VAIDYA
-              </span>
-              <p className="text-[10px] text-[#71717A] mt-0.5">Last updated 10:32 AM</p>
+          {/* Right: Vitals Ribbon & Primary Action Controls */}
+          <div className="flex items-center gap-3.5 flex-wrap self-end lg:self-center">
+            {/* Quick Vitals Strip */}
+            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl border bg-surface-subtle font-mono text-[12px]">
+              <div className="flex items-center gap-1">
+                <HeartPulse size={13} className="text-critical" />
+                <span className="font-bold text-text-primary">88 bpm</span>
+              </div>
+              <span className="text-border">|</span>
+              <div className="flex items-center gap-1">
+                <Activity size={13} className="text-brand" />
+                <span className="font-bold text-text-primary">128/82</span>
+              </div>
+              <span className="text-border">|</span>
+              <div className="flex items-center gap-1">
+                <Thermometer size={13} className="text-warning" />
+                <span className="font-bold text-text-primary">98.6°F</span>
+              </div>
+              <span className="text-border">|</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-bold text-text-muted">SpO2</span>
+                <span className="font-bold text-verified">98%</span>
+              </div>
             </div>
 
             {consultationStatus === 'READY' && (
               <button
                 onClick={handleStartConsultation}
-                className="px-4 py-2 rounded-xl bg-[#004AC6] text-white text-[13px] font-bold hover:bg-[#003EA8] transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                className="px-4 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
+                style={{ background: 'var(--color-brand)' }}
               >
                 <Stethoscope size={14} />
                 <span>Start Consultation</span>
@@ -171,10 +226,11 @@ export default function DoctorEncounterPage() {
             {consultationStatus === 'IN_PROGRESS' && (
               <button
                 onClick={handleCompleteEncounter}
-                className="px-4 py-2 rounded-xl bg-[#16A34A] text-white text-[13px] font-bold hover:bg-[#15803D] transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                className="px-4 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
+                style={{ background: 'var(--color-verified)' }}
               >
                 <CheckCircle2 size={14} />
-                <span>Finalize Consultation</span>
+                <span>Finalize &amp; Prescribe</span>
               </button>
             )}
 
@@ -182,14 +238,16 @@ export default function DoctorEncounterPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPrescriptionModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-[#004AC6] text-white text-[12px] font-bold hover:bg-[#003EA8] transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                  className="px-3.5 py-2 rounded-xl text-white text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
+                  style={{ background: 'var(--color-brand)' }}
                 >
                   <Printer size={13} />
-                  <span>View Prescription</span>
+                  <span>Print Prescription</span>
                 </button>
                 <button
                   onClick={handleResetDemo}
-                  className="p-2 rounded-xl border border-[#E1E2ED] text-[#71717A] hover:text-[#18181B] bg-white transition-colors"
+                  className="p-2 rounded-xl border text-text-muted hover:text-text-primary transition-colors"
+                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                   title="Reset Demo State"
                 >
                   <RotateCcw size={14} />
@@ -200,478 +258,614 @@ export default function DoctorEncounterPage() {
         </div>
       </header>
 
-      {/* ─── Main Content Container ────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto p-6 md:p-8 w-full flex-1 space-y-8">
-        {/* COMPLETED SUCCESS BANNER & CONSULTATION RESULT (Sections 5 & 6) */}
+      {/* ── 2. MAIN CLINICAL EVIDENCE WORKSPACE ───────────────────────── */}
+      <main className="max-w-7xl mx-auto p-4 lg:p-8 w-full flex-1 space-y-6">
+        {/* COMPLETED SUCCESS STATE BANNER */}
         {consultationStatus === 'COMPLETED' && (
-          <section className="bg-white border-2 border-[#16A34A] rounded-3xl p-6 sm:p-8 shadow-md space-y-5 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E1E2ED]">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] flex items-center justify-center">
-                  <FileCheck2 size={24} />
+          <section
+            className="rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 border-2 animate-fade-in"
+            style={{
+              background: 'var(--color-surface)',
+              borderColor: 'var(--color-verified)',
+            }}
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-verified-subtle text-verified flex items-center justify-center shrink-0">
+                  <FileCheck2 size={22} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-[19px] font-bold text-[#18181B]">
-                      Consultation Finalized &amp; Prescription Ready
+                    <h2 className="text-[17px] font-extrabold text-text-primary">
+                      Consultation Finalized &amp; FHIR R4 Bundle Generated
                     </h2>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F0FDF4] text-[#166534] px-2.5 py-0.5 rounded-full border border-[#BBF7D0]">
-                      EHR Synced
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/30">
+                      ABDM Synced
                     </span>
                   </div>
-                  <p className="text-[12px] text-[#52525B] mt-0.5">
-                    Attending: Dr. Sunita Rao • Date: Today, 10:45 AM • Token: A-028 • ABHA: 12-3456-7890-1234
+                  <p className="text-[12px] text-text-muted mt-0.5">
+                    Prescription signed by Dr. Sunita Rao • Synced to ABHA Address: <strong className="font-mono text-text-secondary">dpatil@abdm</strong>
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   onClick={() => setPrescriptionModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-[#004AC6] text-white text-[13px] font-bold hover:bg-[#003EA8] transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                  className="px-3.5 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all shadow-xs flex items-center gap-1.5"
+                  style={{ background: 'var(--color-brand)' }}
                 >
-                  <Printer size={14} />
-                  <span>View / Print Prescription</span>
+                  <Printer size={13} />
+                  <span>View Prescription</span>
                 </button>
-
                 <button
                   onClick={() => router.push('/patient/dashboard')}
-                  className="px-4 py-2.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#166534] text-[13px] font-bold hover:bg-[#DCFCE7] transition-all flex items-center gap-1.5 active:scale-95"
+                  className="px-3.5 py-2 rounded-xl border text-[12.5px] font-bold transition-all flex items-center gap-1.5 bg-verified-subtle text-verified-text border-verified/30"
                 >
-                  <Heart size={14} />
-                  <span>Open Patient Portal View →</span>
+                  <Heart size={13} />
+                  <span>Patient Portal View →</span>
                 </button>
-
                 <button
                   onClick={() => router.push('/doctor/queue')}
-                  className="px-4 py-2.5 rounded-xl border border-[#E1E2ED] text-[#52525B] hover:text-[#18181B] bg-white text-[13px] font-bold hover:bg-[#FAF8FF] transition-all"
+                  className="px-3.5 py-2 rounded-xl border text-text-secondary hover:text-text-primary text-[12.5px] font-semibold transition-colors"
+                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
                 >
-                  Return to Queue
+                  Next Patient
                 </button>
               </div>
             </div>
 
-            {/* Structured Prescription Summary Card */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E1E2ED] space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
+            {/* Prescribed Drugs Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px]">
+              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
                   Active Prescriptions (2)
                 </span>
-                <p className="text-[14px] font-bold text-[#18181B]">
-                  1. Tab. Pantoprazole 40mg (OD × 14d)
-                </p>
-                <p className="text-[14px] font-bold text-[#18181B]">
-                  2. Syrup Sucralfate 10ml (TDS × 7d)
-                </p>
+                <p className="font-bold text-text-primary">1. Tab. Pantoprazole 40mg (OD × 14d)</p>
+                <p className="font-bold text-text-primary">2. Syrup Sucralfate 10ml (TDS × 7d)</p>
               </div>
-
-              <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E1E2ED] space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
-                  ABHA Health Locker Sync
+              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
+                  ABDM Integration Status
                 </span>
-                <p className="text-[14px] font-bold text-[#166534] flex items-center gap-1.5">
-                  <CheckCircle2 size={14} />
-                  <span>FHIR R4 DiagnosticReport Bundled</span>
+                <p className="font-bold text-verified flex items-center gap-1">
+                  <CheckCircle2 size={13} /> FHIR DiagnosticReport Published
                 </p>
-                <p className="text-[12px] text-[#71717A]">
-                  Synced to Patient ABHA Address: dpatil@abdm
-                </p>
+                <p className="text-[11.5px] text-text-muted">HIP ID: IN-MH-PUN-0042</p>
               </div>
-
-              <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E1E2ED] space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
-                  Follow-up &amp; Lifestyle
+              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
+                  Follow-up &amp; AYUSH Advice
                 </span>
-                <p className="text-[14px] font-bold text-[#18181B]">
-                  Review in 2 weeks
-                </p>
-                <p className="text-[12px] text-[#006A61] font-medium">
-                  AYUSH Ahara dietary modifications advised
-                </p>
+                <p className="font-bold text-text-primary">Review in 2 weeks</p>
+                <p className="text-[11.5px] text-brand font-medium">Ayush Pitta-pacifying Ahara advised</p>
               </div>
             </div>
           </section>
         )}
 
-        {/* Red Flag Alert Banner (for acute triage cases) */}
+        {/* CLINICAL CONCERN / RED FLAG BANNER */}
         {encounterId === 'enc-002' ? (
           <RedFlagBanner alert={DEMO_RED_FLAG_ENC002} />
         ) : (
-          <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl px-5 py-3 flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-3 text-[#166534]">
-              <ShieldCheck size={18} className="text-[#16A34A] shrink-0" />
-              <p className="text-[13px] font-medium">
-                <strong className="font-bold">No acute red flags</strong> detected during multilingual patient intake.
+          <div
+            className="border rounded-xl px-4 py-2.5 flex items-center justify-between shadow-xs bg-verified-subtle border-verified/30 text-verified-text"
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck size={16} className="text-verified shrink-0" />
+              <p className="text-[12.5px] font-medium">
+                <strong className="font-bold">No acute red flags detected</strong> during multilingual voice triage or document OCR ingestion.
               </p>
             </div>
-            <span className="text-[11px] font-bold text-[#166534] uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-[#BBF7D0]">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white text-verified-text border border-verified/30">
               Triage Clear
             </span>
           </div>
         )}
 
-        {/* ─── 2. PRIMARY CLINICAL SUMMARY (Visual Center) ───────────── */}
-        <section className="bg-white rounded-3xl p-6 md:p-8 border border-[#E1E2ED] shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E1E2ED]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                <Sparkles size={20} />
-              </div>
-              <div>
+        {/* WORKSPACE NAVIGATION TABS (Layer 1: Floating Frosted Rail) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
+          <SlidingSegmentedTabs
+            options={DOCTOR_EVIDENCE_TABS}
+            selectedId={activeTab}
+            onChange={(newTab) => setActiveTab(newTab)}
+            variant="default"
+            layoutId="doctor-evidence-mode-pill"
+            ariaLabel="Select Evidence Section"
+          />
+
+          <button
+            onClick={() => openEvidenceDrawer('fact-001')}
+            className="text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] hover:underline flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg bg-white border border-[#DFE8F1] shadow-2xs transition-all"
+          >
+            <Search size={13} />
+            <span>Open Provenance Drawer</span>
+          </button>
+        </div>
+
+        {/* ── 3. TAB A: CLINICAL EVIDENCE NARRATIVE & AYUSH WORKSPACE ─── */}
+        {activeTab === 'NARRATIVE' && (
+          <div className="space-y-6">
+            {/* Structured Provenance Fact Grid (Layer 2: Clinical Content Surface) */}
+            <section
+              className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
+              style={{
+                background: 'var(--clinical-surface)',
+                borderColor: 'var(--clinical-card-border)',
+                boxShadow: '0 2px 8px rgba(41, 87, 135, 0.04)',
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-brand-mist text-brand flex items-center justify-center">
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-[16px] font-extrabold text-text-primary tracking-tight">
+                      Synthesized Pre-Consultation Evidence
+                    </h2>
+                    <p className="text-[11.5px] text-text-muted">
+                      Source-attributed clinical entities extracted across Marathi Voice Intake, ABDM EHR history, and 3 scanned physical prescriptions.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[18px] font-bold text-[#18181B] tracking-tight">
-                    AI-Assisted Clinical Summary
-                  </h2>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#004AC6] bg-[#EFF6FF] px-2 py-0.5 rounded border border-[#BFDBFE]">
-                    Pre-Consultation Synthesis
+                  <span className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-surface-subtle text-text-secondary border border-border">
+                    4 Facts Verified
                   </span>
                 </div>
-                <p className="text-[12px] font-semibold text-[#004AC6] mt-0.5">
-                  Physician review required • Synthesized from Marathi voice intake &amp; 3 scanned documents
+              </div>
+
+              {/* Grid of Evidence Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* Fact 1: Chief Complaint */}
+                <div
+                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
+                  onClick={() => openEvidenceDrawer('fact-001')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
+                      Chief Complaint
+                    </span>
+                    <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.94} />
+                  </div>
+                  <p className="text-[15px] font-bold text-text-primary">
+                    Epigastric burning pain &amp; post-prandial indigestion
+                  </p>
+                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
+                    <span className="flex items-center gap-1">
+                      <Mic size={11} className="text-brand" /> Bhashini Marathi ASR
+                    </span>
+                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
+                  </div>
+                </div>
+
+                {/* Fact 2: Duration */}
+                <div
+                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
+                  onClick={() => openEvidenceDrawer('fact-002')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
+                      Symptom Duration &amp; Progression
+                    </span>
+                    <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.91} />
+                  </div>
+                  <p className="text-[15px] font-bold text-text-primary">
+                    3 months duration (gradually worsening over past 2 weeks)
+                  </p>
+                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
+                    <span className="flex items-center gap-1">
+                      <Clock size={11} className="text-text-muted" /> Patient Voice &amp; Touch Intake
+                    </span>
+                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
+                  </div>
+                </div>
+
+                {/* Fact 3: Aggravating Factors */}
+                <div
+                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
+                  onClick={() => openEvidenceDrawer('fact-003')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
+                      Aggravation &amp; Relieving Factors
+                    </span>
+                    <ProvenanceChip tier={2} sourceType="DOCUMENT_EXTRACT" confidence={0.88} />
+                  </div>
+                  <p className="text-[15px] font-bold text-text-primary">
+                    Aggravated by empty stomach and spicy foods; partial relief with antacids
+                  </p>
+                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
+                    <span className="flex items-center gap-1">
+                      <FileText size={11} className="text-verified" /> OCR Scan (Previous Rx 2024)
+                    </span>
+                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
+                  </div>
+                </div>
+
+                {/* Fact 4: AYUSH Ahara/Vihara Correlation */}
+                <div
+                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
+                  onClick={() => openEvidenceDrawer('fact-004')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand">
+                      AYUSH Ahara &amp; Vihara Lifestyle Correlation
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-mist text-brand">
+                      NAMASTE Portal Synced
+                    </span>
+                  </div>
+                  <p className="text-[15px] font-bold text-text-primary">
+                    Pitta-dominant Agnimandya: Irregular meal timings, high Ushna/Tikshna Ahara intake
+                  </p>
+                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
+                    <span className="flex items-center gap-1">
+                      <Sparkles size={11} className="text-brand" /> AYUSH Intake Domain
+                    </span>
+                    <span className="text-brand font-semibold text-[11px]">Inspect Protocol →</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Clinical Discrepancy & Conflict Cards if present */}
+            {conflicts.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[14px] font-extrabold uppercase tracking-wider text-critical flex items-center gap-1.5">
+                    <AlertTriangle size={15} /> Clinical Discrepancy Detected (1)
+                  </h3>
+                  <span className="text-[11px] text-text-muted">Physician verification requested</span>
+                </div>
+                {conflicts.map((conflict) => (
+                  <ConflictCard
+                    key={conflict.id}
+                    conflict={conflict}
+                    onResolve={handleResolveConflict}
+                  />
+                ))}
+              </section>
+            )}
+
+            {/* Differential Diagnoses & Clinical Evidence Citations */}
+            <section
+              className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
+              style={{
+                background: 'var(--color-surface)',
+                borderColor: 'var(--color-border)',
+              }}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h3 className="text-[15px] font-extrabold text-text-primary flex items-center gap-2">
+                  <Stethoscope size={16} className="text-brand" />
+                  <span>Differential Diagnoses &amp; Guideline Correlation</span>
+                </h3>
+                <span className="text-[11px] font-mono text-text-muted">ICD-11 &amp; SNOMED CT</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px]">
+                <div className="p-3.5 rounded-xl border bg-brand-mist/20 border-brand/30 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-text-primary">1. Functional Dyspepsia</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-brand text-white">88% Match</span>
+                  </div>
+                  <p className="text-[11.5px] text-text-secondary">ICD-11: MD90.0 • Rome IV Diagnostic Criteria satisfied.</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-text-primary">2. Peptic Ulcer Disease</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-surface-subtle text-text-secondary border border-border">42% Match</span>
+                  </div>
+                  <p className="text-[11.5px] text-text-secondary">ICD-11: DA40 • No melena, hematemesis, or alarm symptoms.</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-text-primary">3. Gastroesophageal Reflux</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-surface-subtle text-text-secondary border border-border">35% Match</span>
+                  </div>
+                  <p className="text-[11.5px] text-text-secondary">ICD-11: DA22 • Retrosternal burning without dysphagia.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* ── 4. TAB B: SCANNED DOCUMENTS INSPECTOR ────────────────────── */}
+        {activeTab === 'DOCUMENTS' && (
+          <section
+            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
+            style={{
+              background: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div>
+                <h3 className="text-[16px] font-extrabold text-text-primary">
+                  Physical Medical Documents ({DEMO_DOCUMENTS_ENC001.length})
+                </h3>
+                <p className="text-[12px] text-text-muted">
+                  Digitized at kiosk OCR station with bounding box entity extraction.
                 </p>
               </div>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/30">
+                100% Extraction Verified
+              </span>
             </div>
 
-            <button
-              onClick={() => openEvidenceDrawer('fact-001')}
-              className="px-3.5 py-1.5 rounded-xl border border-[#E1E2ED] text-[12px] font-bold text-[#004AC6] bg-[#FAF8FF] hover:bg-[#EFF6FF] transition-all flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              <Search size={13} />
-              <span>Inspect Source Evidence</span>
-            </button>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {DEMO_DOCUMENTS_ENC001.map((doc) => (
+                <div
+                  key={doc.id}
+                  onClick={() => openEvidenceDrawer('fact-002')}
+                  className="p-4 rounded-xl border bg-surface-subtle hover:border-brand transition-all cursor-pointer group flex flex-col justify-between gap-3 shadow-xs"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-brand-mist text-brand">
+                        {doc.documentType.replace(/_/g, ' ')}
+                      </span>
+                      <span className="text-[10.5px] font-mono font-bold text-verified">
+                        {Math.round((doc.ocrConfidence || 0.95) * 100)}% OCR
+                      </span>
+                    </div>
+                    <h4 className="text-[14px] font-bold text-text-primary group-hover:text-brand transition-colors">
+                      {doc.originalFilename}
+                    </h4>
+                  </div>
 
-          {/* Clean 2x2 Fact Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Fact 1: Chief Complaint */}
-            <div className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E1E2ED] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
-                  Chief Complaint
-                </span>
-                <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.92} />
-              </div>
-              <p className="text-[16px] font-bold text-[#18181B]">
-                Epigastric burning pain &amp; indigestion
-              </p>
-              <p className="text-[12px] text-[#71717A]">
-                Source: Patient voice intake (Bhashini Marathi ASR)
-              </p>
+                  <div className="flex items-center justify-between text-[11px] text-text-muted pt-2 border-t border-border">
+                    <span>{doc.extractedFactsCount || 4} entities extracted</span>
+                    <span className="text-brand font-bold flex items-center gap-1 group-hover:underline">
+                      <span>Inspect Bounding Box</span>
+                      <ExternalLink size={11} />
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Fact 2: Duration */}
-            <div className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E1E2ED] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
-                  Duration
-                </span>
-                <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.89} />
-              </div>
-              <p className="text-[16px] font-bold text-[#18181B]">
-                3 months (Gradual worsening)
-              </p>
-              <p className="text-[12px] text-[#71717A]">
-                Source: Patient voice intake
-              </p>
-            </div>
-
-            {/* Fact 3: Character & Aggravation */}
-            <div className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E1E2ED] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
-                  Character &amp; Aggravation
-                </span>
-                <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.92} />
-              </div>
-              <p className="text-[16px] font-bold text-[#18181B]">
-                Burning / acidity, aggravated post-prandial
-              </p>
-              <p className="text-[12px] text-[#71717A]">
-                Source: Patient touch &amp; voice intake
-              </p>
-            </div>
-
-            {/* Fact 4: Trigger & Lifestyle */}
-            <div className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E1E2ED] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#006A61]">
-                  Trigger &amp; AYUSH Lifestyle Factor
-                </span>
-                <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.88} />
-              </div>
-              <p className="text-[16px] font-bold text-[#18181B]">
-                Stress, disturbed sleep &amp; irregular spicy food
-              </p>
-              <p className="text-[12px] text-[#006A61] font-medium">
-                Source: AYUSH Ahara &amp; Vihara questionnaire
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── 3. SECONDARY CLINICAL INFORMATION IN STRICT ORDER ──────── */}
-
-        {/* SECTION A: Clinical Alerts / Discrepancies */}
-        {conflicts.length > 0 && (
-          <section className="space-y-3">
-            <h3 className="text-[16px] font-bold text-[#18181B]">
-              A. Clinical Discrepancy &amp; Verification
-            </h3>
-            {conflicts.map((conflict) => (
-              <ConflictCard
-                key={conflict.id}
-                conflict={conflict}
-                onResolve={handleResolveConflict}
-              />
-            ))}
           </section>
         )}
 
-        {/* SECTION B: Medical Documents */}
-        <section className="bg-white rounded-3xl p-6 md:p-8 border border-[#E1E2ED] shadow-xs space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-[#E1E2ED]">
+        {/* ── 5. TAB C: TIMELINE ───────────────────────────────────────── */}
+        {activeTab === 'TIMELINE' && (
+          <section
+            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
+            style={{
+              background: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
             <div>
-              <h3 className="text-[17px] font-bold text-[#18181B]">
-                B. Scanned Medical Documents ({DEMO_DOCUMENTS_ENC001.length})
+              <h3 className="text-[16px] font-extrabold text-text-primary">
+                Longitudinal Patient Health Timeline
               </h3>
-              <p className="text-[12px] text-[#71717A]">
-                Physical records scanned at kiosk with sub-second OCR extraction.
-              </p>
-            </div>
-            <span className="text-[11px] font-bold text-[#166534] bg-[#F0FDF4] px-2.5 py-1 rounded-full border border-[#BBF7D0]">
-              All Documents Processed
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {DEMO_DOCUMENTS_ENC001.map((doc) => (
-              <div
-                key={doc.id}
-                onClick={() => openEvidenceDrawer(facts[1]?.id || 'fact-002')}
-                className="bg-[#FAF8FF] p-5 rounded-2xl border border-[#E1E2ED] hover:border-[#004AC6] transition-all cursor-pointer group flex flex-col justify-between gap-4 shadow-xs"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#004AC6] px-2 py-0.5 rounded">
-                      {doc.documentType.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#F0FDF4] px-1.5 py-0.5 rounded border border-[#BBF7D0]">
-                      {Math.round((doc.ocrConfidence || 0.9) * 100)}% OCR
-                    </span>
-                  </div>
-                  <h4 className="text-[14px] font-bold text-[#18181B] group-hover:text-[#004AC6] transition-colors">
-                    {doc.originalFilename}
-                  </h4>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-[#71717A] pt-3 border-t border-[#E1E2ED]">
-                  <span>{doc.extractedFactsCount || 4} facts extracted</span>
-                  <span className="text-[#004AC6] font-bold flex items-center gap-1 group-hover:underline">
-                    <span>Inspect Crop</span>
-                    <ExternalLink size={11} />
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* SECTION C & D: Clinical Completeness + Longitudinal Timeline */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Section C: Completeness */}
-          <div className="bg-white rounded-3xl p-6 md:p-7 border border-[#E1E2ED] shadow-xs space-y-4">
-            <div>
-              <h3 className="text-[17px] font-bold text-[#18181B]">
-                C. 11-Domain Intake Completeness
-              </h3>
-              <p className="text-[12px] text-[#71717A]">
-                Structured domain audit for clinical decision readiness.
-              </p>
-            </div>
-            <CompletenessGrid entries={DEMO_COMPLETENESS_ENC001} />
-          </div>
-
-          {/* Section D: Timeline */}
-          <div className="bg-white rounded-3xl p-6 md:p-7 border border-[#E1E2ED] shadow-xs space-y-4">
-            <div>
-              <h3 className="text-[17px] font-bold text-[#18181B]">
-                D. Longitudinal Health Timeline
-              </h3>
-              <p className="text-[12px] text-[#71717A]">
-                Past hospital admissions merged with today&apos;s intake.
+              <p className="text-[12px] text-text-muted">
+                Historical records merged with today&apos;s digital intake stream.
               </p>
             </div>
             <Timeline events={DEMO_TIMELINE_ENC001} />
-          </div>
-        </section>
+          </section>
+        )}
 
-        {/* SECTION E: Physician Decision Console */}
-        <section className="bg-white rounded-3xl p-6 md:p-8 border-2 border-[#004AC6]/30 shadow-md space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-[#E1E2ED]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#004AC6]/10 text-[#004AC6] flex items-center justify-center">
-                <Edit3 size={18} />
+        {/* ── 6. TAB D: COMPLETENESS GRID ─────────────────────────────── */}
+        {activeTab === 'COMPLETENESS' && (
+          <section
+            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
+            style={{
+              background: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
+            <div>
+              <h3 className="text-[16px] font-extrabold text-text-primary">
+                11-Domain Clinical Intake Completeness Matrix
+              </h3>
+              <p className="text-[12px] text-text-muted">
+                Standardized clinical readiness check before issuing prescription.
+              </p>
+            </div>
+            <CompletenessGrid entries={DEMO_COMPLETENESS_ENC001} />
+          </section>
+        )}
+
+        {/* ── 7. PHYSICIAN DECISION CONSOLE (ALWAYS VISIBLE AT BOTTOM) ─── */}
+        <section
+          className="rounded-2xl p-5 sm:p-6 border-2 shadow-sm space-y-4"
+          style={{
+            background: 'var(--color-surface)',
+            borderColor: 'var(--color-border-strong)',
+          }}
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-brand-mist text-brand flex items-center justify-center">
+                <Edit3 size={16} />
               </div>
               <div>
-                <h3 className="text-[17px] font-bold text-[#18181B]">
-                  E. Physician Decision Console
+                <h3 className="text-[15px] font-extrabold text-text-primary">
+                  Physician Examination &amp; Final Rx Orders
                 </h3>
-                <p className="text-[12px] text-[#71717A]">
-                  Review complete. Enter physical examination findings and finalize the consultation.
+                <p className="text-[11.5px] text-text-muted">
+                  Enter physical findings, confirm verification, and emit digital FHIR prescription.
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-[#004AC6] bg-[#EFF6FF] px-2.5 py-1 rounded-full border border-[#BFDBFE]">
-              Physician Action
+            <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-brand-mist text-brand border border-border-strong">
+              Physician Station #04
             </span>
           </div>
 
+          {/* Physical Examination Textarea */}
           <div>
-            <label className="text-[11px] font-bold text-[#434655] uppercase tracking-wider block mb-1.5">
-              Physical Examination &amp; Clinical Notes
+            <label className="text-[11px] font-bold uppercase tracking-wider block mb-1.5 text-text-secondary">
+              Physical Examination &amp; Clinical Decision Notes
             </label>
             <textarea
               value={physicianNotes}
               onChange={(e) => setPhysicianNotes(e.target.value)}
-              placeholder="Enter findings from abdomen palpation, differential diagnosis, or prescription instructions..."
-              className="w-full h-28 text-[13px] p-3.5 rounded-2xl border border-[#E1E2ED] bg-[#FAF8FF] focus:bg-white focus:outline-none focus:border-[#004AC6] resize-none transition-all"
+              placeholder="Enter abdomen palpation findings, differential assessment, or patient counselling instructions..."
+              className="w-full h-24 text-[13px] p-3 rounded-xl border focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand resize-none transition-all"
+              style={{
+                background: 'var(--color-surface-subtle)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          {/* Action Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
             <button
               onClick={() => {
                 setIsIntakeVerified(true)
                 addToast({
                   type: 'success',
                   title: 'Intake Verified by Physician',
-                  body: 'All clinical intake items marked as physician verified.',
+                  body: 'All clinical facts and ASR extractions marked as verified by Dr. Sunita Rao.',
                 })
               }}
               className={cn(
-                'w-full sm:w-auto px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all flex items-center justify-center gap-2 active:scale-98',
-                isIntakeVerified
-                  ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#166534]'
-                  : 'bg-[#FAF8FF] border-[#E1E2ED] hover:bg-[#F4F4F5] text-[#18181B]'
+                'w-full sm:w-auto px-4 py-2 rounded-xl border text-[12.5px] font-bold transition-all flex items-center justify-center gap-2 active:scale-98'
               )}
+              style={{
+                background: isIntakeVerified ? 'var(--color-verified-subtle)' : 'var(--color-surface-subtle)',
+                borderColor: isIntakeVerified ? 'var(--color-verified-subtle)' : 'var(--color-border)',
+                color: isIntakeVerified ? 'var(--color-verified-text)' : 'var(--color-text-primary)',
+              }}
             >
-              <CheckCircle2 size={15} className={isIntakeVerified ? 'text-[#16A34A]' : 'text-[#71717A]'} />
+              <CheckCircle2 size={15} className={isIntakeVerified ? 'text-verified' : 'text-text-muted'} />
               <span>{isIntakeVerified ? 'Intake Verified by Physician ✓' : 'Mark Intake Verified'}</span>
             </button>
 
             <button
               onClick={handleCompleteEncounter}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#004AC6] hover:bg-[#003EA8] text-white text-[13px] font-bold transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98"
+              className="w-full sm:w-auto px-5 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98 hover:opacity-90"
+              style={{ background: 'var(--color-brand)' }}
             >
-              <span>Finalize Consultation &amp; Sync EHR</span>
-              <ChevronRight size={16} />
+              <span>Finalize Consultation &amp; Sync to ABDM</span>
+              <ChevronRight size={15} />
             </button>
           </div>
         </section>
       </main>
 
-      {/* ─── PRESCRIPTION VIEW / PRINT MODAL ────────────────────────── */}
+      {/* ── 8. PRESCRIPTION PRINT & EHR VIEW MODAL ───────────────────── */}
       {prescriptionModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-[#E1E2ED] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+          <div
+            className="w-full max-w-2xl rounded-2xl p-6 sm:p-8 border shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+            style={{
+              background: 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+            }}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#E1E2ED]">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#004AC6] text-white flex items-center justify-center font-bold">
+                <div
+                  className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-[18px]"
+                  style={{ background: 'var(--color-brand)' }}
+                >
                   V
                 </div>
                 <div>
-                  <h3 className="text-[18px] font-bold text-[#18181B]">
+                  <h3 className="text-[17px] font-extrabold text-text-primary">
                     Hospital OPD Electronic Prescription
                   </h3>
-                  <p className="text-[12px] text-[#71717A]">
-                    Department of Internal Medicine • Room 104 • OPD Slot A
+                  <p className="text-[11.5px] text-text-muted">
+                    Dept. of Internal Medicine • Room 104 • ABHA Health Locker Integration
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setPrescriptionModalOpen(false)}
-                className="p-2 rounded-xl text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F5]"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-subtle"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
 
-            {/* Patient & Physician Details */}
-            <div className="grid grid-cols-2 gap-4 bg-[#FAF8FF] p-4 rounded-2xl border border-[#E1E2ED] text-[13px]">
+            {/* Patient & Physician Grid */}
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl border bg-surface-subtle text-[12.5px]">
               <div>
-                <p className="text-[#71717A] text-[11px] font-bold uppercase">Patient</p>
-                <p className="font-bold text-[#18181B]">{patient?.name || 'Dhananjay Patil'}</p>
-                <p className="text-[#71717A]">{patient?.age || 67}M • Token {encounter?.tokenNumber || 'A-028'}</p>
-                <p className="font-mono text-[#004AC6] text-[11px]">ABHA: 12-3456-7890-1234</p>
+                <p className="text-text-muted text-[10.5px] font-bold uppercase">Patient</p>
+                <p className="font-bold text-text-primary">{patient?.name || 'Dhananjay Patil'}</p>
+                <p className="text-text-secondary">{patient?.age || 67}Y • Token {encounter?.tokenNumber || 'A-028'}</p>
+                <p className="font-mono text-brand text-[11px]">ABHA: 12-3456-7890-1234</p>
               </div>
 
               <div className="text-right">
-                <p className="text-[#71717A] text-[11px] font-bold uppercase">Physician</p>
-                <p className="font-bold text-[#18181B]">Dr. Sunita Rao, MD</p>
-                <p className="text-[#71717A]">Reg. No: MMC-2012-48291</p>
-                <p className="text-[#166534] text-[11px] font-bold">Date: 31 Aug 2026</p>
+                <p className="text-text-muted text-[10.5px] font-bold uppercase">Prescriber</p>
+                <p className="font-bold text-text-primary">Dr. Sunita Rao, MD</p>
+                <p className="text-text-secondary">Reg. No: MMC-2012-48291</p>
+                <p className="text-verified text-[11px] font-bold">Date: Today</p>
               </div>
             </div>
 
-            {/* Rx Items */}
-            <div className="space-y-3">
-              <h4 className="text-[14px] font-bold text-[#18181B] flex items-center gap-1.5">
-                <span className="font-serif italic text-[#004AC6] text-[18px]">℞</span>
-                <span>Prescribed Medications</span>
+            {/* Rx Medications */}
+            <div className="space-y-2.5">
+              <h4 className="text-[13.5px] font-extrabold text-text-primary flex items-center gap-1.5">
+                <span className="font-serif italic text-brand text-[17px]">℞</span>
+                <span>Prescribed Medications (2)</span>
               </h4>
 
               <div className="space-y-2">
-                <div className="p-3.5 rounded-xl border border-[#E1E2ED] bg-white flex items-center justify-between text-[13px]">
+                <div className="p-3 rounded-xl border bg-surface flex items-center justify-between text-[12.5px]">
                   <div>
-                    <p className="font-bold text-[#18181B]">1. Tab. Pantoprazole 40 mg</p>
-                    <p className="text-[12px] text-[#71717A]">1 Tablet • Once daily before breakfast (OD) • 14 days</p>
+                    <p className="font-bold text-text-primary">1. Tab. Pantoprazole 40 mg</p>
+                    <p className="text-[11.5px] text-text-secondary">1 Tab • Once daily before breakfast (OD) • 14 days</p>
                   </div>
-                  <span className="text-[11px] font-bold bg-[#EFF6FF] text-[#004AC6] px-2 py-0.5 rounded">
+                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-brand-mist text-brand">
                     Oral
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-[#E1E2ED] bg-white flex items-center justify-between text-[13px]">
+                <div className="p-3 rounded-xl border bg-surface flex items-center justify-between text-[12.5px]">
                   <div>
-                    <p className="font-bold text-[#18181B]">2. Syrup Sucralfate 10 ml</p>
-                    <p className="text-[12px] text-[#71717A]">2 Teaspoons • Three times daily after meals (TDS) • 7 days</p>
+                    <p className="font-bold text-text-primary">2. Syrup Sucralfate 10 ml</p>
+                    <p className="text-[11.5px] text-text-secondary">2 tsp • Three times daily after meals (TDS) • 7 days</p>
                   </div>
-                  <span className="text-[11px] font-bold bg-[#EFF6FF] text-[#004AC6] px-2 py-0.5 rounded">
+                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-brand-mist text-brand">
                     Oral
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Clinical Diagnosis & Notes */}
-            <div className="bg-[#FAF8FF] p-4 rounded-2xl border border-[#E1E2ED] space-y-1 text-[13px]">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#71717A]">Diagnosis &amp; Advice</p>
-              <p className="font-semibold text-[#18181B]">Chronic Acid Peptic Disease / Dyspepsia (Pre-consultation verified)</p>
-              <p className="text-[12px] text-[#52525B]">Advice: Avoid oily, excessively spicy food. Sleep on elevated pillow. Follow up in 2 weeks if symptoms persist.</p>
+            {/* Diagnosis & Lifestyle */}
+            <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1 text-[12.5px]">
+              <p className="text-[10.5px] font-bold uppercase tracking-wider text-text-muted">Clinical Diagnosis</p>
+              <p className="font-bold text-text-primary">Chronic Acid Peptic Disease / Dyspepsia (Physician Verified)</p>
+              <p className="text-[11.5px] text-text-secondary">Advice: Avoid oily, excessively spicy foods. Elevate head of bed. Follow up in 2 weeks.</p>
             </div>
 
-            {/* Footer Buttons */}
+            {/* Actions */}
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-[#71717A] flex items-center gap-1">
-                <ShieldCheck size={14} className="text-[#16A34A]" />
+              <span className="text-[11px] text-text-muted flex items-center gap-1">
+                <ShieldCheck size={13} className="text-verified" />
                 <span>Digitally signed via ABDM Bridge</span>
               </span>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    window.print()
-                  }}
-                  className="px-4 py-2 rounded-xl bg-[#004AC6] text-white text-[13px] font-bold hover:bg-[#003EA8] transition-all flex items-center gap-1.5 shadow-xs"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all flex items-center gap-1.5 shadow-xs"
+                  style={{ background: 'var(--color-brand)' }}
                 >
-                  <Printer size={14} />
+                  <Printer size={13} />
                   <span>Print Prescription</span>
                 </button>
                 <button
                   onClick={() => setPrescriptionModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E1E2ED] text-[#52525B] hover:text-[#18181B] text-[13px] font-semibold"
+                  className="px-4 py-2 rounded-xl border text-text-secondary hover:text-text-primary text-[12.5px] font-semibold"
+                  style={{ borderColor: 'var(--color-border)' }}
                 >
                   Close
                 </button>
