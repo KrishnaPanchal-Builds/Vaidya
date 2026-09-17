@@ -22,17 +22,21 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-[#0c1829]/40 backdrop-blur-xs transition-opacity" onClick={onClose} aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
-        className={cn('relative bg-white rounded-xl shadow-lg w-full z-10', maxWidth)}
+        className={cn('relative surface-overlay rounded-2xl w-full z-10 overflow-hidden', maxWidth)}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-            <h2 className="text-[18px] font-semibold text-[var(--color-text-primary)]">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded hover:bg-[var(--color-surface-subtle)] transition-colors">
-              <X size={18} className="text-[var(--color-text-muted)]" />
+          <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#DFE8F1] bg-white">
+            <h2 className="text-[17px] font-bold text-text-primary tracking-tight">{title}</h2>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F1F4F9] text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Close dialog"
+            >
+              <X size={18} />
             </button>
           </div>
         )}

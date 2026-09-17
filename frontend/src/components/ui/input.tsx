@@ -11,9 +11,9 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, hint, error, size = 'md', id, ...props }, ref) => {
     const heightClass =
-      size === 'patient' ? 'h-[52px] text-base rounded-lg' :
-      size === 'lg'      ? 'h-11 text-[15px] rounded-md' :
-                           'h-9 text-sm rounded'
+      size === 'patient' ? 'h-[52px] text-base rounded-xl' :
+      size === 'lg'      ? 'h-11 text-[15px] rounded-xl' :
+                           'h-9 text-[13.5px] rounded-lg'
 
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined)
 
@@ -22,7 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-[13px] font-semibold text-text-secondary"
+            className="text-[13px] font-bold text-text-primary tracking-tight"
           >
             {label}
           </label>
@@ -32,13 +32,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full px-3 border bg-surface text-text-primary',
+            'w-full px-3.5 border bg-white text-text-primary',
+            'border-[#DFE8F1] shadow-2xs',
             'placeholder:text-text-muted',
-            'transition-colors duration-fast',
-            'focus:outline-none focus:ring-2',
+            'transition-all duration-150',
+            'focus:outline-none focus:ring-2 focus:ring-[#2365B5]/20 focus:border-[#2365B5]',
             error
               ? 'border-critical focus:border-critical focus:ring-critical/15 bg-critical-subtle/30'
-              : 'border-border focus:border-border-focus focus:ring-border-focus/15',
+              : 'hover:border-[#CBD8E5]',
             'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-dim',
             'read-only:bg-surface-subtle read-only:text-text-secondary',
             heightClass,

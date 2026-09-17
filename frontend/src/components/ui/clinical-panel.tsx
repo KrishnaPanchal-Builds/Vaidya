@@ -17,8 +17,10 @@ interface ClinicalPanelProps extends HTMLAttributes<HTMLDivElement> {
   label?: string
   /** Optional right-aligned action element */
   action?: ReactNode
-  /** Elevates the panel with a shadow to distinguish from a nested context */
+  /** Elevates the panel with focused priority */
   elevated?: boolean
+  /** Embedded recessed styling for nested sub-panels */
+  embedded?: boolean
   /** Removes padding from content area (for full-bleed tables etc.) */
   flush?: boolean
 }
@@ -28,6 +30,7 @@ export function ClinicalPanel({
   label,
   action,
   elevated = false,
+  embedded = false,
   flush = false,
   className,
   ...props
@@ -35,16 +38,20 @@ export function ClinicalPanel({
   return (
     <div
       className={cn(
-        'bg-surface border border-border rounded-lg overflow-hidden',
-        elevated ? 'shadow-sm' : 'shadow-xs',
+        'rounded-2xl overflow-hidden transition-all',
+        embedded
+          ? 'surface-embedded'
+          : elevated
+          ? 'surface-focused'
+          : 'surface-clinical-card',
         className
       )}
       {...props}
     >
       {(label || action) && (
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#DFE8F1]">
           {label && (
-            <h3 className="text-[13px] font-semibold text-text-primary tracking-[0.01em]">
+            <h3 className="text-[13.5px] font-bold text-text-primary tracking-tight">
               {label}
             </h3>
           )}

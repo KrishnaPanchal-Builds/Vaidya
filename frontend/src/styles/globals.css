@@ -235,62 +235,83 @@ body {
     linear-gradient(180deg, #F7F8FC 0%, #F4F6FB 100%);
 }
 
-/* ── VAIDYA FROSTED CLINICAL SPATIAL SYSTEM (PHASE 1) ─────────────
-   Layer 0: Clinical Canvas (#F7F9FC)
-   Layer 1: Floating Navigation / Frosted Tab Rail
-   Layer 2: Clinical Content Surface (#FFFFFF / #DFE8F1)
-────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   VAIDYA FROSTED CLINICAL SPATIAL ELEVATION SYSTEM (PHASE 2A)
+   Level 0: Clinical Canvas (#F7F9FC)
+   Level 1: Embedded / Recessed Surface (#F1F4F9)
+   Level 2: Clinical Card (#FFFFFF / #DFE8F1)
+   Level 3: Focused / Active Surface (#F6F9FD / #B8D1EC)
+   Level 4: Overlay / Modal / Drawer (#FFFFFF)
+   Special: Floating Navigation Rail & Kiosk Device Chassis
+═══════════════════════════════════════════════════════════════ */
 
-/* Layer 0: Clinical Canvas */
-.bg-clinical-canvas {
+/* Level 0: Clinical Canvas */
+.bg-clinical-canvas,
+.bg-canvas {
   background-color: var(--clinical-canvas);
+  background-image:
+    radial-gradient(ellipse 65% 45% at 15% 0%, rgba(220, 235, 250, 0.50), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 85% 15%, rgba(233, 231, 250, 0.35), transparent 45%),
+    linear-gradient(165deg, #F7F9FC 0%, #FAFBFE 45%, #F1F4F9 100%);
 }
 
-/* Layer 1: Floating Navigation / Tab Track */
+/* Level 1: Embedded / Recessed Surface (Sub-sections, toolbars, metadata chips) */
+.surface-embedded,
+.surface-recessed,
+.surface-level-1 {
+  background-color: #F1F4F9;
+  border: 1px solid #E1E8F0;
+  box-shadow: inset 0 1px 2px rgba(23, 40, 65, 0.02);
+}
+
+/* Level 2: Clinical Card (Standard primary content card) */
+.surface-clinical-card,
+.surface-card,
+.surface-level-2,
+.surface-resting {
+  background-color: var(--clinical-surface);
+  border: 1px solid var(--clinical-card-border);
+  box-shadow: 0 1px 3px rgba(35, 75, 115, 0.04), 0 4px 14px rgba(35, 75, 115, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all var(--motion-normal) var(--ease-spring);
+}
+
+.surface-clinical-card:hover,
+.surface-card:hover,
+.surface-resting:hover {
+  border-color: #CBD8E5;
+  box-shadow: 0 2px 6px rgba(35, 75, 115, 0.06), 0 8px 20px rgba(35, 75, 115, 0.04), inset 0 1px 0 #FFFFFF;
+}
+
+/* Level 3: Focused / Selected / Active Clinical Context */
+.surface-focused,
+.surface-level-3,
+.surface-active {
+  background-color: #F6F9FD;
+  border: 1px solid #B8D1EC;
+  box-shadow: 0 3px 12px rgba(35, 101, 181, 0.09), 0 1px 3px rgba(35, 101, 181, 0.05), inset 0 1px 0 #FFFFFF;
+}
+
+/* Level 4: Overlay / Drawer / Modal */
+.surface-overlay,
+.surface-level-4,
+.surface-drawer {
+  background-color: #FFFFFF;
+  border: 1px solid #CBD8E5;
+  box-shadow: -8px 0 32px rgba(23, 40, 60, 0.12), 0 12px 36px rgba(23, 40, 60, 0.08);
+}
+
+/* Floating Navigation / Tab Rail (Instrument Level) */
 .surface-frosted-rail {
   background: linear-gradient(180deg, var(--clinical-tab-track-start) 0%, var(--clinical-tab-track-end) 100%);
   border: 1px solid var(--clinical-tab-border);
   box-shadow: 0 5px 16px rgba(41, 87, 135, 0.08), 0 2px 3px rgba(41, 87, 135, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
-/* Layer 2: Clinical Content Surface */
-.surface-clinical-card {
-  background-color: var(--clinical-surface);
-  border: 1px solid var(--clinical-card-border);
-  box-shadow: 0 2px 8px rgba(41, 87, 135, 0.04);
-}
-
-/* ── Spatial Surface Levels ── */
-/* Level 0: Direct Canvas */
-.surface-level-0 {
-  background: transparent;
-}
-
-/* Level 1: Content directly on canvas / hairline partition */
-.surface-level-1 {
+/* Kiosk Tactile Bezel */
+.kiosk-device-bezel {
   background: #FFFFFF;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-xs);
-}
-
-/* Level 2: Resting Raised Surface */
-.surface-resting {
-  background: #FFFFFF;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--motion-normal) var(--ease-spring);
-}
-
-.surface-resting:hover {
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-/* Level 2 Active: Selected or active clinical context */
-.surface-active {
-  background: #FFFFFF;
-  border: 1px solid var(--color-border-strong);
-  box-shadow: var(--shadow-md);
+  border: 1px solid #D5E2EE;
+  box-shadow: 0 20px 50px rgba(23, 45, 70, 0.08), 0 4px 14px rgba(23, 45, 70, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 /* Level 3: Modal & Drawer */

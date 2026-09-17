@@ -23,7 +23,7 @@ export function CompletenessGrid({ entries }: CompletenessGridProps) {
       <p className="text-[13px] text-[var(--color-text-muted)] mb-3">
         {collected} of {total} domains have data
       </p>
-      <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
+      <div className="border border-[#DFE8F1] rounded-xl overflow-hidden shadow-xs">
         {entries.map((entry, i) => {
           const config = STATUS_CONFIG[entry.status]
           const Icon = config.icon
@@ -31,13 +31,13 @@ export function CompletenessGrid({ entries }: CompletenessGridProps) {
             <div
               key={entry.domain}
               className={cn(
-                'flex items-center justify-between px-4 min-h-[36px] text-[13px]',
-                i % 2 === 0 ? 'bg-white' : 'bg-[var(--color-surface-subtle)]',
-                i < entries.length - 1 && 'border-b border-[var(--color-border)]'
+                'flex items-center justify-between px-4 min-h-[38px] text-[13px] transition-colors',
+                i % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]',
+                i < entries.length - 1 && 'border-b border-[#DFE8F1]'
               )}
             >
-              <span className="text-[var(--color-text-primary)]">{entry.label}</span>
-              <span className={cn('flex items-center gap-1', config.color)}>
+              <span className="font-medium text-text-primary">{entry.label}</span>
+              <span className={cn('flex items-center gap-1.5 font-medium', config.color)}>
                 <Icon size={14} />
                 {config.label}
               </span>

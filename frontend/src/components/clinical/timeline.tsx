@@ -34,18 +34,18 @@ export function Timeline({ events, onEventClick }: TimelineProps) {
             )} />
             <div
               className={cn(
-                'ml-4 bg-white border border-[var(--color-border)] rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow',
-                event.isConflict && 'border-l-2 border-l-[var(--color-warning)]'
+                'ml-4 bg-white border border-[#DFE8F1] rounded-xl p-3.5 shadow-xs cursor-pointer hover:border-[#B8D1EC] hover:shadow-sm transition-all',
+                event.isConflict && 'border-l-[3px] border-l-[var(--color-warning)]'
               )}
               onClick={() => onEventClick?.(event)}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-[14px] font-medium text-[var(--color-text-primary)]">{event.title}</p>
+                <p className="text-[14px] font-semibold text-[var(--color-text-primary)]">{event.title}</p>
                 <span className="font-mono text-[12px] text-[var(--color-text-muted)] shrink-0">
                   {event.datePrecision === 'EXACT' ? '' : '~'}{event.eventDate ? formatIndianDate(event.eventDate) : 'Unknown date'}
                 </span>
               </div>
-              {event.detail && <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">{event.detail}</p>}
+              {event.detail && <p className="text-[13px] text-[var(--color-text-secondary)] mt-1.5 leading-relaxed">{event.detail}</p>}
             </div>
           </div>
         ))}
