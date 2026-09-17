@@ -1,21 +1,35 @@
 'use client'
 
 /**
- * K-05 — Patient Clinical Intake with Interactive 2.5D Body Symptom Selection
+ * K-05 — Guided Multilingual Patient Clinical Intake
  *
  * Route: /kiosk/intake
  * Features:
- * - 2.5D Medical Mannequin Body Map with Front/Back/Side view switching & 360 rotation
- * - 9-Category Medical Symptom Grid with custom vector icons
- * - Synchronized body hotspot & category selections with removable chips
- * - 4-Stage Progressive Clinical Intake: Complaint -> Duration -> Quality -> Lifestyle -> Summary
- * - Multimodal voice synthesis & speech input fallback
+ * 1. Location (2.5D Body Map + Category Grid + Bounded Chip Drawer)
+ * 2. Symptoms (Contextual symptom clarification based on body regions)
+ * 3. Duration (Standardized duration & onset options)
+ * 4. Severity (1-10 Visual Severity Scale & Tier Descriptors)
+ * 5. Lifestyle (AYUSH Ahara & Vihara Lifestyle Triggers - optional & non-judgmental)
+ * 6. Review (Structured clinical review with per-section editing & disclaimer)
+ * - Multimodal Voice Assistant with 6 states and transcription verification
+ * - Full multilingual support (EN, HI, MR, GU, BN, TA) with zero state loss on toggle
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, HelpCircle, ArrowRight, Volume2, Mic, CheckCircle2 } from 'lucide-react'
+import {
+  Shield,
+  HelpCircle,
+  ArrowRight,
+  ArrowLeft,
+  Volume2,
+  Mic,
+  CheckCircle2,
+  Edit3,
+  Check,
+  AlertCircle,
+} from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
@@ -24,296 +38,444 @@ import {
   SymptomCategoryGrid,
   SelectedAreasPanel,
   KioskStepperHeader,
+  VoiceIntakeModal,
+  SeverityScaleSelector,
+  BODY_REGIONS,
   SYMPTOM_CATEGORIES,
-  type BodyHotspot,
   type BodyRegionId,
   type SymptomCategoryId,
   type SelectedItem,
   type IntakeStageKey,
 } from '@/components/kiosk/body-map'
-
-type IntakeStage =
-  | 'CHIEF_COMPLAINT'
-  | 'DURATION'
-  | 'CHARACTER'
-  | 'AYUSH_LIFESTYLE'
-  | 'SUMMARY'
-
-type VoiceModalState = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'CONFIRMING'
+import {
+  getContextualQuestionsForSelections,
+  getLocalizedQuestion,
+  getLocalizedOption,
+  DURATION_OPTIONS,
+  LIFESTYLE_OPTIONS,
+  type ContextualQuestion,
+} from '@/lib/kiosk-intake-questions'
 
 export default function KioskIntakePage() {
   const router = useRouter()
-  const { t } = useKioskTranslation()
-  const { language, patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
+  const { language } = useKioskTranslation()
+  const { patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
 
-  const [stage, setStage] = useState<IntakeStage>('CHIEF_COMPLAINT')
-  const [voiceModal, setVoiceModal] = useState<VoiceModalState>('IDLE')
-  const [activeVoiceQuestion, setActiveVoiceQuestion] = useState<string>('')
-  const [recognizedText, setRecognizedText] = useState<{ native: string; english: string }>({ native: '', english: '' })
-  const [matchedOption, setMatchedOption] = useState<string>('')
+  // ── 1. Progressive Stage State ──
+  const [currentStage, setCurrentStage] = useState<IntakeStageKey>('LOCATION')
+  const [completedStages, setCompletedStages] = useState<IntakeStageKey[]>([])
+
+  // ── 2. Stage 1: Selected Body Regions & Categories ──
+  const [selectedRegionIds, setSelectedRegionIds] = useState<BodyRegionId[]>(['chest'])
+
+  // Derived selected items list for SelectedAreasPanel & summary
+  const selectedItems: SelectedItem[] = selectedRegionIds.map((id) => ({
+    id,
+    label: BODY_REGIONS[id]?.label || id,
+    categoryId: BODY_REGIONS[id]?.categoryId,
+  }))
+
+  // Derived active categories list for SymptomCategoryGrid
+  const activeCategoryIds: SymptomCategoryId[] = SYMPTOM_CATEGORIES.filter((cat) =>
+    selectedRegionIds.some((rId) => BODY_REGIONS[rId]?.categoryId === cat.id)
+  ).map((cat) => cat.id)
+
+  // ── 3. Stage 2: Contextual Symptom Clarification ──
+  const applicableQuestions = getContextualQuestionsForSelections(
+    selectedRegionIds,
+    activeCategoryIds
+  )
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0)
+  const currentQuestion: ContextualQuestion =
+    applicableQuestions[activeQuestionIndex] || applicableQuestions[0]
+
+  // Map of questionId -> selectedOptionIds[]
+  const [symptomAnswers, setSymptomAnswers] = useState<Record<string, string[]>>({
+    q_chest_breathing: ['chest_pain', 'breathing_difficulty'],
+  })
+  const [customSymptomNotes, setCustomSymptomNotes] = useState<Record<string, string>>({})
+  const [symptomError, setSymptomError] = useState<string | null>(null)
+
+  // ── 4. Stage 3: Duration ──
+  const [selectedDuration, setSelectedDuration] = useState<string>('2_3_days')
+  const [customDurationText, setCustomDurationText] = useState<string>('')
+
+  // ── 5. Stage 4: Severity (1 to 10) ──
+  const [severityRating, setSeverityRating] = useState<number>(6)
+
+  // ── 6. Stage 5: AYUSH Lifestyle / Triggers ──
+  const [selectedLifestyleTrigger, setSelectedLifestyleTrigger] = useState<string>('food_meals')
+
+  // ── 7. Voice Modal State ──
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState(false)
 
-  // ── Body & Category Selections State ──
-  const [selectedRegions, setSelectedRegions] = useState<BodyRegionId[]>(['chest'])
-  const [selectedCategories, setSelectedCategories] = useState<SymptomCategoryId[]>(['chest_breathing'])
-  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([
-    { id: 'chest', label: 'Chest' },
-  ])
-
-  // ── Subsequent Stages Answers State ──
-  const [selectedDuration, setSelectedDuration] = useState<string>(t.intake.durWeeks)
-  const [selectedCharacter, setSelectedCharacter] = useState<string>(t.intake.qualBurning)
-  const [selectedLifestyle, setSelectedLifestyle] = useState<string>(t.intake.lifeSpicy)
-
+  // Register kiosk step
   useEffect(() => {
     advanceStep('INTAKE')
   }, [advanceStep])
 
-  // ── Body Hotspot Toggle Handler ──
-  const handleToggleHotspot = useCallback((hotspot: BodyHotspot) => {
-    updateActivity()
-    setSelectedRegions((prev) => {
-      const exists = prev.includes(hotspot.id)
-      let next: BodyRegionId[]
-      if (exists) {
-        next = prev.filter((id) => id !== hotspot.id)
-      } else {
-        next = [...prev, hotspot.id]
-      }
-      return next
-    })
-
-    // Also link category
-    setSelectedCategories((prev) => {
-      if (prev.includes(hotspot.categoryId)) {
-        return prev
-      }
-      return [...prev, hotspot.categoryId]
-    })
-
-    // Update selected items list
-    setSelectedItems((prev) => {
-      const exists = prev.some((item) => item.id === hotspot.id)
-      if (exists) {
-        return prev.filter((item) => item.id !== hotspot.id)
-      } else {
-        return [...prev, { id: hotspot.id, label: hotspot.label }]
-      }
-    })
-  }, [updateActivity])
-
-  // ── Category Card Toggle Handler ──
-  const handleToggleCategory = useCallback((catId: SymptomCategoryId) => {
-    updateActivity()
-    const cat = SYMPTOM_CATEGORIES.find((c) => c.id === catId)
-    if (!cat) return
-
-    setSelectedCategories((prev) => {
-      const exists = prev.includes(catId)
-      if (exists) {
-        return prev.filter((id) => id !== catId)
-      } else {
-        return [...prev, catId]
-      }
-    })
-
-    // Also activate primary region on body
-    setSelectedRegions((prev) => {
-      if (prev.includes(cat.primaryRegionId)) {
-        return prev.filter((id) => id !== cat.primaryRegionId)
-      }
-      return [...prev, cat.primaryRegionId]
-    })
-
-    // Update selected items list
-    setSelectedItems((prev) => {
-      const exists = prev.some((item) => item.id === cat.primaryRegionId || item.id === cat.id)
-      if (exists) {
-        return prev.filter((item) => item.id !== cat.primaryRegionId && item.id !== cat.id)
-      } else {
-        return [...prev, { id: cat.primaryRegionId, label: cat.label.split('/')[0].trim() }]
-      }
-    })
-  }, [updateActivity])
-
-  // ── Remove Single Selected Item ──
-  const handleRemoveSelectedItem = useCallback((itemId: string) => {
-    updateActivity()
-    setSelectedItems((prev) => prev.filter((item) => item.id !== itemId))
-    setSelectedRegions((prev) => prev.filter((id) => id !== itemId))
-    
-    // Check if category needs to be unselected
-    const cat = SYMPTOM_CATEGORIES.find((c) => c.primaryRegionId === itemId || c.id === itemId)
-    if (cat) {
-      setSelectedCategories((prev) => prev.filter((cId) => cId !== cat.id))
-    }
-  }, [updateActivity])
-
-  // ── Clear All Selections ──
-  const handleClearAll = useCallback(() => {
-    updateActivity()
-    setSelectedItems([])
-    setSelectedRegions([])
-    setSelectedCategories([])
-  }, [updateActivity])
-
-  // ── Continue to Duration Stage ──
-  const handleContinueFromComplaint = useCallback(() => {
-    updateActivity()
-    const complaintSummary = selectedItems.map((i) => i.label).join(', ') || 'General Discomfort'
-    setIntakeAnswer('chief_complaint', complaintSummary)
-    setStage('DURATION')
-  }, [selectedItems, setIntakeAnswer, updateActivity])
-
-  // ── Map stage to Stepper key ──
-  const getStepperStage = (): IntakeStageKey => {
-    switch (stage) {
-      case 'CHIEF_COMPLAINT':
-        return 'COMPLAINT'
-      case 'DURATION':
-        return 'DURATION'
-      case 'CHARACTER':
-        return 'QUALITY'
-      case 'AYUSH_LIFESTYLE':
-        return 'LIFESTYLE'
-      case 'SUMMARY':
-      default:
-        return 'SUMMARY'
-    }
-  }
-
-  // ── Header Stepper Navigation ──
-  const handleStepperSelect = (stepperKey: IntakeStageKey) => {
-    updateActivity()
-    if (stepperKey === 'COMPLAINT') setStage('CHIEF_COMPLAINT')
-    else if (stepperKey === 'DURATION') setStage('DURATION')
-    else if (stepperKey === 'QUALITY') setStage('CHARACTER')
-    else if (stepperKey === 'LIFESTYLE') setStage('AYUSH_LIFESTYLE')
-    else if (stepperKey === 'SUMMARY') setStage('SUMMARY')
-  }
-
-  // ── TTS Question Audio Playback ──
-  const handleHearQuestion = useCallback(() => {
-    updateActivity()
-    setIsSpeakingQuestion(true)
-    setTimeout(() => {
-      setIsSpeakingQuestion(false)
-    }, 2200)
-  }, [updateActivity])
-
-  // ── Voice Input Simulation ──
-  const handleStartVoice = useCallback(
-    (questionKey: string, sampleNative: string, sampleEnglish: string, targetOption: string) => {
+  // ── STAGE 1 HANDLERS: Body Map & Category Selection ──
+  const handleToggleRegion = useCallback(
+    (regionId: BodyRegionId) => {
       updateActivity()
-      setActiveVoiceQuestion(questionKey)
-      setVoiceModal('LISTENING')
-      setRecognizedText({ native: sampleNative, english: sampleEnglish })
-      setMatchedOption(targetOption)
-
-      setTimeout(() => {
-        setVoiceModal('PROCESSING')
-        setTimeout(() => {
-          setVoiceModal('CONFIRMING')
-        }, 800)
-      }, 2000)
+      setSelectedRegionIds((prev) => {
+        const exists = prev.includes(regionId)
+        if (exists) {
+          return prev.filter((id) => id !== regionId)
+        } else {
+          return [...prev, regionId]
+        }
+      })
     },
     [updateActivity]
   )
 
-  const handleConfirmVoiceAnswer = useCallback(() => {
+  const handleToggleCategory = useCallback(
+    (catId: SymptomCategoryId) => {
+      updateActivity()
+      const cat = SYMPTOM_CATEGORIES.find((c) => c.id === catId)
+      if (!cat) return
+
+      setSelectedRegionIds((prev) => {
+        const hasActive = prev.some((rId) => BODY_REGIONS[rId]?.categoryId === catId)
+        if (hasActive) {
+          return prev.filter((rId) => BODY_REGIONS[rId]?.categoryId !== catId)
+        } else {
+          return [...prev, cat.primaryRegionId]
+        }
+      })
+    },
+    [updateActivity]
+  )
+
+  const handleRemoveSelectedItem = useCallback(
+    (itemId: string) => {
+      updateActivity()
+      setSelectedRegionIds((prev) => prev.filter((id) => id !== (itemId as BodyRegionId)))
+    },
+    [updateActivity]
+  )
+
+  const handleClearAll = useCallback(() => {
     updateActivity()
-    if (activeVoiceQuestion === 'CHIEF_COMPLAINT') {
-      setSelectedItems([{ id: 'voice_complaint', label: matchedOption }])
-      setIntakeAnswer('chief_complaint', matchedOption)
-      setVoiceModal('IDLE')
-      setStage('DURATION')
-    } else if (activeVoiceQuestion === 'DURATION') {
-      setSelectedDuration(matchedOption)
-      setIntakeAnswer('duration', matchedOption)
-      setVoiceModal('IDLE')
-      setStage('CHARACTER')
-    } else if (activeVoiceQuestion === 'CHARACTER') {
-      setSelectedCharacter(matchedOption)
-      setIntakeAnswer('character', matchedOption)
-      setVoiceModal('IDLE')
-      setStage('AYUSH_LIFESTYLE')
-    } else if (activeVoiceQuestion === 'AYUSH_LIFESTYLE') {
-      setSelectedLifestyle(matchedOption)
-      setIntakeAnswer('lifestyle_ahara', matchedOption)
-      setVoiceModal('IDLE')
-      setStage('SUMMARY')
+    setSelectedRegionIds([])
+  }, [updateActivity])
+
+  const handleResetView = useCallback(() => {
+    updateActivity()
+    setSelectedRegionIds(['chest'])
+  }, [updateActivity])
+
+  const handleContinueFromLocation = useCallback(() => {
+    updateActivity()
+    if (selectedRegionIds.length === 0) return
+    const complaintSummary = selectedItems.map((i) => i.label).join(', ')
+    setIntakeAnswer('chief_complaint', complaintSummary)
+    setCompletedStages((prev) => (prev.includes('LOCATION') ? prev : [...prev, 'LOCATION']))
+    setCurrentStage('SYMPTOMS')
+  }, [selectedItems, selectedRegionIds.length, setIntakeAnswer, updateActivity])
+
+  // ── STAGE 2 HANDLERS: Contextual Symptom Clarification ──
+  const handleToggleSymptomOption = (questionId: string, optionId: string) => {
+    updateActivity()
+    setSymptomError(null)
+    setSymptomAnswers((prev) => {
+      const current = prev[questionId] || []
+      const isNotSure = optionId.startsWith('not_sure')
+
+      if (currentQuestion.answerType === 'single_choice') {
+        return { ...prev, [questionId]: [optionId] }
+      }
+
+      // If user selects "Not sure", clear others; if selects another, remove "Not sure"
+      if (isNotSure) {
+        return { ...prev, [questionId]: [optionId] }
+      }
+
+      const filtered = current.filter((id) => !id.startsWith('not_sure'))
+      const exists = filtered.includes(optionId)
+      const next = exists ? filtered.filter((id) => id !== optionId) : [...filtered, optionId]
+      return { ...prev, [questionId]: next }
+    })
+  }
+
+  const handleContinueFromSymptoms = () => {
+    updateActivity()
+    const currentAnswers = symptomAnswers[currentQuestion.id] || []
+    const hasCustom = Boolean(customSymptomNotes[currentQuestion.id]?.trim())
+
+    if (currentQuestion.required && currentAnswers.length === 0 && !hasCustom) {
+      setSymptomError(
+        language === 'hi'
+          ? 'कृपया कम से कम एक लक्षण चुनें या अपनी परेशानी बताएं।'
+          : language === 'mr'
+          ? 'कृपया किमान एक लक्षण निवडा किंवा आपला त्रास सांगा.'
+          : language === 'gu'
+          ? 'કૃપા કરીને ઓછામાં ઓછું એક લક્ષણ પસંદ કરો અથવા તમારી તકલીફ જણાવો.'
+          : language === 'bn'
+          ? 'অনুগ্রহ করে অন্তত একটি লক্ষণ বেছে নিন বা আপনার সমস্যা লিখুন।'
+          : language === 'ta'
+          ? 'தயவுசெய்து குறைந்தது ஒரு அறிகுறியைத் தேர்ந்தெடுக்கவும்.'
+          : 'Please select at least one symptom or describe what you feel.'
+      )
+      return
     }
-  }, [activeVoiceQuestion, matchedOption, setIntakeAnswer, updateActivity])
+
+    if (activeQuestionIndex < applicableQuestions.length - 1) {
+      setActiveQuestionIndex((prev) => prev + 1)
+    } else {
+      // Record answer in store
+      const allSelectedLabels = Object.entries(symptomAnswers)
+        .flatMap(([qId, optIds]) => {
+          const q = applicableQuestions.find((item) => item.id === qId)
+          if (!q) return []
+          return optIds.map((optId) => q.options.find((o) => o.id === optId)?.label || optId)
+        })
+        .join(', ')
+
+      setIntakeAnswer('symptom_details', allSelectedLabels)
+      setCompletedStages((prev) => (prev.includes('SYMPTOMS') ? prev : [...prev, 'SYMPTOMS']))
+      setCurrentStage('DURATION')
+    }
+  }
+
+  // ── STAGE 3 HANDLERS: Duration ──
+  const handleSelectDuration = (durId: string) => {
+    updateActivity()
+    setSelectedDuration(durId)
+    setIntakeAnswer('duration', durId)
+  }
+
+  const handleContinueFromDuration = () => {
+    updateActivity()
+    setIntakeAnswer('duration', selectedDuration)
+    setCompletedStages((prev) => (prev.includes('DURATION') ? prev : [...prev, 'DURATION']))
+    setCurrentStage('SEVERITY')
+  }
+
+  // ── STAGE 4 HANDLERS: Severity ──
+  const handleContinueFromSeverity = () => {
+    updateActivity()
+    setIntakeAnswer('severity_rating', `${severityRating}/10`)
+    setCompletedStages((prev) => (prev.includes('SEVERITY') ? prev : [...prev, 'SEVERITY']))
+    setCurrentStage('LIFESTYLE')
+  }
+
+  // ── STAGE 5 HANDLERS: AYUSH Lifestyle ──
+  const handleSelectLifestyle = (lifeId: string) => {
+    updateActivity()
+    setSelectedLifestyleTrigger(lifeId)
+    setIntakeAnswer('lifestyle_trigger', lifeId)
+  }
+
+  const handleContinueFromLifestyle = () => {
+    updateActivity()
+    setIntakeAnswer('lifestyle_trigger', selectedLifestyleTrigger)
+    setCompletedStages((prev) => (prev.includes('LIFESTYLE') ? prev : [...prev, 'LIFESTYLE']))
+    setCurrentStage('REVIEW')
+  }
+
+  const handleSkipLifestyle = () => {
+    updateActivity()
+    setSelectedLifestyleTrigger('no_specific_pattern')
+    setIntakeAnswer('lifestyle_trigger', 'no_specific_pattern')
+    setCompletedStages((prev) => (prev.includes('LIFESTYLE') ? prev : [...prev, 'LIFESTYLE']))
+    setCurrentStage('REVIEW')
+  }
+
+  // ── STAGE 6 HANDLERS: Review & Final Navigation ──
+  const handleProceedToDocuments = () => {
+    updateActivity()
+    advanceStep('DOCUMENTS')
+    router.push('/kiosk/documents')
+  }
+
+  // ── VOICE MODAL CONFIRMATION HANDLER ──
+  const handleConfirmVoiceTranscript = (answerText: string, mappedOptionId?: string) => {
+    updateActivity()
+    if (currentStage === 'SYMPTOMS') {
+      if (mappedOptionId) {
+        handleToggleSymptomOption(currentQuestion.id, mappedOptionId)
+      } else {
+        setCustomSymptomNotes((prev) => ({
+          ...prev,
+          [currentQuestion.id]: answerText,
+        }))
+      }
+    } else if (currentStage === 'DURATION') {
+      setCustomDurationText(answerText)
+      setIntakeAnswer('duration', answerText)
+      setCompletedStages((prev) => (prev.includes('DURATION') ? prev : [...prev, 'DURATION']))
+      setCurrentStage('SEVERITY')
+    }
+  }
+
+  // ── AUDIO TTS GUIDANCE ──
+  const handleHearQuestion = () => {
+    updateActivity()
+    setIsSpeakingQuestion(true)
+    setTimeout(() => {
+      setIsSpeakingQuestion(false)
+    }, 2400)
+  }
+
+  // Localized question strings
+  const localizedQ = getLocalizedQuestion(currentQuestion, language)
+
+  // Resolve active duration display text
+  const currentDurationObj = DURATION_OPTIONS.find((d) => d.id === selectedDuration)
+  const resolvedDurationText =
+    customDurationText ||
+    (currentDurationObj ? currentDurationObj.title[language] || currentDurationObj.title.en : '2–3 days')
+
+  // Resolve active lifestyle display text
+  const currentLifestyleObj = LIFESTYLE_OPTIONS.find((l) => l.id === selectedLifestyleTrigger)
+  const resolvedLifestyleText = currentLifestyleObj
+    ? currentLifestyleObj.title[language] || currentLifestyleObj.title.en
+    : 'No Specific Pattern'
 
   return (
     <div className="h-full max-h-full flex flex-col bg-[#F7F9FC] text-[#17191F] antialiased overflow-hidden select-none">
       {/* ── 1. Top Persistent Stepper Header ── */}
       <KioskStepperHeader
-        currentStage={getStepperStage()}
-        onSelectStage={handleStepperSelect}
+        currentStage={currentStage}
+        completedStages={completedStages}
+        onSelectStage={(stage) => {
+          updateActivity()
+          setCurrentStage(stage)
+        }}
       />
 
       {/* ── 2. Main Intake Canvas Container ── */}
       <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-6 py-1.5 sm:py-2 flex flex-col justify-between overflow-hidden">
         <AnimatePresence mode="wait">
           {/* ══════════════════════════════════════════════════════════════════════
-              STAGE 1: 2.5D INTERACTIVE HUMAN BODY SYMPTOM SELECTION
+              STAGE 1: WHERE IS THE PROBLEM? (Body Map + Category Grid)
           ══════════════════════════════════════════════════════════════════════ */}
-          {stage === 'CHIEF_COMPLAINT' && (
+          {currentStage === 'LOCATION' && (
             <motion.div
-              key="stage-body-map"
-              initial={{ opacity: 0, y: 10 }}
+              key="stage-location"
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 min-h-0 flex flex-col justify-between gap-1.5 overflow-hidden"
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+              className="flex-1 min-h-0 flex flex-col justify-between gap-1 overflow-hidden"
             >
-              {/* Page Title & Subtext */}
+              {/* Page Title & Clinical Subtitle */}
               <div className="text-center space-y-0.5 shrink-0">
-                <h1 className="text-[20px] sm:text-[24px] lg:text-[26px] font-extrabold text-[#17191F] tracking-tight leading-tight">
-                  Where is the problem?
+                <h1 className="text-[19px] sm:text-[23px] lg:text-[25px] font-extrabold text-[#17191F] tracking-tight leading-tight">
+                  {language === 'hi'
+                    ? 'तकलीफ कहाँ है?'
+                    : language === 'mr'
+                    ? 'त्रास कुठे होत आहे?'
+                    : language === 'gu'
+                    ? 'તકલીફ ક્યાં છે?'
+                    : language === 'bn'
+                    ? 'কোথায় সমস্যা হচ্ছে?'
+                    : language === 'ta'
+                    ? 'பிரச்சனை எங்கே உள்ளது?'
+                    : 'Where is the problem?'}
                 </h1>
-                <p className="text-[12px] sm:text-[13px] font-medium text-[#6F7480] max-w-2xl mx-auto">
-                  Touch the body part where you feel pain, discomfort, or have a health concern.
+                <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#6F7480] max-w-2xl mx-auto">
+                  {language === 'hi'
+                    ? 'जिस अंग में परेशानी है उसे चुनें। आप एक से अधिक अंग चुन सकते हैं।'
+                    : language === 'mr'
+                    ? 'त्रास असलेला भाग निवडा. तुम्ही एकापेक्षा जास्त भाग निवडू शकता.'
+                    : language === 'gu'
+                    ? 'તકલીફવાળો ભાગ પસંદ કરો. તમે એક કરતાં વધુ ભાગ પસંદ કરી શકો છો.'
+                    : language === 'bn'
+                    ? 'সমস্যাযুক্ত অংশটি নির্বাচন করুন। আপনি একাধিক অংশ নির্বাচন করতে পারেন।'
+                    : language === 'ta'
+                    ? 'பாதிக்கப்பட்ட உடல் பகுதியைத் தேர்ந்தெடுக்கவும். ஒன்றுக்கும் மேற்பட்ட பகுதிகளைத் தேர்ந்தெடுக்கலாம்.'
+                    : 'Select the body area that concerns you. You can select more than one area.'}
                 </p>
               </div>
 
-              {/* Two-Column Responsive Split Workspace */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 items-stretch overflow-hidden">
-                {/* ── LEFT PANEL: 2.5D Interactive Body Canvas (Cols: 7/12) ── */}
+              {/* Two-Column Responsive Split Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-3 flex-1 min-h-0 items-stretch overflow-hidden">
+                {/* ── LEFT: 2.5D Body Canvas with Leader Lines & Clean Callout Labels ── */}
                 <div className="lg:col-span-7 h-full min-h-0 flex flex-col">
                   <InteractiveBodyMap
-                    selectedRegions={selectedRegions}
-                    selectedCategories={selectedCategories}
-                    onToggleHotspot={handleToggleHotspot}
-                    onResetView={() => {
-                      setSelectedRegions(['chest'])
-                      setSelectedCategories(['chest_breathing'])
-                      setSelectedItems([{ id: 'chest', label: 'Chest' }])
-                    }}
+                    selectedRegions={selectedRegionIds}
+                    onToggleRegion={handleToggleRegion}
+                    onResetView={handleResetView}
                   />
                 </div>
 
-                {/* ── RIGHT PANEL: Symptom Categories & Selected Areas (Cols: 5/12) ── */}
+                {/* ── RIGHT: 9-Category Grid & Bounded Selected Areas ── */}
                 <div className="lg:col-span-5 h-full min-h-0 flex flex-col">
                   <div
-                    className="bg-white rounded-3xl border border-[#DFE8F1] shadow-card p-3 sm:p-3.5 flex flex-col justify-between h-full min-h-0 gap-2 overflow-hidden"
+                    className="bg-white rounded-3xl border border-[#DFE8F1] shadow-card p-2.5 sm:p-3 flex flex-col justify-between h-full min-h-0 gap-1.5 overflow-hidden"
                     style={{
-                      boxShadow: '0 4px 20px rgba(35, 75, 115, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                      boxShadow:
+                        '0 4px 20px rgba(35, 75, 115, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
                     }}
                   >
                     {/* Top: 9 Category Cards */}
                     <SymptomCategoryGrid
-                      selectedCategories={selectedCategories}
+                      selectedCategories={activeCategoryIds}
                       onToggleCategory={handleToggleCategory}
+                      heading={
+                        language === 'hi'
+                          ? 'आपको क्या परेशानी है?'
+                          : language === 'mr'
+                          ? 'आपल्याला काय त्रास होत आहे?'
+                          : language === 'gu'
+                          ? 'તમને શું તકલીફ છે?'
+                          : language === 'bn'
+                          ? 'আপনার কী সমস্যা হচ্ছে?'
+                          : language === 'ta'
+                          ? 'உங்களுக்கு என்ன பிரச்சனை?'
+                          : 'What is bothering you?'
+                      }
+                      subheading={
+                        language === 'hi'
+                          ? 'कोई श्रेणी चुनें या शरीर पर स्पर्श करें।'
+                          : language === 'mr'
+                          ? 'एक भाग निवडा किंवा शरीरावर स्पर्श करा.'
+                          : language === 'gu'
+                          ? 'એક વિભાગ પસંદ કરો અથવા શરીર પર સ્પર્શ કરો.'
+                          : language === 'bn'
+                          ? 'একটি বিভাগ বেছে নিন বা শরীরে স্পর্শ করুন।'
+                          : language === 'ta'
+                          ? 'ஒரு பகுதியைத் தேர்ந்தெடுக்கவும் அல்லது உடலில் தொடவும்.'
+                          : 'Choose an area or select it on the body.'
+                      }
                     />
 
-                    {/* Bottom: Selected Areas & Continue Action */}
+                    {/* Bottom: Bounded Selected Areas Drawer with '+N more' badge & Continue */}
                     <SelectedAreasPanel
                       selectedItems={selectedItems}
                       onRemoveItem={handleRemoveSelectedItem}
                       onClearAll={handleClearAll}
-                      onContinue={handleContinueFromComplaint}
+                      onContinue={handleContinueFromLocation}
+                      emptyText={
+                        language === 'hi'
+                          ? 'आपके चुने हुए अंग यहाँ दिखेंगे'
+                          : language === 'mr'
+                          ? 'तुमचे निवडलेले भाग येथे दिसतील'
+                          : language === 'gu'
+                          ? 'તમારા પસંદ કરેલા ભાગો અહીં દેખાશે'
+                          : language === 'bn'
+                          ? 'আপনার নির্বাচিত অংশগুলি এখানে প্রদর্শিত হবে'
+                          : language === 'ta'
+                          ? 'தேர்ந்தெடுக்கப்பட்ட பகுதிகள் இங்கே தோன்றும்'
+                          : 'Your selected areas appear here'
+                      }
+                      helperText={
+                        language === 'hi'
+                          ? 'आप एक से अधिक अंग चुन सकते हैं।'
+                          : language === 'mr'
+                          ? 'तुम्ही एकापेक्षा जास्त भाग निवडू शकता.'
+                          : language === 'gu'
+                          ? 'તમે એક કરતાં વધુ ભાગ પસંદ કરી શકો છો.'
+                          : language === 'bn'
+                          ? 'আপনি একাধিক অংশ নির্বাচন করতে পারেন।'
+                          : language === 'ta'
+                          ? 'ஒன்றுக்கும் மேற்பட்ட பகுதிகளைத் தேர்ந்தெடுக்கலாம்.'
+                          : 'You can select more than one area.'
+                      }
                     />
                   </div>
                 </div>
@@ -322,414 +484,743 @@ export default function KioskIntakePage() {
           )}
 
           {/* ══════════════════════════════════════════════════════════════════════
-              STAGE 2: DURATION & ONSET
+              STAGE 2: WHAT ARE YOU EXPERIENCING? (Contextual Symptom Clarification)
           ══════════════════════════════════════════════════════════════════════ */}
-          {stage === 'DURATION' && (
+          {currentStage === 'SYMPTOMS' && (
             <motion.div
-              key="stage-duration"
+              key="stage-symptoms"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-6"
+              transition={{ duration: 0.18 }}
+              className="max-w-3xl mx-auto w-full my-auto space-y-3.5"
             >
-              <div className="text-center space-y-1.5">
+              {/* Question Header & Speech Audio Guide */}
+              <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
-                    How long have you had this issue?
+                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                    {localizedQ.title}
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] transition-colors"
-                    aria-label="Hear question audio"
+                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] transition-colors cursor-pointer"
+                    aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={18} />
+                    <Volume2 size={17} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[#6F7480]">
-                  Select the duration that best describes when your symptoms started.
-                </p>
+                <p className="text-[12.5px] text-[#6F7480]">{localizedQ.subtitle}</p>
                 {isSpeakingQuestion && (
-                  <span className="inline-block text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-3 py-0.5 rounded-full animate-pulse">
+                  <span className="inline-block text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-3 py-0.5 rounded-full motion-safe:animate-pulse">
                     Playing audio guidance...
                   </span>
                 )}
               </div>
 
-              {/* Symptom Context Badge */}
-              <div className="bg-[#EEF5FC] p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between">
-                <span className="text-[13.5px] text-[#4B5565]">
-                  Regarding: <strong className="text-[#2365B5]">{selectedItems.map((i) => i.label).join(', ') || 'Chest'}</strong>
-                </span>
+              {/* Context Badge, Multi-select indicator & Voice Assistant CTA */}
+              <div className="bg-[#EEF5FC] p-2.5 sm:p-3 rounded-2xl border border-[#CBD8E5] flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#2365B5] bg-white px-2 py-0.5 rounded-md border border-[#CBD8E5]">
+                    {selectedItems.map((i) => i.label).join(', ') || 'Selected Area'}
+                  </span>
+
+                  {/* Multi-select hint if applicable */}
+                  {currentQuestion.answerType === 'multiple_choice' && (
+                    <span className="text-[11px] font-bold text-[#079455] bg-[#EBFDF5] border border-[#A6F4C5] px-2 py-0.5 rounded-md">
+                      {language === 'hi'
+                        ? 'एक से अधिक विकल्प चुन सकते हैं'
+                        : language === 'mr'
+                        ? 'एकापेक्षा जास्त पर्याय निवडू शकता'
+                        : language === 'gu'
+                        ? 'એક કરતાં વધુ પસંદ કરી શકો છો'
+                        : language === 'bn'
+                        ? 'একাধিক বিকল্প বেছে নিতে পারেন'
+                        : language === 'ta'
+                        ? 'ஒன்றுக்கும் மேற்பட்டவற்றைத் தேர்ந்தெடுக்கலாம்'
+                        : 'You can choose more than one'}
+                    </span>
+                  )}
+
+                  {applicableQuestions.length > 1 && (
+                    <span className="text-[11px] text-[#4B5565] font-medium hidden sm:inline">
+                      (Question {activeQuestionIndex + 1} of {applicableQuestions.length})
+                    </span>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => {
-                    handleStartVoice(
-                      'DURATION',
-                      'जवळपास १ ते २ आठवड्यांपासून आहे.',
-                      'It has been about 1 to 2 weeks.',
-                      t.intake.durWeeks
-                    )
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors"
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
                 >
                   <Mic size={14} />
                   <span>Speak Answer</span>
                 </button>
               </div>
 
-              {/* Touch Options */}
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { label: 'Less than 24 hours (Just started today)', value: t.intake.durAcute },
-                  { label: '1 to 2 weeks (Recent discomfort)', value: t.intake.durWeeks },
-                  { label: 'More than 1 month (Ongoing / Chronic)', value: t.intake.durChronic },
-                  { label: 'Comes and goes intermittently', value: t.intake.durIntermittent },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      updateActivity()
-                      setSelectedDuration(opt.value)
-                      setIntakeAnswer('duration', opt.value)
-                      setStage('CHARACTER')
-                    }}
-                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#2365B5] hover:bg-[#F0F6FD] flex items-center justify-between text-left transition-all active:scale-98 group cursor-pointer"
-                  >
-                    <span className="text-[15px] font-bold text-[#17191F] group-hover:text-[#174A91]">
-                      {opt.label}
-                    </span>
-                    <ArrowRight size={18} className="text-[#9AA8B7] group-hover:text-[#2365B5] transition-colors" />
-                  </button>
-                ))}
+              {/* Validation Warning */}
+              {symptomError && (
+                <div className="bg-[#FEF3F2] border border-[#FECDCA] p-2.5 rounded-xl flex items-center gap-2 text-[#D92D20] text-[12.5px] font-bold">
+                  <AlertCircle size={15} />
+                  <span>{symptomError}</span>
+                </div>
+              )}
+
+              {/* Large Touch-Friendly Options Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {currentQuestion.options.map((option) => {
+                  const locOpt = getLocalizedOption(option, language)
+                  const isSelected = (symptomAnswers[currentQuestion.id] || []).includes(option.id)
+
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleToggleSymptomOption(currentQuestion.id, option.id)}
+                      className={`p-3.5 rounded-2xl border text-left transition-all duration-150 active:scale-98 flex items-start justify-between gap-2 min-h-[72px] cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-1 ring-[#2365B5]/30'
+                          : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
+                      }`}
+                      aria-label={`${locOpt.label}${isSelected ? ' (Selected)' : ''}`}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="space-y-0.5">
+                        <span
+                          className={`text-[14px] font-extrabold block leading-tight ${
+                            isSelected ? 'text-[#174A91]' : 'text-[#17191F]'
+                          }`}
+                        >
+                          {locOpt.label}
+                        </span>
+                        {locOpt.description && (
+                          <span className="text-[11.5px] text-[#6F7480] block leading-tight">
+                            {locOpt.description}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Checkbox indicator */}
+                      <div
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
+                          isSelected
+                            ? 'bg-[#2365B5] border-[#2365B5] text-white'
+                            : 'bg-white border-[#CBD8E5]'
+                        }`}
+                      >
+                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
 
-              <div className="flex justify-between items-center pt-2">
+              {/* Custom Note Display if recorded via voice or typing */}
+              {customSymptomNotes[currentQuestion.id] && (
+                <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#DFE8F1] text-[12.5px] space-y-1">
+                  <span className="text-[10.5px] font-extrabold uppercase text-[#2365B5]">
+                    Patient-Reported Voice / Typed Note:
+                  </span>
+                  <p className="font-bold text-[#17191F]">
+                    &quot;{customSymptomNotes[currentQuestion.id]}&quot;
+                  </p>
+                </div>
+              )}
+
+              {/* Navigation CTAs */}
+              <div className="flex items-center justify-between pt-1">
                 <button
-                  onClick={() => setStage('CHIEF_COMPLAINT')}
-                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                  onClick={() => {
+                    updateActivity()
+                    if (activeQuestionIndex > 0) {
+                      setActiveQuestionIndex((prev) => prev - 1)
+                    } else {
+                      setCurrentStage('LOCATION')
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  ← Back to Body Map
+                  <ArrowLeft size={15} />
+                  <span>Back</span>
+                </button>
+
+                <button
+                  onClick={handleContinueFromSymptoms}
+                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                  }}
+                >
+                  <span>
+                    {activeQuestionIndex < applicableQuestions.length - 1
+                      ? 'Next Question'
+                      : 'Continue to Duration'}
+                  </span>
+                  <ArrowRight size={15} className="stroke-[2.5]" />
                 </button>
               </div>
             </motion.div>
           )}
 
           {/* ══════════════════════════════════════════════════════════════════════
-              STAGE 3: QUALITY & SENSATION
+              STAGE 3: HOW LONG HAS IT BEEN HAPPENING? (Duration & Onset)
           ══════════════════════════════════════════════════════════════════════ */}
-          {stage === 'CHARACTER' && (
+          {currentStage === 'DURATION' && (
             <motion.div
-              key="stage-quality"
+              key="stage-duration"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-6"
+              transition={{ duration: 0.18 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5"
             >
-              <div className="text-center space-y-1.5">
+              <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
-                    What does the sensation feel like?
+                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                    {language === 'hi'
+                      ? 'यह समस्या कब से हो रही है?'
+                      : language === 'mr'
+                      ? 'हा त्रास कधीपासून होत आहे?'
+                      : language === 'gu'
+                      ? 'આ તકલીફ ક્યારથી છે?'
+                      : language === 'bn'
+                      ? 'এই সমস্যা কতদিন ধরে হচ্ছে?'
+                      : language === 'ta'
+                      ? 'இந்த பிரச்சனை எவ்வளவு காலமாக உள்ளது?'
+                      : 'How long have you had this issue?'}
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
+                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
                   >
-                    <Volume2 size={18} />
+                    <Volume2 size={17} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[#6F7480]">
-                  Choose the description that most closely matches your pain or discomfort.
+                <p className="text-[12.5px] text-[#6F7480]">
+                  {language === 'hi'
+                    ? 'लक्षण शुरू होने का सही समय चुनें।'
+                    : language === 'mr'
+                    ? 'त्रास सुरू झाल्याचा अंदाजे कालावधी निवडा.'
+                    : language === 'gu'
+                    ? 'તકલીફ શરૂ થયાનો અંદાજિત સમય પસંદ કરો.'
+                    : language === 'bn'
+                    ? 'লক্ষণ শুরুর আনুমানিক সময় নির্বাচন করুন।'
+                    : language === 'ta'
+                    ? 'அறிகுறிகள் தொடங்கிய கால அளவைத் தேர்ந்தெடுக்கவும்.'
+                    : 'Select the duration that best describes when your symptoms started.'}
                 </p>
               </div>
 
-              {/* Touch Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { title: 'Burning or Acidity', desc: 'Hot, reflux, or burning feeling', value: t.intake.qualBurning },
-                  { title: 'Dull Ache / Heaviness', desc: 'Continuous mild pressure or weight', value: t.intake.qualDull },
-                  { title: 'Sharp / Stabbing', desc: 'Sudden, piercing, or pinching pain', value: t.intake.qualSharp },
-                  { title: 'Cramping / Spasm', desc: 'Tightening or twisting sensation', value: t.intake.qualCramp },
-                  { title: 'Stiffness / Throbbing', desc: 'Pulsing or restricted movement', value: 'Stiffness / Throbbing' },
-                  { title: 'Not Sure / General', desc: 'Difficult to specify precisely', value: t.intake.qualNotSure },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      updateActivity()
-                      setSelectedCharacter(opt.value)
-                      setIntakeAnswer('character', opt.value)
-                      setStage('AYUSH_LIFESTYLE')
-                    }}
-                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#2365B5] hover:bg-[#F0F6FD] flex flex-col justify-between text-left transition-all active:scale-98 group cursor-pointer min-h-[90px]"
-                  >
-                    <div>
-                      <span className="text-[14.5px] font-extrabold text-[#17191F] group-hover:text-[#174A91] block">
-                        {opt.title}
-                      </span>
-                      <span className="text-[12px] text-[#6F7480] mt-0.5 block">
-                        {opt.desc}
-                      </span>
-                    </div>
-                  </button>
-                ))}
+              {/* Symptom Context Badge */}
+              <div className="bg-[#EEF5FC] p-2.5 sm:p-3 rounded-2xl border border-[#CBD8E5] flex items-center justify-between">
+                <span className="text-[12px] text-[#4B5565]">
+                  Regarding:{' '}
+                  <strong className="text-[#2365B5]">
+                    {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
+                  </strong>
+                </span>
+
+                <button
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
+                >
+                  <Mic size={14} />
+                  <span>Speak Answer</span>
+                </button>
               </div>
 
-              <div className="flex justify-between items-center pt-2">
+              {/* Standardized Duration Options Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {DURATION_OPTIONS.map((opt) => {
+                  const isSelected = selectedDuration === opt.id
+                  const title = opt.title[language] || opt.title.en
+                  const desc = opt.desc[language] || opt.desc.en
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectDuration(opt.id)}
+                      className={`p-3.5 rounded-2xl border flex items-center justify-between text-left transition-all active:scale-98 cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-1 ring-[#2365B5]/30'
+                          : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
+                      }`}
+                      aria-label={`${title}: ${desc}`}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="space-y-0.5">
+                        <span
+                          className={`text-[14px] font-extrabold block ${
+                            isSelected ? 'text-[#174A91]' : 'text-[#17191F]'
+                          }`}
+                        >
+                          {title}
+                        </span>
+                        <span className="text-[11.5px] text-[#6F7480] block">{desc}</span>
+                      </div>
+
+                      <div
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
+                          isSelected
+                            ? 'bg-[#2365B5] border-[#2365B5] text-white'
+                            : 'bg-white border-[#CBD8E5]'
+                        }`}
+                      >
+                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Navigation CTAs */}
+              <div className="flex justify-between items-center pt-1">
                 <button
-                  onClick={() => setStage('DURATION')}
-                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                  onClick={() => setCurrentStage('SYMPTOMS')}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  ← Back to Duration
+                  <ArrowLeft size={15} />
+                  <span>Back to Symptoms</span>
+                </button>
+
+                <button
+                  onClick={handleContinueFromDuration}
+                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                  }}
+                >
+                  <span>Continue</span>
+                  <ArrowRight size={15} className="stroke-[2.5]" />
                 </button>
               </div>
             </motion.div>
           )}
 
           {/* ══════════════════════════════════════════════════════════════════════
-              STAGE 4: AYUSH & LIFESTYLE CORRELATION
+              STAGE 4: HOW SEVERE IS IT? (Severity Scale 1 to 10)
           ══════════════════════════════════════════════════════════════════════ */}
-          {stage === 'AYUSH_LIFESTYLE' && (
+          {currentStage === 'SEVERITY' && (
+            <motion.div
+              key="stage-severity"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5"
+            >
+              <div className="text-center space-y-1">
+                <div className="flex justify-center items-center gap-2">
+                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                    {language === 'hi'
+                      ? 'तकलीफ या दर्द कितना तेज है?'
+                      : language === 'mr'
+                      ? 'त्रास किंवा वेदना किती तीव्र आहे?'
+                      : language === 'gu'
+                      ? 'દુખાવો કે તકલીફ કેટલી ગંભીર છે?'
+                      : language === 'bn'
+                      ? 'ব্যথা বা অস্বস্তি কতটা তীব্র?'
+                      : language === 'ta'
+                      ? 'வலி அல்லது அசௌகரியம் எவ்வளவு தீவிரமானது?'
+                      : 'How severe is your pain or discomfort?'}
+                  </h1>
+                  <button
+                    onClick={handleHearQuestion}
+                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
+                  >
+                    <Volume2 size={17} />
+                  </button>
+                </div>
+                <p className="text-[12.5px] text-[#6F7480]">
+                  {language === 'hi'
+                    ? '1 (हल्का) से 10 (गंभीर) के पैमाने पर अपनी परेशानी बताएं।'
+                    : language === 'mr'
+                    ? '१ (हलका) ते १० (तीव्र) प्रमाणात तीव्रता निवडा.'
+                    : language === 'gu'
+                    ? '1 (હળવો) થી 10 (ગંભીર) સ્કેલ પર પસંદ કરો.'
+                    : language === 'bn'
+                    ? '১ (হালকা) থেকে ১০ (তীব্র) স্কেলে আপনার অস্বস্তি জানান।'
+                    : language === 'ta'
+                    ? '1 (லேசானது) முதல் 10 (கடுமையானது) அளவுகோலில் தேர்ந்தெடுக்கவும்.'
+                    : 'Rate the intensity on a scale from 1 (mild) to 10 (severe).'}
+                </p>
+              </div>
+
+              {/* 1-10 Visual Severity Scale Component */}
+              <SeverityScaleSelector
+                value={severityRating}
+                onChange={setSeverityRating}
+                language={language}
+              />
+
+              {/* Navigation CTAs */}
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  onClick={() => setCurrentStage('DURATION')}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                >
+                  <ArrowLeft size={15} />
+                  <span>Back to Duration</span>
+                </button>
+
+                <button
+                  onClick={handleContinueFromSeverity}
+                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                  }}
+                >
+                  <span>Continue</span>
+                  <ArrowRight size={15} className="stroke-[2.5]" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ══════════════════════════════════════════════════════════════════════
+              STAGE 5: ADDITIONAL RELEVANT QUESTIONS (AYUSH Ahara & Vihara Lifestyle)
+          ══════════════════════════════════════════════════════════════════════ */}
+          {currentStage === 'LIFESTYLE' && (
             <motion.div
               key="stage-lifestyle"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-6"
+              transition={{ duration: 0.18 }}
+              className="max-w-3xl mx-auto w-full my-auto space-y-3.5"
             >
-              <div className="text-center space-y-1.5">
+              <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[#17191F] leading-tight">
-                    Any lifestyle or dietary trigger?
+                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                    {language === 'hi'
+                      ? 'कोई खान-पान या जीवनशैली का कारण?'
+                      : language === 'mr'
+                      ? 'काही आहार किंवा जीवनशैलीचे कारण?'
+                      : language === 'gu'
+                      ? 'કોઈ આહાર કે જીવનશૈલી સંબંધિત કારણ?'
+                      : language === 'bn'
+                      ? 'কোনো খাদ্যাভ্যাস বা জীবনযাত্রার প্রভাব?'
+                      : language === 'ta'
+                      ? 'உணவு அல்லது வாழ்க்கை முறை காரணங்கள் ஏதேனும் உள்ளதா?'
+                      : 'Any lifestyle or dietary trigger?'}
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-2 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF]"
+                    className="p-1.5 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF]"
                   >
-                    <Volume2 size={18} />
+                    <Volume2 size={17} />
                   </button>
                 </div>
-                <p className="text-[14px] text-[#6F7480]">
-                  AYUSH Ahara &amp; Vihara clinical assessment for holistic care.
+                <p className="text-[12.5px] text-[#6F7480]">
+                  {language === 'hi'
+                    ? 'वैकल्पिक प्रश्न: यदि किसी आदत या दिनचर्या से संबंध लगता है तो चुनें।'
+                    : language === 'mr'
+                    ? 'ऐच्छिक प्रश्न: दैनंदिन सवयी किंवा आहाराशी संबंध असल्यास निवडा.'
+                    : language === 'gu'
+                    ? 'વૈકલ્પિક પ્રશ્ન: જો કોઈ આહાર કે આદત સાથે સંબંધ હોય તો પસંદ કરો.'
+                    : language === 'bn'
+                    ? 'ঐচ্ছিক প্রশ্ন: খাদ্যাভ্যাস বা রুটিনের প্রভাব থাকলে নির্বাচন করুন।'
+                    : language === 'ta'
+                    ? 'விருப்பத்திற்குரிய கேள்வி: வாழ்க்கை முறை தொடர்புகள் இருந்தால் தேர்ந்தெடுக்கவும்.'
+                    : 'Optional: Choose if your symptoms seem related to food, rest, or activity.'}
                 </p>
               </div>
 
-              {/* Touch Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { title: 'Spicy or Fried Food', desc: 'Worse after oily/spicy meals', value: t.intake.lifeSpicy },
-                  { title: 'Fasting or Delayed Meals', desc: 'Worse on empty stomach', value: t.intake.lifeFasting },
-                  { title: 'Stress or Lack of Sleep', desc: 'Fatigue, disturbed routine', value: t.intake.lifeStress },
-                  { title: 'No Specific Pattern', desc: 'Occurs regardless of food or rest', value: t.intake.lifeNoPattern },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      updateActivity()
-                      setSelectedLifestyle(opt.value)
-                      setIntakeAnswer('lifestyle_ahara', opt.value)
-                      setStage('SUMMARY')
-                    }}
-                    className="p-4 bg-white rounded-2xl border border-[#DFE8F1] shadow-2xs hover:border-[#079455] hover:bg-[#EBFDF5] flex flex-col justify-between text-left transition-all active:scale-98 group cursor-pointer min-h-[90px]"
-                  >
-                    <div>
-                      <span className="text-[14.5px] font-extrabold text-[#17191F] group-hover:text-[#079455] block">
-                        {opt.title}
-                      </span>
-                      <span className="text-[12px] text-[#6F7480] mt-0.5 block">
-                        {opt.desc}
-                      </span>
-                    </div>
-                  </button>
-                ))}
+              {/* Standardized Lifestyle Options Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {LIFESTYLE_OPTIONS.map((opt) => {
+                  const isSelected = selectedLifestyleTrigger === opt.id
+                  const title = opt.title[language] || opt.title.en
+                  const desc = opt.desc[language] || opt.desc.en
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectLifestyle(opt.id)}
+                      className={`p-3.5 rounded-2xl border text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[76px] ${
+                        isSelected
+                          ? 'bg-[#EBFDF5] border-[#079455] shadow-xs ring-1 ring-[#079455]/30'
+                          : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
+                      }`}
+                      aria-label={`${title}: ${desc}`}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="space-y-0.5">
+                        <span
+                          className={`text-[14px] font-extrabold block ${
+                            isSelected ? 'text-[#079455]' : 'text-[#17191F]'
+                          }`}
+                        >
+                          {title}
+                        </span>
+                        <span className="text-[11.5px] text-[#6F7480] block">{desc}</span>
+                      </div>
+
+                      <div
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
+                          isSelected
+                            ? 'bg-[#079455] border-[#079455] text-white'
+                            : 'bg-white border-[#CBD8E5]'
+                        }`}
+                      >
+                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
 
-              <div className="flex justify-between items-center pt-2">
+              {/* Navigation & Skip Option */}
+              <div className="flex items-center justify-between pt-1">
                 <button
-                  onClick={() => setStage('CHARACTER')}
-                  className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-lg"
+                  onClick={() => setCurrentStage('SEVERITY')}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  ← Back to Quality
+                  <ArrowLeft size={15} />
+                  <span>Back to Severity</span>
                 </button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSkipLifestyle}
+                    className="text-[12.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  >
+                    Skip for now →
+                  </button>
+
+                  <button
+                    onClick={handleContinueFromLifestyle}
+                    className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                    }}
+                  >
+                    <span>Continue to Review</span>
+                    <ArrowRight size={15} className="stroke-[2.5]" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
 
           {/* ══════════════════════════════════════════════════════════════════════
-              STAGE 5: INTAKE SUMMARY & PROCEED TO DOCUMENTS
+              STAGE 6: REVIEW AND CONFIRMATION
           ══════════════════════════════════════════════════════════════════════ */}
-          {stage === 'SUMMARY' && (
+          {currentStage === 'REVIEW' && (
             <motion.div
-              key="stage-summary"
+              key="stage-review"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-xl mx-auto w-full my-auto space-y-5 text-center"
+              transition={{ duration: 0.18 }}
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 text-center"
             >
-              <div className="w-16 h-16 rounded-3xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
-                <CheckCircle2 size={32} />
+              <div className="w-12 h-12 rounded-2xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
+                <CheckCircle2 size={24} />
               </div>
 
-              <div className="space-y-1">
-                <h1 className="text-[28px] font-extrabold text-[#17191F] tracking-tight">
-                  Intake Assessment Complete
+              <div className="space-y-0.5">
+                <h1 className="text-[22px] sm:text-[24px] font-extrabold text-[#17191F] tracking-tight">
+                  {language === 'hi'
+                    ? 'अपनी जानकारी की समीक्षा करें'
+                    : language === 'mr'
+                    ? 'आपल्या माहितीचा आढावा घ्या'
+                    : language === 'gu'
+                    ? 'તમારી વિગતો ચકાસો'
+                    : language === 'bn'
+                    ? 'আপনার তথ্য পর্যালোচনা করুন'
+                    : language === 'ta'
+                    ? 'உங்கள் தகவலை மதிப்பாய்வு செய்யவும்'
+                    : 'Review your intake assessment'}
                 </h1>
-                <p className="text-[14px] text-[#6F7480]">
-                  Your symptom profile is recorded and ready for the attending physician.
+                <p className="text-[12.5px] text-[#6F7480]">
+                  Please verify your responses before proceeding to document scanning.
                 </p>
               </div>
 
-              {/* Summary Card */}
-              <div className="bg-white rounded-3xl p-5 border border-[#DFE8F1] shadow-card text-left space-y-3 text-[13.5px]">
-                <div className="flex justify-between items-center pb-2.5 border-b border-[#DFE8F1]">
+              {/* Structured Summary Card with Per-Section Edit Affordances */}
+              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#DFE8F1] shadow-card text-left space-y-2.5 text-[13px]">
+                {/* Patient Header */}
+                <div className="flex justify-between items-center pb-2 border-b border-[#DFE8F1]">
                   <span className="font-bold text-[#6F7480]">Patient:</span>
                   <span className="font-extrabold text-[#17191F]">
                     {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
                   </span>
                 </div>
 
-                <div className="flex justify-between items-start">
-                  <span className="text-[#6F7480]">Symptoms &amp; Regions:</span>
-                  <span className="font-extrabold text-[#17191F] text-right">
-                    {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
-                  </span>
+                {/* 1. Problem Location */}
+                <div className="flex justify-between items-start pt-1">
+                  <div className="space-y-0.5">
+                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                      📍 Selected Body Areas:
+                    </span>
+                    <span className="font-extrabold text-[#17191F]">
+                      {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStage('LOCATION')}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={12} />
+                    <span>Edit</span>
+                  </button>
                 </div>
 
-                <div className="flex justify-between items-start">
-                  <span className="text-[#6F7480]">Duration:</span>
-                  <span className="font-bold text-[#17191F] text-right">{selectedDuration}</span>
+                {/* 2. Specific Symptoms */}
+                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                  <div className="space-y-0.5">
+                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                      🩺 Reported Symptoms:
+                    </span>
+                    <span className="font-bold text-[#17191F]">
+                      {Object.values(symptomAnswers).flat().join(', ') || 'Pain / Discomfort'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStage('SYMPTOMS')}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={12} />
+                    <span>Edit</span>
+                  </button>
                 </div>
 
-                <div className="flex justify-between items-start">
-                  <span className="text-[#6F7480]">Quality:</span>
-                  <span className="font-bold text-[#17191F] text-right">{selectedCharacter}</span>
+                {/* 3. Duration */}
+                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                  <div className="space-y-0.5">
+                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                      ⏱️ Duration:
+                    </span>
+                    <span className="font-bold text-[#17191F]">
+                      {resolvedDurationText}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStage('DURATION')}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={12} />
+                    <span>Edit</span>
+                  </button>
                 </div>
 
-                <div className="flex justify-between items-start">
-                  <span className="text-[#6F7480]">Lifestyle Factor:</span>
-                  <span className="font-bold text-[#079455] text-right">{selectedLifestyle}</span>
+                {/* 4. Severity */}
+                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                  <div className="space-y-0.5">
+                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                      ⚡ Severity Rating:
+                    </span>
+                    <span className="font-extrabold text-[#17191F]">
+                      {severityRating} / 10 ({severityRating <= 3 ? 'Mild' : severityRating <= 6 ? 'Moderate' : 'Severe'})
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStage('SEVERITY')}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={12} />
+                    <span>Edit</span>
+                  </button>
                 </div>
+
+                {/* 5. Lifestyle Factor */}
+                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                  <div className="space-y-0.5">
+                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                      🌿 Lifestyle &amp; Daily Routine:
+                    </span>
+                    <span className="font-bold text-[#079455]">
+                      {resolvedLifestyleText}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStage('LIFESTYLE')}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={12} />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                {/* 6. Voice Transcriptions if any */}
+                {Object.keys(customSymptomNotes).length > 0 && (
+                  <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                    <div className="space-y-0.5">
+                      <span className="text-[10.5px] font-bold text-[#2365B5] uppercase block">
+                        🎙️ Patient-Reported Voice Transcription:
+                      </span>
+                      <span className="font-semibold text-[#17191F] italic">
+                        &quot;{Object.values(customSymptomNotes).join('; ')}&quot;
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Calm Patient Disclaimer Banner */}
+              <div className="bg-[#EEF5FC] border border-[#CBD8E5] rounded-2xl p-2.5 text-center">
+                <p className="text-[11.5px] text-[#4B5565] font-medium">
+                  {language === 'hi'
+                    ? 'आपकी जानकारी देखभाल टीम को आपकी स्थिति समझने में मदद करेगी। यह कोई अंतिम निदान नहीं है।'
+                    : language === 'mr'
+                    ? 'तुमची माहिती डॉक्टरांना तुमचा त्रास समजून घेण्यास मदत करेल. हे वैद्यकीय निदान नाही.'
+                    : language === 'gu'
+                    ? 'તમારી વિગતો ડૉક્ટરને તમારી તકલીફ સમજવામાં મદદ કરશે. આ અંતિમ નિદાન નથી.'
+                    : language === 'bn'
+                    ? 'আপনার প্রতিক্রিয়া চিকিৎসক দলকে সাহায্য করবে। এটি কোনো চূড়ান্ত রোগনির্ণয় নয়।'
+                    : language === 'ta'
+                    ? 'உங்கள் பதில்கள் மருத்துவக் குழுவிற்கு உதவும். இது இறுதி நோய் கண்டறிதல் அல்ல.'
+                    : 'Your responses will help the care team understand your concerns. They are not a diagnosis.'}
+                </p>
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-col gap-2.5 pt-2">
+              <div className="flex flex-col gap-2 pt-0.5">
                 <KioskButton
                   variant="primary"
                   size="fullLg"
-                  onClick={() => {
-                    advanceStep('DOCUMENTS')
-                    router.push('/kiosk/documents')
-                  }}
+                  onClick={handleProceedToDocuments}
                 >
                   <span>Proceed to Document Scanning</span>
-                  <ArrowRight size={18} className="stroke-[2.5]" />
+                  <ArrowRight size={17} className="stroke-[2.5]" />
                 </KioskButton>
 
-                <KioskButton
-                  variant="secondary"
-                  size="md"
-                  onClick={() => setStage('CHIEF_COMPLAINT')}
+                <button
+                  type="button"
+                  onClick={() => setCurrentStage('LOCATION')}
+                  className="text-[12px] font-bold text-[#6F7480] hover:text-[#17191F] py-1 transition-colors cursor-pointer"
                 >
-                  Edit Symptom Locations
-                </KioskButton>
+                  Edit All Answers
+                </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* ── 3. Bottom Security & Assistance Footer ── */}
-        <footer className="w-full shrink-0 flex items-center justify-between text-[11.5px] text-[#6F7480] pt-1.5 select-none border-t border-[#DFE8F1]/60">
+        <footer className="w-full shrink-0 flex items-center justify-between text-[11px] text-[#6F7480] pt-1 select-none border-t border-[#DFE8F1]/60">
           <div className="flex items-center gap-1.5">
-            <Shield size={13} className="text-[#2365B5]" />
-            <span>Your information is secure and private</span>
+            <Shield size={12} className="text-[#2365B5]" />
+            <span>Your information is encrypted, secure, and private</span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <HelpCircle size={13} className="text-[#6F7480]" />
+            <HelpCircle size={12} className="text-[#6F7480]" />
             <span>Need help? Ask hospital staff</span>
           </div>
         </footer>
       </main>
 
-      {/* ── 4. Multimodal Voice Recognition Modal Dialog ── */}
-      <AnimatePresence>
-        {voiceModal !== 'IDLE' && (
-          <div className="fixed inset-0 z-50 bg-[#0c1829]/60 backdrop-blur-xs flex items-center justify-center p-5">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col items-center gap-5 text-center border border-[#CBD8E5]"
-            >
-              {voiceModal === 'LISTENING' && (
-                <>
-                  <div className="w-20 h-20 rounded-full bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center">
-                    <div className="flex items-center gap-1.5 h-10">
-                      {[40, 70, 100, 60, 90, 45, 80, 50].map((h, i) => (
-                        <div
-                          key={i}
-                          className="w-1.5 bg-[#2365B5] rounded-full motion-safe:animate-pulse"
-                          style={{ height: `${h}%`, animationDelay: `${i * 120}ms` }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-[20px] font-extrabold text-[#17191F]">Listening in {language?.toUpperCase() || 'MR'}...</h2>
-                    <p className="text-[13px] text-[#6F7480] mt-1">Please speak clearly towards the microphone.</p>
-                  </div>
-                </>
-              )}
-
-              {voiceModal === 'PROCESSING' && (
-                <div className="py-6 flex flex-col items-center gap-3">
-                  <div className="w-10 h-10 rounded-full border-4 border-[#2365B5] border-t-transparent animate-spin" />
-                  <h2 className="text-[18px] font-bold text-[#17191F]">Transcribing speech...</h2>
-                </div>
-              )}
-
-              {voiceModal === 'CONFIRMING' && (
-                <div className="w-full flex flex-col gap-4">
-                  <span className="text-[11px] font-bold text-[#2365B5] uppercase tracking-wider">
-                    Speech Recognized (Bhashini AI)
-                  </span>
-                  <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#DFE8F1] text-left">
-                    <p className="text-[15px] font-bold text-[#17191F] italic">
-                      &quot;{recognizedText.native}&quot;
-                    </p>
-                    <div className="w-8 h-px bg-[#DFE8F1] my-2" />
-                    <p className="text-[12.5px] text-[#6F7480]">
-                      &quot;{recognizedText.english}&quot;
-                    </p>
-                  </div>
-                  <div className="bg-[#EBFDF5] p-3 rounded-xl border border-[#A6F4C5] text-left text-[13px] text-[#079455]">
-                    <span>Mapped to: <strong>{matchedOption}</strong></span>
-                  </div>
-
-                  <div className="flex flex-col gap-2 w-full pt-1">
-                    <KioskButton
-                      variant="primary"
-                      size="full"
-                      onClick={handleConfirmVoiceAnswer}
-                    >
-                      Confirm &amp; Proceed
-                    </KioskButton>
-                    <KioskButton
-                      variant="ghost"
-                      size="full"
-                      onClick={() => setVoiceModal('IDLE')}
-                    >
-                      Cancel
-                    </KioskButton>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* ── 4. Multimodal Voice Assistant Modal Dialog ── */}
+      <VoiceIntakeModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onConfirmAnswer={handleConfirmVoiceTranscript}
+        questionTitle={localizedQ.title}
+        language={language}
+      />
     </div>
   )
 }
