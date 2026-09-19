@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useUIStore } from '@/store'
-import { ClinicalFact, MedicalDocument } from '@/types'
 import { Drawer } from '@/components/ui'
 import { ProvenanceChip } from './provenance-chip'
-import { SkeletonRow } from '@/components/ui/skeleton'
 import {
   FileText,
   Mic,

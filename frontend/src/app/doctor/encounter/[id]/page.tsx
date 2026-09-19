@@ -278,23 +278,23 @@ export default function DoctorEncounterPage() {
             <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] font-mono text-[12px]">
               <div className="flex items-center gap-1">
                 <HeartPulse size={13} className="text-[var(--color-critical)]" />
-                <span className="font-bold text-[var(--color-text-primary)]">{isUrgent ? '112 bpm' : '88 bpm'}</span>
+                <span className="font-bold text-[var(--color-text-primary)]">{profile.pulse}</span>
               </div>
               <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
                 <Activity size={13} className="text-[var(--color-brand)]" />
-                <span className="font-bold text-[var(--color-text-primary)]">{isUrgent ? '146/94' : '128/82'}</span>
+                <span className="font-bold text-[var(--color-text-primary)]">{profile.bp}</span>
               </div>
               <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
                 <Thermometer size={13} className="text-[var(--color-warning)]" />
-                <span className="font-bold text-[var(--color-text-primary)]">98.6°F</span>
+                <span className="font-bold text-[var(--color-text-primary)]">{profile.temp}</span>
               </div>
               <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
                 <span className="text-[10px] font-bold text-[var(--color-text-muted)]">SpO2</span>
                 <span className={cn('font-bold', isUrgent ? 'text-[var(--color-critical)]' : 'text-[var(--color-verified-text)]')}>
-                  {isUrgent ? '93%' : '98%'}
+                  {profile.spo2}
                 </span>
               </div>
             </div>

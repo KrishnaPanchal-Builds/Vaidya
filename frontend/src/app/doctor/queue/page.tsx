@@ -412,9 +412,9 @@ export default function DoctorQueuePage() {
                     </div>
 
                     {/* ── ZONE 3 (RIGHT): Item 2: Wait Time + Status + 1 CTA ── */}
-                    <div className="flex items-center justify-between lg:justify-end gap-3.5 shrink-0 pt-2.5 lg:pt-0 border-t lg:border-t-0 border-[var(--color-border)]">
+                    <div className="flex items-center justify-between lg:justify-end gap-3.5 shrink-0 lg:w-[220px] pt-2.5 lg:pt-0 border-t lg:border-t-0 border-[var(--color-border)]">
                       {/* Wait Time */}
-                      <div className="text-left lg:text-right space-y-0.5">
+                      <div className="text-left lg:text-right space-y-0.5 min-w-[80px]">
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border',
