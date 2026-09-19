@@ -163,7 +163,7 @@ export function SeverityScaleSelector({
   return (
     <div className={`space-y-3.5 w-full select-none ${className}`}>
       {/* ── Helper Instruction ── */}
-      <p className="text-[12.5px] font-bold text-[#4B5565] text-center">
+      <p className="text-[13.5px] sm:text-[14.5px] font-bold text-[#4B5565] text-center">
         {currentInfo.helper}
       </p>
 
@@ -187,7 +187,7 @@ export function SeverityScaleSelector({
               key={num}
               type="button"
               onClick={() => onChange(num)}
-              className={`h-12 sm:h-14 rounded-2xl flex flex-col items-center justify-center font-extrabold text-[15px] sm:text-[17px] transition-all duration-150 cursor-pointer border shadow-2xs active:scale-95 ${
+              className={`h-13 sm:h-15 rounded-2xl flex flex-col items-center justify-center font-extrabold text-[16px] sm:text-[18px] transition-all duration-150 cursor-pointer border shadow-2xs active:scale-95 ${
                 isSelected
                   ? 'text-white shadow-md scale-105 ring-2 ring-offset-2'
                   : 'bg-white text-[#17191F] border-[#DFE8F1] hover:bg-[#F8FAFC] hover:border-[#CBD8E5]'
@@ -201,7 +201,7 @@ export function SeverityScaleSelector({
               role="radio"
             >
               <span>{num}</span>
-              {isSelected && <Check size={12} className="stroke-[3] mt-0.5" />}
+              {isSelected && <Check size={13} className="stroke-[3] mt-0.5" />}
             </button>
           )
         })}
@@ -215,10 +215,10 @@ export function SeverityScaleSelector({
           max={10}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-2.5 bg-gradient-to-r from-[#079455] via-[#D97706] to-[#DC2626] rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2365B5]/40"
+          className="w-full h-3 bg-gradient-to-r from-[#079455] via-[#D97706] to-[#DC2626] rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2365B5]/40"
           aria-label="Pain severity slider control"
         />
-        <div className="flex justify-between text-[11px] font-bold text-[#6F7480] pt-1">
+        <div className="flex justify-between text-[12px] sm:text-[12.5px] font-bold text-[#6F7480] pt-1">
           <span>1 ({language === 'hi' ? 'हल्का' : 'Mild'})</span>
           <span>5 ({language === 'hi' ? 'मध्यम' : 'Moderate'})</span>
           <span>10 ({language === 'hi' ? 'अत्यधिक' : 'Severe'})</span>
@@ -231,34 +231,34 @@ export function SeverityScaleSelector({
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15 }}
-        className="p-3.5 sm:p-4 rounded-2xl border flex items-start gap-3 shadow-2xs text-left"
+        className="p-4 sm:p-4.5 rounded-2xl border flex items-start gap-3.5 shadow-2xs text-left"
         style={{
           backgroundColor: activeTier.bg,
           borderColor: activeTier.border,
         }}
       >
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-white text-[15px] shadow-2xs"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-white text-[16px] shadow-2xs"
           style={{ backgroundColor: activeTier.color }}
         >
           {value}
         </div>
 
-        <div className="space-y-0.5">
+        <div className="space-y-0.5 min-w-0">
           <h4
-            className="text-[14.5px] font-extrabold tracking-tight"
+            className="text-[15.5px] sm:text-[16.5px] font-extrabold tracking-tight"
             style={{ color: activeTier.color }}
           >
             {activeTier.label}
           </h4>
-          <p className="text-[12px] sm:text-[12.5px] font-medium text-[#4B5565] leading-relaxed">
+          <p className="text-[13px] sm:text-[13.5px] font-medium text-[#4B5565] leading-relaxed">
             {activeTier.desc}
           </p>
         </div>
       </motion.div>
 
       {/* ── 4. Calm Clinical Non-Diagnostic Note ── */}
-      <p className="text-[11px] text-[#64748B] text-center italic">
+      <p className="text-[11.5px] sm:text-[12px] text-[#64748B] text-center italic">
         {currentInfo.disclaimer}
       </p>
     </div>

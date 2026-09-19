@@ -20,19 +20,19 @@ export function SymptomCategoryGrid({
   className = '',
 }: SymptomCategoryGridProps) {
   return (
-    <div className={`space-y-1.5 shrink-0 ${className}`}>
+    <div className={`space-y-2 shrink-0 ${className}`}>
       {/* Header */}
       <div>
-        <h2 className="text-[14px] sm:text-[15px] font-extrabold text-[#17191F] tracking-tight leading-tight">
+        <h2 className="text-[15px] sm:text-[16px] font-extrabold text-[#17191F] tracking-tight leading-tight">
           {heading}
         </h2>
-        <p className="text-[10.5px] sm:text-[11px] font-medium text-[#6F7480] leading-tight">
+        <p className="text-[12px] sm:text-[12.5px] font-medium text-[#6F7480] leading-tight mt-0.5">
           {subheading}
         </p>
       </div>
 
       {/* 3x3 Grid */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
         {SYMPTOM_CATEGORIES.map((cat) => {
           const isSelected = selectedCategories.includes(cat.id)
 
@@ -41,9 +41,9 @@ export function SymptomCategoryGrid({
               key={cat.id}
               type="button"
               onClick={() => onToggleCategory(cat.id)}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl border transition-all duration-150 cursor-pointer h-[58px] sm:h-[62px] text-center active:scale-97 ${
+              className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 cursor-pointer min-h-[66px] sm:min-h-[72px] text-center active:scale-97 ${
                 isSelected
-                  ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-1 ring-[#2365B5]/30'
+                  ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-2 ring-[#2365B5]/40'
                   : 'bg-white border-[#DFE8F1] hover:border-[#B8D1EC] hover:bg-[#F8FAFC] shadow-2xs'
               }`}
               aria-label={`${cat.label}${isSelected ? ' (Selected)' : ''}`}
@@ -51,12 +51,12 @@ export function SymptomCategoryGrid({
             >
               {/* Category Icon */}
               <div className="mb-1 flex items-center justify-center">
-                <CategoryIcon id={cat.id} size={22} />
+                <CategoryIcon id={cat.id} size={24} />
               </div>
 
               {/* Label */}
               <span
-                className={`text-[10px] sm:text-[10.5px] font-extrabold leading-tight line-clamp-1 ${
+                className={`text-[11px] sm:text-[12px] font-extrabold leading-tight px-0.5 ${
                   isSelected ? 'text-[#174A91]' : 'text-[#17191F]'
                 }`}
               >

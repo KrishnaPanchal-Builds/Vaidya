@@ -159,76 +159,78 @@ export const BODY_REGIONS: Record<BodyRegionId, BodyRegion> = {
 export const ANATOMICAL_CALLOUTS: Record<BodyView, AnatomicalCallout[]> = {
   // ══════════════════════════════════════════════════════════════
   // FRONT VIEW (Patient facing viewer)
-  // Left flank (x: ~12-18%) = Patient's Right
-  // Right flank (x: ~82-88%) = Patient's Left
+  // Left flank (x: ~14%) = Viewer's Left (Patient's Right)
+  // Right flank (x: ~86%) = Viewer's Right (Patient's Left)
   // ══════════════════════════════════════════════════════════════
   FRONT: [
-    // Left Flank (Patient's Right side)
-    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'FRONT', anchorX: 48, anchorY: 7.5, labelX: 18, labelY: 6.5, align: 'left' },
-    { id: 'right_shoulder', label: 'Right Shoulder', categoryId: 'arms_hands', view: 'FRONT', anchorX: 36, anchorY: 24, labelX: 15, labelY: 18.5, align: 'left' },
-    { id: 'chest', label: 'Chest', categoryId: 'chest_breathing', view: 'FRONT', anchorX: 46, anchorY: 29, labelX: 18, labelY: 30, align: 'left' },
-    { id: 'right_elbow', label: 'Right Elbow', categoryId: 'joint_pain', view: 'FRONT', anchorX: 27.5, anchorY: 38, labelX: 13, labelY: 41.5, align: 'left' },
-    { id: 'right_hand', label: 'Right Hand', categoryId: 'arms_hands', view: 'FRONT', anchorX: 24, anchorY: 53, labelX: 12, labelY: 53, align: 'left' },
-    { id: 'right_thigh', label: 'Right Thigh', categoryId: 'legs_feet', view: 'FRONT', anchorX: 43, anchorY: 60, labelX: 17, labelY: 65, align: 'left' },
-    { id: 'right_knee', label: 'Right Knee', categoryId: 'joint_pain', view: 'FRONT', anchorX: 43.5, anchorY: 72.5, labelX: 16, labelY: 77, align: 'left' },
-    { id: 'right_foot', label: 'Right Foot', categoryId: 'legs_feet', view: 'FRONT', anchorX: 42.5, anchorY: 93.5, labelX: 17, labelY: 91, align: 'left' },
+    // Left Flank (Viewer's Left - 8 labels, strictly separated Y positions)
+    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'FRONT', anchorX: 49, anchorY: 8.5, labelX: 14, labelY: 7, align: 'left' },
+    { id: 'right_shoulder', label: 'Right Shoulder', categoryId: 'arms_hands', view: 'FRONT', anchorX: 36, anchorY: 23.5, labelX: 13.5, labelY: 18, align: 'left' },
+    { id: 'chest', label: 'Chest', categoryId: 'chest_breathing', view: 'FRONT', anchorX: 45, anchorY: 29.5, labelX: 14, labelY: 29, align: 'left' },
+    { id: 'right_elbow', label: 'Right Elbow', categoryId: 'joint_pain', view: 'FRONT', anchorX: 27.5, anchorY: 39, labelX: 13.5, labelY: 40, align: 'left' },
+    { id: 'right_hand', label: 'Right Hand', categoryId: 'arms_hands', view: 'FRONT', anchorX: 23, anchorY: 52.5, labelX: 13.5, labelY: 51, align: 'left' },
+    { id: 'right_thigh', label: 'Right Thigh', categoryId: 'legs_feet', view: 'FRONT', anchorX: 43.5, anchorY: 61, labelX: 14, labelY: 63, align: 'left' },
+    { id: 'right_knee', label: 'Right Knee', categoryId: 'joint_pain', view: 'FRONT', anchorX: 43.5, anchorY: 73.5, labelX: 14, labelY: 76, align: 'left' },
+    { id: 'right_foot', label: 'Right Foot', categoryId: 'legs_feet', view: 'FRONT', anchorX: 42.5, anchorY: 93.5, labelX: 14, labelY: 91, align: 'left' },
 
-    // Right Flank (Patient's Left side)
-    { id: 'face', label: 'Face', categoryId: 'head_eyes', view: 'FRONT', anchorX: 52, anchorY: 13.5, labelX: 82, labelY: 9.5, align: 'right' },
-    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'FRONT', anchorX: 52, anchorY: 19, labelX: 84, labelY: 18, align: 'right' },
-    { id: 'left_shoulder', label: 'Left Shoulder', categoryId: 'arms_hands', view: 'FRONT', anchorX: 64, anchorY: 24, labelX: 85, labelY: 26.5, align: 'right' },
-    { id: 'stomach', label: 'Stomach', categoryId: 'stomach_digestion', view: 'FRONT', anchorX: 54, anchorY: 39, labelX: 82, labelY: 35.5, align: 'right' },
-    { id: 'left_elbow', label: 'Left Elbow', categoryId: 'joint_pain', view: 'FRONT', anchorX: 72.5, anchorY: 38, labelX: 87, labelY: 45, align: 'right' },
-    { id: 'left_hand', label: 'Left Hand', categoryId: 'arms_hands', view: 'FRONT', anchorX: 76, anchorY: 53, labelX: 88, labelY: 55, align: 'right' },
-    { id: 'left_thigh', label: 'Left Thigh', categoryId: 'legs_feet', view: 'FRONT', anchorX: 57, anchorY: 60, labelX: 83, labelY: 66, align: 'right' },
-    { id: 'left_knee', label: 'Left Knee', categoryId: 'joint_pain', view: 'FRONT', anchorX: 56.5, anchorY: 72.5, labelX: 84, labelY: 78, align: 'right' },
-    { id: 'left_foot', label: 'Left Foot', categoryId: 'legs_feet', view: 'FRONT', anchorX: 57.5, anchorY: 93.5, labelX: 83, labelY: 91, align: 'right' },
+    // Right Flank (Viewer's Right - 9 labels, strictly separated Y positions)
+    { id: 'face', label: 'Face', categoryId: 'head_eyes', view: 'FRONT', anchorX: 51, anchorY: 13.5, labelX: 86, labelY: 9, align: 'right' },
+    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'FRONT', anchorX: 51, anchorY: 18.5, labelX: 86, labelY: 18, align: 'right' },
+    { id: 'left_shoulder', label: 'Left Shoulder', categoryId: 'arms_hands', view: 'FRONT', anchorX: 64, anchorY: 23.5, labelX: 86, labelY: 27, align: 'right' },
+    { id: 'stomach', label: 'Stomach', categoryId: 'stomach_digestion', view: 'FRONT', anchorX: 51, anchorY: 39.5, labelX: 86, labelY: 36, align: 'right' },
+    { id: 'left_elbow', label: 'Left Elbow', categoryId: 'joint_pain', view: 'FRONT', anchorX: 72.5, anchorY: 39, labelX: 86.5, labelY: 45, align: 'right' },
+    { id: 'left_hand', label: 'Left Hand', categoryId: 'arms_hands', view: 'FRONT', anchorX: 77, anchorY: 52.5, labelX: 86.5, labelY: 55, align: 'right' },
+    { id: 'left_thigh', label: 'Left Thigh', categoryId: 'legs_feet', view: 'FRONT', anchorX: 56.5, anchorY: 61, labelX: 86, labelY: 66, align: 'right' },
+    { id: 'left_knee', label: 'Left Knee', categoryId: 'joint_pain', view: 'FRONT', anchorX: 56.5, anchorY: 73.5, labelX: 86, labelY: 78, align: 'right' },
+    { id: 'left_foot', label: 'Left Foot', categoryId: 'legs_feet', view: 'FRONT', anchorX: 57.5, anchorY: 93.5, labelX: 86, labelY: 91, align: 'right' },
   ],
 
   // ══════════════════════════════════════════════════════════════
   // BACK VIEW (Patient facing away)
-  // Left flank = Patient's Left; Right flank = Patient's Right
+  // Left flank = Viewer's Left (Patient's Left)
+  // Right flank = Viewer's Right (Patient's Right)
   // ══════════════════════════════════════════════════════════════
   BACK: [
-    // Left Flank (Patient's Left)
-    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'BACK', anchorX: 48, anchorY: 8, labelX: 18, labelY: 7, align: 'left' },
-    { id: 'left_shoulder', label: 'Left Shoulder', categoryId: 'arms_hands', view: 'BACK', anchorX: 35, anchorY: 24.5, labelX: 15, labelY: 19, align: 'left' },
-    { id: 'upper_back', label: 'Upper Back', categoryId: 'back_spine', view: 'BACK', anchorX: 46, anchorY: 28, labelX: 18, labelY: 30, align: 'left' },
-    { id: 'left_elbow', label: 'Left Elbow', categoryId: 'joint_pain', view: 'BACK', anchorX: 27.5, anchorY: 38, labelX: 13, labelY: 41.5, align: 'left' },
-    { id: 'lower_back', label: 'Lower Back', categoryId: 'back_spine', view: 'BACK', anchorX: 47, anchorY: 45, labelX: 18, labelY: 51.5, align: 'left' },
-    { id: 'left_hand', label: 'Left Hand', categoryId: 'arms_hands', view: 'BACK', anchorX: 24, anchorY: 53, labelX: 12, labelY: 62, align: 'left' },
-    { id: 'left_knee', label: 'Left Knee', categoryId: 'joint_pain', view: 'BACK', anchorX: 43.5, anchorY: 72.5, labelX: 16, labelY: 76.5, align: 'left' },
-    { id: 'left_foot', label: 'Left Foot', categoryId: 'legs_feet', view: 'BACK', anchorX: 43, anchorY: 93, labelX: 17, labelY: 91, align: 'left' },
+    // Left Flank (Viewer's Left - 8 labels, strictly separated Y positions)
+    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'BACK', anchorX: 50, anchorY: 8.5, labelX: 14, labelY: 7, align: 'left' },
+    { id: 'left_shoulder', label: 'Left Shoulder', categoryId: 'arms_hands', view: 'BACK', anchorX: 36, anchorY: 24, labelX: 13.5, labelY: 18, align: 'left' },
+    { id: 'upper_back', label: 'Upper Back', categoryId: 'back_spine', view: 'BACK', anchorX: 47, anchorY: 27.5, labelX: 14, labelY: 29, align: 'left' },
+    { id: 'left_elbow', label: 'Left Elbow', categoryId: 'joint_pain', view: 'BACK', anchorX: 27.5, anchorY: 39, labelX: 13.5, labelY: 40, align: 'left' },
+    { id: 'lower_back', label: 'Lower Back', categoryId: 'back_spine', view: 'BACK', anchorX: 47, anchorY: 43.5, labelX: 14, labelY: 51, align: 'left' },
+    { id: 'left_hand', label: 'Left Hand', categoryId: 'arms_hands', view: 'BACK', anchorX: 23, anchorY: 52.5, labelX: 13.5, labelY: 63, align: 'left' },
+    { id: 'left_knee', label: 'Left Knee', categoryId: 'joint_pain', view: 'BACK', anchorX: 43.5, anchorY: 73.5, labelX: 14, labelY: 76, align: 'left' },
+    { id: 'left_foot', label: 'Left Foot', categoryId: 'legs_feet', view: 'BACK', anchorX: 42.5, anchorY: 93.5, labelX: 14, labelY: 91, align: 'left' },
 
-    // Right Flank (Patient's Right)
-    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'BACK', anchorX: 52, anchorY: 18, labelX: 84, labelY: 13, align: 'right' },
-    { id: 'right_shoulder', label: 'Right Shoulder', categoryId: 'arms_hands', view: 'BACK', anchorX: 65, anchorY: 24.5, labelX: 85, labelY: 23, align: 'right' },
-    { id: 'spine', label: 'Spine', categoryId: 'back_spine', view: 'BACK', anchorX: 53, anchorY: 36, labelX: 82, labelY: 34, align: 'right' },
-    { id: 'right_elbow', label: 'Right Elbow', categoryId: 'joint_pain', view: 'BACK', anchorX: 72.5, anchorY: 38, labelX: 87, labelY: 45, align: 'right' },
-    { id: 'right_hand', label: 'Right Hand', categoryId: 'arms_hands', view: 'BACK', anchorX: 76, anchorY: 53, labelX: 88, labelY: 56.5, align: 'right' },
-    { id: 'right_knee', label: 'Right Knee', categoryId: 'joint_pain', view: 'BACK', anchorX: 56.5, anchorY: 72.5, labelX: 84, labelY: 76.5, align: 'right' },
-    { id: 'right_foot', label: 'Right Foot', categoryId: 'legs_feet', view: 'BACK', anchorX: 57, anchorY: 93, labelX: 83, labelY: 91, align: 'right' },
+    // Right Flank (Viewer's Right - 7 labels, strictly separated Y positions)
+    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'BACK', anchorX: 50, anchorY: 17, labelX: 86, labelY: 12, align: 'right' },
+    { id: 'right_shoulder', label: 'Right Shoulder', categoryId: 'arms_hands', view: 'BACK', anchorX: 64, anchorY: 24, labelX: 86, labelY: 22, align: 'right' },
+    { id: 'spine', label: 'Spine', categoryId: 'back_spine', view: 'BACK', anchorX: 50, anchorY: 36, labelX: 86, labelY: 34, align: 'right' },
+    { id: 'right_elbow', label: 'Right Elbow', categoryId: 'joint_pain', view: 'BACK', anchorX: 72.5, anchorY: 39, labelX: 86.5, labelY: 46, align: 'right' },
+    { id: 'right_hand', label: 'Right Hand', categoryId: 'arms_hands', view: 'BACK', anchorX: 77, anchorY: 52.5, labelX: 86.5, labelY: 58, align: 'right' },
+    { id: 'right_knee', label: 'Right Knee', categoryId: 'joint_pain', view: 'BACK', anchorX: 56.5, anchorY: 73.5, labelX: 86, labelY: 76, align: 'right' },
+    { id: 'right_foot', label: 'Right Foot', categoryId: 'legs_feet', view: 'BACK', anchorX: 57.5, anchorY: 93.5, labelX: 86, labelY: 91, align: 'right' },
   ],
 
   // ══════════════════════════════════════════════════════════════
-  // SIDE VIEW (Patient right profile)
+  // SIDE VIEW (Patient right profile facing right)
+  // Left flank = Posterior (Back side)
+  // Right flank = Anterior (Front side)
   // ══════════════════════════════════════════════════════════════
   SIDE: [
-    // Left Flank
-    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'SIDE', anchorX: 48, anchorY: 8, labelX: 20, labelY: 7, align: 'left' },
-    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'SIDE', anchorX: 47, anchorY: 19, labelX: 18, labelY: 19, align: 'left' },
-    { id: 'right_elbow', label: 'Elbow', categoryId: 'joint_pain', view: 'SIDE', anchorX: 46, anchorY: 38, labelX: 16, labelY: 36, align: 'left' },
-    { id: 'lower_back', label: 'Lower Back', categoryId: 'back_spine', view: 'SIDE', anchorX: 43.5, anchorY: 44, labelX: 17, labelY: 48, align: 'left' },
-    { id: 'right_hip', label: 'Hip', categoryId: 'legs_feet', view: 'SIDE', anchorX: 47, anchorY: 53, labelX: 18, labelY: 60, align: 'left' },
-    { id: 'right_foot', label: 'Foot', categoryId: 'legs_feet', view: 'SIDE', anchorX: 47, anchorY: 93.5, labelX: 20, labelY: 91, align: 'left' },
+    // Left Flank (Posterior / Back Side - 5 labels, strictly separated Y positions)
+    { id: 'head', label: 'Head', categoryId: 'head_eyes', view: 'SIDE', anchorX: 49, anchorY: 8.5, labelX: 15, labelY: 8, align: 'left' },
+    { id: 'neck', label: 'Neck', categoryId: 'back_spine', view: 'SIDE', anchorX: 47, anchorY: 18.5, labelX: 15, labelY: 20, align: 'left' },
+    { id: 'right_elbow', label: 'Elbow', categoryId: 'joint_pain', view: 'SIDE', anchorX: 45, anchorY: 39, labelX: 15, labelY: 36, align: 'left' },
+    { id: 'lower_back', label: 'Lower Back', categoryId: 'back_spine', view: 'SIDE', anchorX: 44, anchorY: 44.5, labelX: 15, labelY: 50, align: 'left' },
+    { id: 'right_hip', label: 'Hip', categoryId: 'legs_feet', view: 'SIDE', anchorX: 47.5, anchorY: 52, labelX: 15, labelY: 66, align: 'left' },
 
-    // Right Flank
-    { id: 'face', label: 'Face', categoryId: 'head_eyes', view: 'SIDE', anchorX: 55, anchorY: 13.5, labelX: 82, labelY: 13, align: 'right' },
-    { id: 'right_shoulder', label: 'Shoulder', categoryId: 'arms_hands', view: 'SIDE', anchorX: 46, anchorY: 24.5, labelX: 82, labelY: 24, align: 'right' },
-    { id: 'chest', label: 'Side Chest', categoryId: 'chest_breathing', view: 'SIDE', anchorX: 53.5, anchorY: 31, labelX: 82, labelY: 34, align: 'right' },
-    { id: 'stomach', label: 'Abdomen', categoryId: 'stomach_digestion', view: 'SIDE', anchorX: 52, anchorY: 40, labelX: 82, labelY: 44, align: 'right' },
-    { id: 'right_knee', label: 'Knee', categoryId: 'joint_pain', view: 'SIDE', anchorX: 50, anchorY: 75, labelX: 82, labelY: 75, align: 'right' },
-    { id: 'right_foot', label: 'Foot', categoryId: 'legs_feet', view: 'SIDE', anchorX: 51, anchorY: 93.5, labelX: 82, labelY: 91, align: 'right' },
+    // Right Flank (Anterior / Front Side - 6 labels, strictly separated Y positions)
+    { id: 'face', label: 'Face', categoryId: 'head_eyes', view: 'SIDE', anchorX: 56.5, anchorY: 13.5, labelX: 85, labelY: 11, align: 'right' },
+    { id: 'right_shoulder', label: 'Shoulder', categoryId: 'arms_hands', view: 'SIDE', anchorX: 47, anchorY: 24.5, labelX: 85, labelY: 22, align: 'right' },
+    { id: 'chest', label: 'Side Chest', categoryId: 'chest_breathing', view: 'SIDE', anchorX: 52, anchorY: 30, labelX: 85, labelY: 33, align: 'right' },
+    { id: 'stomach', label: 'Abdomen', categoryId: 'stomach_digestion', view: 'SIDE', anchorX: 53.5, anchorY: 39, labelX: 85, labelY: 45, align: 'right' },
+    { id: 'right_knee', label: 'Knee', categoryId: 'joint_pain', view: 'SIDE', anchorX: 49, anchorY: 74, labelX: 85, labelY: 73, align: 'right' },
+    { id: 'right_foot', label: 'Foot', categoryId: 'legs_feet', view: 'SIDE', anchorX: 49, anchorY: 93.5, labelX: 85, labelY: 91, align: 'right' },
   ],
 }
 

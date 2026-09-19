@@ -37,14 +37,14 @@ export function SelectedAreasPanel({
       : selectedItems
 
   return (
-    <div className={`space-y-1.5 pt-0.5 shrink-0 ${className}`}>
+    <div className={`space-y-2 pt-0.5 shrink-0 ${className}`}>
       {/* ── Header: Title, Count Badge & Clear All ── */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h3 className="text-[12.5px] sm:text-[13px] font-extrabold text-[#17191F]">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[13.5px] sm:text-[14.5px] font-extrabold text-[#17191F]">
             Selected Areas
           </h3>
-          <span className="px-1.5 py-0.2 rounded-full bg-[#EEF5FC] text-[#2365B5] text-[10.5px] font-bold border border-[#CBD8E5]">
+          <span className="px-2 py-0.5 rounded-full bg-[#EEF5FC] text-[#2365B5] text-[11px] font-bold border border-[#CBD8E5]">
             {selectedItems.length}
           </span>
         </div>
@@ -53,10 +53,10 @@ export function SelectedAreasPanel({
           <button
             type="button"
             onClick={onClearAll}
-            className="flex items-center gap-1 text-[11px] font-bold text-[#6F7480] hover:text-[#D92D20] transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-[12px] font-bold text-[#6F7480] hover:text-[#D92D20] transition-colors cursor-pointer"
             aria-label="Clear all selections"
           >
-            <Trash2 size={11} />
+            <Trash2 size={12} />
             <span>Clear All</span>
           </button>
         )}
@@ -64,10 +64,10 @@ export function SelectedAreasPanel({
 
       {/* ── Selected Chips Bounded Box ── */}
       <div
-        className={`rounded-2xl bg-[#F8FAFC] border border-[#DFE8F1] p-1.5 flex flex-wrap items-center gap-1.5 transition-all duration-150 ${
+        className={`rounded-2xl bg-[#F8FAFC] border border-[#DFE8F1] p-2 flex flex-wrap items-center gap-2 transition-all duration-150 ${
           isExpanded
-            ? 'max-h-[66px] overflow-y-auto'
-            : 'min-h-[36px] max-h-[44px] overflow-hidden'
+            ? 'max-h-[76px] overflow-y-auto'
+            : 'min-h-[40px] max-h-[50px] overflow-hidden'
         }`}
       >
         <AnimatePresence>
@@ -78,18 +78,18 @@ export function SelectedAreasPanel({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.1 }}
-              className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-white border border-[#DFE8F1] shadow-2xs text-[10.5px] sm:text-[11px] font-bold text-[#17191F]"
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full bg-white border border-[#DFE8F1] shadow-2xs text-[11.5px] sm:text-[12px] font-extrabold text-[#17191F]"
             >
               {/* Coral indicator dot */}
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444] shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-[#EF4444] shrink-0" />
               <span className="whitespace-nowrap">{item.label}</span>
               <button
                 type="button"
                 onClick={() => onRemoveItem(item.id)}
-                className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[#6F7480] hover:text-[#EF4444] hover:bg-[#FEE2E2] transition-colors cursor-pointer"
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[#6F7480] hover:text-[#EF4444] hover:bg-[#FEE2E2] transition-colors cursor-pointer ml-0.5"
                 aria-label={`Remove ${item.label}`}
               >
-                <X size={9} className="stroke-[2.5]" />
+                <X size={10} className="stroke-[2.5]" />
               </button>
             </motion.div>
           ))}
@@ -100,25 +100,25 @@ export function SelectedAreasPanel({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] text-[10px] font-extrabold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] text-[11px] font-extrabold transition-colors cursor-pointer"
             aria-label={isExpanded ? 'Show fewer chips' : `Show ${selectedItems.length - maxCollapsedChips} more items`}
           >
             {isExpanded ? (
               <>
                 <span>Less</span>
-                <ChevronUp size={9} className="stroke-[2.5]" />
+                <ChevronUp size={10} className="stroke-[2.5]" />
               </>
             ) : (
               <>
                 <span>+{selectedItems.length - maxCollapsedChips} more</span>
-                <ChevronDown size={9} className="stroke-[2.5]" />
+                <ChevronDown size={10} className="stroke-[2.5]" />
               </>
             )}
           </button>
         )}
 
         {!hasSelections && (
-          <p className="text-[10.5px] text-[#6F7480] italic px-1">
+          <p className="text-[11.5px] text-[#6F7480] italic px-1 font-medium">
             {emptyText}
           </p>
         )}
@@ -130,7 +130,7 @@ export function SelectedAreasPanel({
           type="button"
           onClick={onContinue}
           disabled={!hasSelections || isLoading}
-          className={`w-full h-10 sm:h-10.5 rounded-xl text-white text-[13.5px] sm:text-[14px] font-extrabold flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer shadow-md active:scale-98 ${
+          className={`w-full h-11 sm:h-12 rounded-xl text-white text-[14.5px] sm:text-[15.5px] font-extrabold flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer shadow-md active:scale-98 ${
             !hasSelections
               ? 'opacity-50 cursor-not-allowed'
               : 'hover:shadow-lg'
@@ -144,10 +144,10 @@ export function SelectedAreasPanel({
           aria-label="Continue to symptom details"
         >
           <span>Continue</span>
-          <ArrowRight size={15} className="stroke-[2.5]" />
+          <ArrowRight size={17} className="stroke-[2.5]" />
         </button>
 
-        <p className="text-center text-[9.5px] text-[#6F7480] font-medium leading-none">
+        <p className="text-center text-[10.5px] text-[#6F7480] font-medium leading-none">
           {helperText}
         </p>
       </div>

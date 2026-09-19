@@ -127,13 +127,13 @@ export function KioskStepperHeader({
 
   return (
     <header
-      className={`w-full bg-white/95 backdrop-blur-md border-b border-[#DFE8F1] shadow-2xs px-3 sm:px-5 py-1.5 flex items-center justify-between gap-2 select-none z-30 shrink-0 ${className}`}
+      className={`w-full bg-white/95 backdrop-blur-md border-b border-[#DFE8F1] shadow-2xs px-3 sm:px-6 py-2 flex items-center justify-between gap-3 select-none z-30 shrink-0 ${className}`}
       role="banner"
     >
       {/* Left: VAIDYA Brand + OPD Kiosk Pill */}
-      <div className="flex items-center gap-2 shrink-0">
-        <VaidyaWordmark size="sm" showDescriptor={false} variant="default" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#2365B5] bg-[#EEF5FC] border border-[#CBD8E5] px-2 py-0.5 rounded-full hidden md:inline-block">
+      <div className="flex items-center gap-2.5 shrink-0">
+        <VaidyaWordmark size="md" showDescriptor={false} variant="default" />
+        <span className="text-[11px] font-bold uppercase tracking-wider text-[#2365B5] bg-[#EEF5FC] border border-[#CBD8E5] px-2.5 py-0.5 rounded-full hidden lg:inline-block">
           OPD INTAKE
         </span>
       </div>
@@ -141,7 +141,7 @@ export function KioskStepperHeader({
       {/* Center: 6-Stage Guided Stepper Navigation */}
       <nav
         aria-label="Intake Progress Steps"
-        className="flex items-center gap-0.5 sm:gap-1 bg-[#F1F4F9] p-0.5 rounded-full border border-[#DFE8F1] text-[10.5px] sm:text-[11.5px] font-bold overflow-x-auto max-w-full scrollbar-none"
+        className="flex items-center gap-0.5 sm:gap-1 bg-[#F1F4F9] p-1 rounded-full border border-[#DFE8F1] text-[11px] sm:text-[12px] font-bold overflow-x-auto max-w-full scrollbar-none"
       >
         {STAGES_CONFIG.map((stage, idx) => {
           const isActive = currentStage === stage.key
@@ -155,7 +155,7 @@ export function KioskStepperHeader({
               <button
                 type="button"
                 onClick={() => onSelectStage && onSelectStage(stage.key)}
-                className={`px-2 sm:px-2.5 py-1 rounded-full transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1 text-[11px] sm:text-[11.5px] ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-150 cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px] ${
                   isActive
                     ? 'text-white shadow-xs font-extrabold scale-[1.02]'
                     : isCompleted
@@ -171,12 +171,12 @@ export function KioskStepperHeader({
                 aria-current={isActive ? 'step' : undefined}
               >
                 {isCompleted && !isActive && (
-                  <Check size={11} className="stroke-[3] text-[#2365B5] shrink-0" />
+                  <Check size={12} className="stroke-[3] text-[#2365B5] shrink-0" />
                 )}
                 <span>{labelText}</span>
               </button>
               {idx < STAGES_CONFIG.length - 1 && (
-                <span className="text-[#CBD8E5] text-[9px] font-normal px-0.5 select-none" aria-hidden="true">
+                <span className="text-[#CBD8E5] text-[10px] font-normal px-0.5 select-none" aria-hidden="true">
                   ›
                 </span>
               )}
@@ -187,7 +187,7 @@ export function KioskStepperHeader({
 
       {/* Right: Language Selector Pill Buttons */}
       <div
-        className="flex items-center gap-0.5 sm:gap-1 shrink-0 overflow-x-auto scrollbar-none"
+        className="flex items-center gap-1 shrink-0 overflow-x-auto scrollbar-none"
         role="group"
         aria-label="Language selection"
       >
@@ -199,7 +199,7 @@ export function KioskStepperHeader({
               key={lang.code}
               type="button"
               onClick={() => handleLanguageChange(lang.code)}
-              className={`px-2 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-bold transition-all duration-150 cursor-pointer min-w-[28px] text-center ${
+              className={`px-2.5 py-1 rounded-full text-[11px] sm:text-[11.5px] font-extrabold transition-all duration-150 cursor-pointer min-w-[32px] text-center ${
                 isActive
                   ? 'text-white shadow-xs'
                   : 'text-[#4B5565] hover:text-[#17191F] hover:bg-[#F1F4F9]'

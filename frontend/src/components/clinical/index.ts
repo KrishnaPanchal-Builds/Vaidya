@@ -6,3 +6,11 @@ export { Timeline } from './timeline'
 export { CompletenessGrid } from './completeness-grid'
 export { EvidenceDrawer } from './evidence-drawer'
 export { default as ClinicalVisual } from './ClinicalVisual'
+export {
+  SourceBadge,
+  FactCard,
+  SnapshotBlock,
+  ClinicalSectionHeader,
+  type ClinicalSourceType,
+} from './clinical-primitives'
+

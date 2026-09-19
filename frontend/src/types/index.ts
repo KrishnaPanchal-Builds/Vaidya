@@ -75,6 +75,11 @@ export interface ClinicalFact {
   eventDate?: string
   eventDatePrecision: DatePrecision
   createdAt: string
+  documentImageUrl?: string
+  extractedSnippet?: string
+  groundTruthSnippet?: string
+  ocrDiscrepancy?: string
+  degradationTier?: 1 | 2 | 3
 }
 
 export interface ClinicalConflict {
@@ -107,6 +112,21 @@ export interface MedicalDocument {
   extractedFactsCount?: number
   uploadedAt: string
   processedAt?: string
+  degradationTier?: 1 | 2 | 3
+  verificationStatus?: 'Verification Required' | 'Extraction Complete' | 'Physician Verified' | 'UNVERIFIED' | 'PHYSICIAN_VERIFIED'
+  imageUrl?: string
+  thumbnailUrl?: string
+  extractedTextSnippet?: string
+  rawOcrGarbledText?: string
+  groundTruthText?: string
+  ocrDiscrepancyReason?: string
+  boundingBoxes?: Array<{
+    label: string
+    confidence: number
+    box: { x: number; y: number; width: number; height: number }
+    extractedText: string
+    isGarbled?: boolean
+  }>
 }
 
 export interface TimelineEvent {

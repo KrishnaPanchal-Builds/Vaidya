@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 820" width="100%" height="100%">
+  <defs>
+    <!-- Paper Crease and Shadow Filter -->
+    <linearGradient id="creaseShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.02"/>
+      <stop offset="48%" stop-color="#000000" stop-opacity="0.05"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.22"/>
+      <stop offset="52%" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="54%" stop-color="#000000" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <!-- Aging / yellowing gradient with dark corner shadow -->
+    <radialGradient id="vignette" cx="30%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#FFFDF5"/>
+      <stop offset="70%" stop-color="#FEF9E7"/>
+      <stop offset="100%" stop-color="#E5DCBF"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 6.2 degree rotation for stressful degraded scan -->
+  <g transform="rotate(5.8 320 410)">
+    <!-- Yellowed Paper Sheet -->
+    <rect x="20" y="20" width="600" height="780" rx="3" fill="url(#vignette)" stroke="#B5A882" stroke-width="1.5"/>
+
+    <!-- Vertical Crease / Fold Artifact down the sheet -->
+    <rect x="300" y="20" width="30" height="780" fill="url(#creaseShadow)" />
+
+    <!-- Coffee ring / moisture smudge stain -->
+    <circle cx="510" cy="180" r="45" fill="none" stroke="#C4B58E" stroke-width="5" opacity="0.25"/>
+    <circle cx="515" cy="182" r="38" fill="#B39E6D" opacity="0.06"/>
+
+    <!-- Top Clinic Header (Faded print) -->
+    <g transform="translate(45, 45)">
+      <text x="0" y="25" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" fill="#3E3827">108 AMBULANCE EMERGENCY TRIAGE SHEET</text>
+      <text x="0" y="44" font-family="Arial, sans-serif" font-size="10" fill="#6B624A">DEPT. OF MEDICINE • CASUALTY / OPD INTAKE</text>
+      
+      <rect x="430" y="10" width="130" height="26" rx="4" fill="#FEE2E2" stroke="#F87171"/>
+      <text x="495" y="27" font-family="monospace" font-size="10" font-weight="bold" fill="#B91C1C" text-anchor="middle">OCR: 54% (TIER 3)</text>
+    </g>
+
+    <line x1="45" y1="105" x2="585" y2="105" stroke="#9A8E6F" stroke-width="1"/>
+
+    <!-- Date & Doctor Info -->
+    <g transform="translate(45, 125)">
+      <text x="0" y="18" font-family="monospace" font-size="11" fill="#4B4431">DATE: TODAY (10:05 AM)</text>
+      <text x="350" y="18" font-family="monospace" font-size="11" fill="#4B4431">PHYSICIAN: Paramedic R. S. Patil (Unit 04)</text>
+      
+      <text x="0" y="48" font-family="'Times New Roman', serif" font-size="24" font-style="italic" font-weight="bold" fill="#1E3A8A">℞</text>
+    </g>
+
+    <!-- Handwritten Prescription Content -->
+    
+      <!-- Ruled line on aged pad -->
+      <line x1="45" y1="245" x2="585" y2="245" stroke="#D1D5DB" stroke-width="0.75" stroke-dasharray="2,2"/>
+      
+      <!-- Handwritten cursive simulation with slight wobble -->
+      <text x="60" y="238" font-family="'Brush Script MT', 'Segoe Script', 'Caveat', cursive, sans-serif" font-size="21" font-weight="600" fill="#1E3A8A" opacity="0.82" transform="rotate(-0.8 55 230)">
+        42F c/o crushing retrosternal CP radiating to L arm x 2h
+      </text>
+
+      
+    
+      <!-- Ruled line on aged pad -->
+      <line x1="45" y1="300" x2="585" y2="300" stroke="#D1D5DB" stroke-width="0.75" stroke-dasharray="2,2"/>
+      
+      <!-- Handwritten cursive simulation with slight wobble -->
+      <text x="55" y="293" font-family="'Brush Script MT', 'Segoe Script', 'Caveat', cursive, sans-serif" font-size="21" font-weight="600" fill="#1E3A8A" opacity="0.82" transform="rotate(0.6 55 285)">
+        Diaphoresis +, dyspnea +, nausea +
+      </text>
+
+      
+    
+      <!-- Ruled line on aged pad -->
+      <line x1="45" y1="355" x2="585" y2="355" stroke="#D1D5DB" stroke-width="0.75" stroke-dasharray="2,2"/>
+      
+      <!-- Handwritten cursive simulation with slight wobble -->
+      <text x="60" y="348" font-family="'Brush Script MT', 'Segoe Script', 'Caveat', cursive, sans-serif" font-size="21" font-weight="600" fill="#1E3A8A" opacity="0.82" transform="rotate(-0.8 55 340)">
+        Given: Tab. Aspirin 300mg chewed at 10:08 AM
+      </text>
+
+      
+        <!-- Optical Bounding Box showing OCR Struggle / Low Confidence Highlight -->
+        <rect x="48" y="326" width="530" height="32" rx="4" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <rect x="490" y="315" width="85" height="16" rx="3" fill="#FEE2E2" stroke="#EF4444" stroke-width="0.8"/>
+        <text x="532" y="327" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#DC2626" text-anchor="middle">OCR GARBLED</text>
+      
+    
+      <!-- Ruled line on aged pad -->
+      <line x1="45" y1="410" x2="585" y2="410" stroke="#D1D5DB" stroke-width="0.75" stroke-dasharray="2,2"/>
+      
+      <!-- Handwritten cursive simulation with slight wobble -->
+      <text x="55" y="403" font-family="'Brush Script MT', 'Segoe Script', 'Caveat', cursive, sans-serif" font-size="21" font-weight="600" fill="#1E3A8A" opacity="0.82" transform="rotate(0.6 55 395)">
+        Given: Tab. Sorbitrate 5mg SL under tongue
+      </text>
+
+      
+        <!-- Optical Bounding Box showing OCR Struggle / Low Confidence Highlight -->
+        <rect x="48" y="381" width="530" height="32" rx="4" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <rect x="490" y="370" width="85" height="16" rx="3" fill="#FEE2E2" stroke="#EF4444" stroke-width="0.8"/>
+        <text x="532" y="382" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#DC2626" text-anchor="middle">OCR GARBLED</text>
+      
+    
+      <!-- Ruled line on aged pad -->
+      <line x1="45" y1="465" x2="585" y2="465" stroke="#D1D5DB" stroke-width="0.75" stroke-dasharray="2,2"/>
+      
+      <!-- Handwritten cursive simulation with slight wobble -->
+      <text x="60" y="458" font-family="'Brush Script MT', 'Segoe Script', 'Caveat', cursive, sans-serif" font-size="21" font-weight="600" fill="#1E3A8A" opacity="0.82" transform="rotate(-0.8 55 450)">
+        BP 146/94, HR 112, SpO2 93% on room air
+      </text>
+
+      
+        <!-- Optical Bounding Box showing OCR Struggle / Low Confidence Highlight -->
+        <rect x="48" y="436" width="530" height="32" rx="4" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <rect x="490" y="425" width="85" height="16" rx="3" fill="#FEE2E2" stroke="#EF4444" stroke-width="0.8"/>
+        <text x="532" y="437" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#DC2626" text-anchor="middle">OCR GARBLED</text>
+      
+    
+
+    <!-- Doctor Scribbled Signature & Stamp -->
+    <g transform="translate(380, 640)">
+      <path d="M10 30 Q30 5, 60 25 T110 20 T150 35" fill="none" stroke="#1E3A8A" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="40" y="55" font-family="sans-serif" font-size="9" fill="#5C533D">Regd. No: 48921/MH</text>
+      
+      <!-- Faded Round Clinic Stamp -->
+      <circle cx="80" cy="20" r="34" fill="none" stroke="#8B2500" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.5"/>
+      <text x="80" y="18" font-family="sans-serif" font-size="7" font-weight="bold" fill="#8B2500" text-anchor="middle" opacity="0.6">GOVT. HOSPITAL</text>
+      <text x="80" y="28" font-family="sans-serif" font-size="6" fill="#8B2500" text-anchor="middle" opacity="0.6">PUNE DISTRICT</text>
+    </g>
+
+    <!-- Degraded Scan Warning Footer -->
+    <g transform="translate(45, 735)">
+      <rect x="0" y="0" width="540" height="28" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="0.8"/>
+      <text x="10" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#B45309">⚠️ OPTICAL CONFIDENCE LOW: Paramedic shorthand and moisture ring obscured pre-hospital Aspirin/Sorbitrate dosages.</text>
+    </g>
+  </g>
+</svg>

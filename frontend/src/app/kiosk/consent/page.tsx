@@ -28,31 +28,31 @@ export default function KioskConsentPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
       {/* Spacer for header */}
-      <div className="h-14 shrink-0" />
+      <div className="h-14 sm:h-15 shrink-0" />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="flex-1 w-full max-w-[580px] mx-auto px-5 py-6 flex flex-col gap-5 justify-center"
+        className="flex-1 w-full max-w-2xl sm:max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col gap-4 sm:gap-5 justify-center"
       >
         {/* Top greeting badge with patient context if identified */}
         {patientData && (
-          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 py-2.5 rounded-2xl border border-[var(--color-border)] shadow-sm">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[13px]">
+          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 sm:px-5 py-3 rounded-2xl border border-[var(--color-border)] shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-extrabold text-[14px]">
                 {patientData.name.charAt(0)}
               </div>
               <div>
-                <span className="text-[14px] font-bold text-[var(--color-text-primary)] block leading-tight">
+                <span className="text-[15px] sm:text-[16px] font-extrabold text-[var(--color-text-primary)] block leading-tight">
                   {patientData.name}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">
+                <span className="text-[12px] sm:text-[12.5px] text-[var(--color-text-muted)] font-medium">
                   {patientData.age} yrs · {patientData.sex}
                 </span>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-[var(--color-verified)] bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] px-2.5 py-1 rounded-full uppercase tracking-wider">
+            <span className="text-[11.5px] font-bold text-[var(--color-verified)] bg-[var(--color-verified-bg)] border border-[var(--color-sage-border)] px-3 py-1 rounded-full uppercase tracking-wider">
               Verified
             </span>
           </div>
@@ -60,10 +60,10 @@ export default function KioskConsentPage() {
 
         {/* Heading Section */}
         <div className="text-center">
-          <h1 className="text-[28px] font-bold text-[var(--color-text-primary)] leading-tight">
+          <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[var(--color-text-primary)] leading-tight">
             {t.consent.title}
           </h1>
-          <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+          <p className="text-[14.5px] sm:text-[15.5px] font-medium text-[var(--color-text-secondary)] mt-1 max-w-xl mx-auto">
             {t.consent.titleSub}
           </p>
         </div>
@@ -74,36 +74,36 @@ export default function KioskConsentPage() {
             setIsPlayingAudio(!isPlayingAudio)
             updateActivity()
           }}
-          className="bg-[var(--color-surface)] rounded-2xl p-3.5 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:border-[var(--color-brand)]/40 transition-all text-left"
+          className="bg-[var(--color-surface)] rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:border-[var(--color-brand)]/40 transition-all text-left cursor-pointer"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
               </svg>
             </div>
             <div>
-              <p className="text-[14px] font-bold text-[var(--color-text-primary)]">
+              <p className="text-[15px] sm:text-[16px] font-extrabold text-[var(--color-text-primary)]">
                 {isPlayingAudio ? 'Playing consent audio…' : t.consent.audioTitle}
               </p>
-              <div className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] mt-0.5">
+              <div className="flex items-center gap-2 text-[12.5px] text-[var(--color-text-muted)] mt-0.5 font-medium">
                 <span>~1 min</span>
                 <span>•</span>
                 <span>{language === 'mr' ? 'मराठी आवाज' : language === 'hi' ? 'हिंदी आवाज' : 'Voice explanation'}</span>
               </div>
             </div>
           </div>
-          <div className="w-8 h-8 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-brand)]">
+          <div className="w-9 h-9 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-brand)] font-bold text-[14px]">
             {isPlayingAudio ? '❚❚' : '▶'}
           </div>
         </button>
 
         {/* 3 Privacy & Process Cards */}
-        <div className="bg-[var(--color-surface)] rounded-3xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[var(--color-border)] flex flex-col gap-4">
+        <div className="bg-[var(--color-surface)] rounded-3xl p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[var(--color-border)] flex flex-col gap-4.5">
           {/* Pillar 1 */}
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -111,10 +111,10 @@ export default function KioskConsentPage() {
               </svg>
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">
+              <h3 className="text-[16px] sm:text-[17px] font-extrabold text-[var(--color-text-primary)]">
                 {t.consent.pillar1Title}
               </h3>
-              <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">
+              <p className="text-[13.5px] sm:text-[14.5px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed font-medium">
                 {t.consent.pillar1Desc}
               </p>
             </div>
@@ -124,7 +124,7 @@ export default function KioskConsentPage() {
 
           {/* Pillar 2 */}
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -133,10 +133,10 @@ export default function KioskConsentPage() {
               </svg>
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">
+              <h3 className="text-[16px] sm:text-[17px] font-extrabold text-[var(--color-text-primary)]">
                 {t.consent.pillar2Title}
               </h3>
-              <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">
+              <p className="text-[13.5px] sm:text-[14.5px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed font-medium">
                 {t.consent.pillar2Desc}
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function KioskConsentPage() {
 
           {/* Pillar 3 */}
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0 mt-0.5">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="8.5" cy="7" r="4" />
@@ -154,10 +154,10 @@ export default function KioskConsentPage() {
               </svg>
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-[var(--color-text-primary)]">
+              <h3 className="text-[16px] sm:text-[17px] font-extrabold text-[var(--color-text-primary)]">
                 {t.consent.pillar3Title}
               </h3>
-              <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">
+              <p className="text-[13.5px] sm:text-[14.5px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed font-medium">
                 {t.consent.pillar3Desc}
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function KioskConsentPage() {
             {t.consent.agreeButton}
           </KioskButton>
 
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-2.5 w-full">
             <KioskButton
               variant="secondary"
               size="md"

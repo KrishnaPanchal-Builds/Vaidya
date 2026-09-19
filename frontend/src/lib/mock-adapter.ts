@@ -2,11 +2,14 @@
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 import {
-  DEMO_PATIENTS, DEMO_ENCOUNTERS, DEMO_FACTS_ENC001,
-  DEMO_CONFLICTS_ENC001, DEMO_DOCUMENTS_ENC001, DEMO_TIMELINE_ENC001,
+  DEMO_PATIENTS, DEMO_ENCOUNTERS,
+  DEMO_CONFLICTS_ENC001, DEMO_TIMELINE_ENC001,
   DEMO_RED_FLAG_ENC002, DEMO_COMPLETENESS_ENC001, DEMO_TRIAGE_QUEUE,
   DEMO_ADMIN_METRICS, DEMO_INTEGRATIONS, DEMO_AUDIT_EVENTS,
   DEMO_QUESTIONS,
+  getFactsForEncounter,
+  getDocumentsForEncounter,
+  ALL_DEMO_FACTS,
 } from '@/constants/demo-data'
 import type {
   Patient, Encounter, ClinicalFact, ClinicalConflict, MedicalDocument,
@@ -50,12 +53,11 @@ export const mockAdapter = {
   // ── Clinical Facts ─────────────────────────────────────────────────────
   async getFacts(encounterId: string): Promise<ClinicalFact[]> {
     await delay(300)
-    if (encounterId === 'enc-001') return DEMO_FACTS_ENC001
-    return []
+    return getFactsForEncounter(encounterId)
   },
   async updateFact(factId: string, value: string): Promise<ClinicalFact> {
     await delay(400)
-    const fact = DEMO_FACTS_ENC001.find(f => f.id === factId)
+    const fact = ALL_DEMO_FACTS.find(f => f.id === factId)
     if (!fact) throw new Error('Fact not found')
     return { ...fact, rawValue: value, verificationStatus: 'PHYSICIAN_VERIFIED', confidenceTier: 1 }
   },
@@ -74,8 +76,7 @@ export const mockAdapter = {
   // ── Documents ─────────────────────────────────────────────────────────
   async getDocuments(encounterId: string): Promise<MedicalDocument[]> {
     await delay(300)
-    if (encounterId === 'enc-001') return DEMO_DOCUMENTS_ENC001
-    return []
+    return getDocumentsForEncounter(encounterId)
   },
   async uploadDocument(encounterId: string, file: File, type: string): Promise<MedicalDocument> {
     void type

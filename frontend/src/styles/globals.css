@@ -27,143 +27,66 @@
   --font-sans: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
 
-  /* ── VAIDYA FROSTED CLINICAL DESIGN TOKENS (PHASE 1) ───────────── */
-  --clinical-canvas: #F7F9FC;
-  /* Layer 0: Main Canvas           */
-  --clinical-surface: #FFFFFF;
-  /* Layer 2: Clinical Content Card */
-  --clinical-tab-track-start: #F3F8FD;
-  /* Layer 1: Tab Rail Top          */
-  --clinical-tab-track-end: #E8F1FA;
-  /* Layer 1: Tab Rail Bottom       */
-  --clinical-tab-border: #D3E2F0;
-  /* Layer 1: Tab Rail Border       */
-  --clinical-card-border: #DFE8F1;
-  /* Layer 2: Card Border           */
-  --clinical-tab-text: #536A82;
-  /* Inactive Tab Text              */
-  --clinical-blue-start: #347FCE;
-  /* Active Blue Start              */
-  --clinical-blue-mid: #2365B5;
-  /* Active Blue Mid                */
-  --clinical-blue-end: #174A91;
-  /* Active Blue End                */
-  --clinical-heading: #173B59;
-  /* High-contrast Blue Heading     */
-
-  /* ── Phase 6A Tonal System ──────────────────────────────────────── */
-  --canvas-primary: #F7F9FC;
-  /* Primary Clinical Canvas        */
-  --canvas-secondary: #F0F3F9;
-  /* Supporting Structural Canvas   */
-  --canvas-wash: #FAFBFD;
-  /* Atmospheric Wash               */
+  /* ── VAIDYA PHASE 1 LOCKED CLINICAL DESIGN TOKENS ───────────────── */
+  /* Surfaces: Max 3 Levels */
+  --color-canvas: #FAFBFD;          /* Level 1: Page Canvas */
+  --canvas-primary: #FAFBFD;
+  --clinical-canvas: #FAFBFD;
+  
+  --color-surface: #FFFFFF;         /* Level 2: Primary Content Cards */
   --surface-primary: #FFFFFF;
-  /* Pure White Clinical Surface    */
-  --surface-raised: #FFFFFF;
-  /* Raised Clinical Surface        */
-  --surface-recessed: #F3F5FA;
-  /* Inset / Recessed Surface       */
-  --surface-focus: #FFFFFF;
-  /* Focused Surface                */
+  --clinical-surface: #FFFFFF;
+  
+  --color-surface-subtle: #F8FAFC;  /* Level 3: Secondary / Inset Content */
+  --surface-recessed: #F8FAFC;
+  --color-surface-dim: #F1F4F9;
 
-  /* ── Legacy Palette Foundation Preserved ────────────────────────── */
-  --color-canvas: #F7F9FC;
-  /* Soft Warm Off-White Canvas     */
-  --color-surface: #FFFFFF;
-  /* Pure White Clinical Surface    */
-  --color-surface-subtle: #F1F3F9;
-  /* Light Elevated Surface         */
-  --color-surface-dim: #E8ECF4;
-  /* Dimmed Surface                 */
+  /* Neutrals: Maximum 2 Greys across UI */
+  --color-border: #E6EAF0;          /* Single 1px low-contrast border */
+  --clinical-card-border: #E6EAF0;
+  --color-border-strong: #D1D9E4;
+  --color-border-focus: #175CD3;
 
-  /* ── Typography / Ink ───────────────────────────────────────────── */
-  --color-ink: #17191F;
-  /* Primary Dark Graphite Ink      */
-  --color-text-primary: #17191F;
-  /* Primary Text                   */
-  --color-text-secondary: #536A82;
-  /* Secondary Muted Slate-Blue     */
-  --color-text-muted: #8E9CAB;
-  /* Low-emphasis Text              */
-  --color-text-disabled: #C5C9D3;
-  /* Disabled State Text            */
+  --color-ink: #101828;             /* Primary Dark Graphite Ink */
+  --color-text-primary: #101828;
+  --color-text-secondary: #667085;   /* Single Secondary / Muted Grey */
+  --color-text-muted: #667085;
+  --color-text-disabled: #98A2B3;
 
-  /* ── Borders ────────────────────────────────────────────────────── */
-  --color-border: #DFE8F1;
-  /* Clean Neutral Blue-Tint Border */
-  --color-border-strong: #CBD8E5;
-  /* Prominent Border               */
-  --color-border-focus: #2365B5;
-  /* Active Focus Ring              */
+  /* Semantic Accents (Borders / Badges / Icons only) */
+  --color-brand: #175CD3;           /* Interactive / Selected Blue */
+  --color-brand-dim: #154FB8;
+  --color-brand-mist: #EFF8FF;      /* Brand Tint */
+  --color-brand-mist-subtle: #F5FAFF;
+  --color-brand-light: #2E90FA;
 
-  /* ── Brand / Primary Blue ───────────────────────────────────────── */
-  --color-brand: #2365B5;
-  /* Primary Clinical Blue          */
-  --color-brand-dim: #174A91;
-  /* Hover Brand Blue               */
-  --color-brand-mist: #F0F6FC;
-  /* Soft Ice Blue Background       */
-  --color-brand-mist-subtle: #F6F9FD;
-  /* Ultra-light Brand Surface      */
-  --color-brand-light: #347FCE;
-  /* Bright Accent Blue             */
+  --color-critical: #D92D20;        /* Urgent Triage / Red Flag Red */
+  --color-critical-subtle: #FEF3F2; /* Critical Tint */
+  --color-critical-text: #B42318;
 
-  /* ── Pastel Palette Accents ─────────────────────────────────────── */
-  --color-pastel-blue: #DCEBFA;
-  /* Pastel Blue (Intake/General)   */
-  --color-pastel-lavender: #E9E7FA;
-  /* Pastel Lavender (Clinical AI)  */
-  --color-pastel-mint: #DDEFE8;
-  /* Pastel Mint (Verified/AYUSH)   */
-  --color-pastel-peach: #F8E6D5;
-  /* Pastel Peach (Patient Triage)  */
-  --color-pastel-yellow: #F8F0D7;
-  /* Pastel Yellow (Attention/Wait) */
+  --color-warning: #DC6803;         /* Attention / Discrepancy Amber */
+  --color-warning-subtle: #FEF6EE;  /* Warning Tint */
+  --color-warning-text: #B54708;
 
-  /* ── Semantic Colors (Accessible Clinical Status) ───────────────── */
-  --color-critical: #D92D20;
-  /* Critical T1 Red                */
-  --color-critical-subtle: #FEF3F2;
-  /* Critical Red Background        */
-  --color-critical-text: #912018;
-  /* Critical Dark Red Text         */
+  --color-verified: #079455;        /* Clinician Confirmed Green */
+  --color-verified-subtle: #ECFDF3; /* Verified Tint */
+  --color-verified-text: #027A48;
 
-  --color-warning: #DC6803;
-  /* Urgent T2 Amber                */
-  --color-warning-subtle: #FEF6EE;
-  /* Urgent Amber Background        */
-  --color-warning-text: #8E3E0B;
-  /* Urgent Dark Amber Text         */
-
-  --color-verified: #079455;
-  /* Verified T3 Green              */
-  --color-verified-subtle: #ECFDF3;
-  /* Verified Green Background      */
-  --color-verified-text: #065935;
-  /* Verified Dark Green Text       */
-
-  --color-info: #1570EF;
-  /* Information Blue               */
+  --color-info: #175CD3;
   --color-info-subtle: #EFF8FF;
-  /* Info Blue Background           */
   --color-info-text: #175CD3;
-  /* Info Dark Blue Text            */
 
   --color-ayush: #0E7060;
-  /* AYUSH Forest Green             */
-  --color-ayush-subtle: #DDEFE8;
-  /* AYUSH Mint Background          */
+  --color-ayush-subtle: #ECFDF3;
   --color-ayush-text: #0B5246;
-  /* AYUSH Text                     */
 
-  /* ── Shadows (Gentle, Diffuse Clinical Elevations) ─────────────── */
-  --shadow-xs: 0 1px 2px rgba(23, 25, 31, 0.03);
-  --shadow-sm: 0 1px 3px rgba(23, 25, 31, 0.05), 0 1px 2px rgba(23, 25, 31, 0.03);
-  --shadow-md: 0 4px 14px rgba(23, 25, 31, 0.06), 0 1px 3px rgba(23, 25, 31, 0.02);
-  --shadow-lg: 0 14px 36px rgba(23, 25, 31, 0.08), 0 4px 10px rgba(23, 25, 31, 0.03);
-  --shadow-drawer: -8px 0 40px rgba(23, 25, 31, 0.08);
-  --shadow-tactile: 0 4px 0 rgba(23, 25, 31, 0.08), 0 8px 20px rgba(23, 25, 31, 0.06);
+  /* ── Shadows (Restrained Elevation) ────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.03);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.08), 0 4px 8px rgba(16, 24, 40, 0.03);
+  --shadow-drawer: -8px 0 32px rgba(16, 24, 40, 0.08);
+  --shadow-2xs: 0 1px 2px rgba(16, 24, 40, 0.03);
 
   /* ── Border Radii ───────────────────────────────────────────────── */
   --radius-xs: 4px;

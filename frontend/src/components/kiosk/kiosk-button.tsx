@@ -48,14 +48,14 @@ const kioskButtonVariants = cva(
         ].join(' '),
       },
       size: {
-        /** Standard kiosk action — min 64px touch target */
-        md: 'h-16 px-8 text-[17px] rounded-xl',
+        /** Standard kiosk action — min 56-64px touch target */
+        md: 'h-14 sm:h-16 px-6 sm:px-8 text-[16px] sm:text-[17px] rounded-xl sm:rounded-2xl',
         /** Large kiosk action — primary screen CTAs */
-        lg: 'h-[72px] px-10 text-[19px] rounded-2xl',
+        lg: 'h-16 sm:h-[72px] px-8 sm:px-10 text-[18px] sm:text-[20px] rounded-2xl',
         /** Full-width kiosk action */
-        full: 'h-16 w-full px-8 text-[17px] rounded-xl',
+        full: 'h-14 sm:h-16 w-full px-6 sm:px-8 text-[16px] sm:text-[17px] rounded-xl sm:rounded-2xl',
         /** Full-width large — primary screen-level CTAs */
-        fullLg: 'h-[72px] w-full px-10 text-[19px] rounded-2xl',
+        fullLg: 'h-16 sm:h-[72px] w-full px-8 sm:px-10 text-[18px] sm:text-[20px] rounded-2xl',
       },
     },
     defaultVariants: { variant: 'primary', size: 'lg' },

@@ -348,7 +348,7 @@ export default function KioskIntakePage() {
       />
 
       {/* ── 2. Main Intake Canvas Container ── */}
-      <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-6 py-1.5 sm:py-2 flex flex-col justify-between overflow-hidden">
+      <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-6 py-2 flex flex-col justify-between overflow-hidden">
         <AnimatePresence mode="wait">
           {/* ══════════════════════════════════════════════════════════════════════
               STAGE 1: WHERE IS THE PROBLEM? (Body Map + Category Grid)
@@ -364,7 +364,7 @@ export default function KioskIntakePage() {
             >
               {/* Page Title & Clinical Subtitle */}
               <div className="text-center space-y-0.5 shrink-0">
-                <h1 className="text-[19px] sm:text-[23px] lg:text-[25px] font-extrabold text-[#17191F] tracking-tight leading-tight">
+                <h1 className="text-[21px] sm:text-[25px] lg:text-[27px] font-extrabold text-[#17191F] tracking-tight leading-tight">
                   {language === 'hi'
                     ? 'तकलीफ कहाँ है?'
                     : language === 'mr'
@@ -377,7 +377,7 @@ export default function KioskIntakePage() {
                     ? 'பிரச்சனை எங்கே உள்ளது?'
                     : 'Where is the problem?'}
                 </h1>
-                <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#6F7480] max-w-2xl mx-auto">
+                <p className="text-[12.5px] sm:text-[13.5px] font-medium text-[#6F7480] max-w-2xl mx-auto">
                   {language === 'hi'
                     ? 'जिस अंग में परेशानी है उसे चुनें। आप एक से अधिक अंग चुन सकते हैं।'
                     : language === 'mr'
@@ -493,40 +493,40 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-3xl mx-auto w-full my-auto space-y-3.5"
+              className="max-w-3xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
             >
               {/* Question Header & Speech Audio Guide */}
               <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
                     {localizedQ.title}
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] transition-colors cursor-pointer"
+                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] transition-colors cursor-pointer shrink-0"
                     aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={17} />
+                    <Volume2 size={19} />
                   </button>
                 </div>
-                <p className="text-[12.5px] text-[#6F7480]">{localizedQ.subtitle}</p>
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">{localizedQ.subtitle}</p>
                 {isSpeakingQuestion && (
-                  <span className="inline-block text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-3 py-0.5 rounded-full motion-safe:animate-pulse">
+                  <span className="inline-block text-[11.5px] font-bold text-[#2365B5] bg-[#EEF5FC] px-3.5 py-1 rounded-full motion-safe:animate-pulse">
                     Playing audio guidance...
                   </span>
                 )}
               </div>
 
               {/* Context Badge, Multi-select indicator & Voice Assistant CTA */}
-              <div className="bg-[#EEF5FC] p-2.5 sm:p-3 rounded-2xl border border-[#CBD8E5] flex items-center justify-between shadow-2xs">
+              <div className="bg-[#EEF5FC] p-3 sm:p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between gap-2 shadow-2xs">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#2365B5] bg-white px-2 py-0.5 rounded-md border border-[#CBD8E5]">
+                  <span className="text-[11.5px] sm:text-[12px] font-extrabold uppercase tracking-wider text-[#2365B5] bg-white px-2.5 py-1 rounded-lg border border-[#CBD8E5]">
                     {selectedItems.map((i) => i.label).join(', ') || 'Selected Area'}
                   </span>
 
                   {/* Multi-select hint if applicable */}
                   {currentQuestion.answerType === 'multiple_choice' && (
-                    <span className="text-[11px] font-bold text-[#079455] bg-[#EBFDF5] border border-[#A6F4C5] px-2 py-0.5 rounded-md">
+                    <span className="text-[12px] sm:text-[12.5px] font-bold text-[#079455] bg-[#EBFDF5] border border-[#A6F4C5] px-2.5 py-1 rounded-lg">
                       {language === 'hi'
                         ? 'एक से अधिक विकल्प चुन सकते हैं'
                         : language === 'mr'
@@ -542,7 +542,7 @@ export default function KioskIntakePage() {
                   )}
 
                   {applicableQuestions.length > 1 && (
-                    <span className="text-[11px] text-[#4B5565] font-medium hidden sm:inline">
+                    <span className="text-[12px] text-[#4B5565] font-semibold hidden sm:inline">
                       (Question {activeQuestionIndex + 1} of {applicableQuestions.length})
                     </span>
                   )}
@@ -550,17 +550,17 @@ export default function KioskIntakePage() {
 
                 <button
                   onClick={() => setIsVoiceModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#2365B5] text-white rounded-xl text-[13px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
                 >
-                  <Mic size={14} />
+                  <Mic size={15} />
                   <span>Speak Answer</span>
                 </button>
               </div>
 
               {/* Validation Warning */}
               {symptomError && (
-                <div className="bg-[#FEF3F2] border border-[#FECDCA] p-2.5 rounded-xl flex items-center gap-2 text-[#D92D20] text-[12.5px] font-bold">
-                  <AlertCircle size={15} />
+                <div className="bg-[#FEF3F2] border border-[#FECDCA] p-3 rounded-xl flex items-center gap-2 text-[#D92D20] text-[13px] font-bold">
+                  <AlertCircle size={16} />
                   <span>{symptomError}</span>
                 </div>
               )}
@@ -576,7 +576,7 @@ export default function KioskIntakePage() {
                       key={option.id}
                       type="button"
                       onClick={() => handleToggleSymptomOption(currentQuestion.id, option.id)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all duration-150 active:scale-98 flex items-start justify-between gap-2 min-h-[72px] cursor-pointer ${
+                      className={`p-4 rounded-2xl border text-left transition-all duration-150 active:scale-98 flex items-start justify-between gap-2.5 min-h-[78px] sm:min-h-[84px] cursor-pointer ${
                         isSelected
                           ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-1 ring-[#2365B5]/30'
                           : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
@@ -586,14 +586,14 @@ export default function KioskIntakePage() {
                     >
                       <div className="space-y-0.5">
                         <span
-                          className={`text-[14px] font-extrabold block leading-tight ${
+                          className={`text-[15px] sm:text-[15.5px] font-extrabold block leading-tight ${
                             isSelected ? 'text-[#174A91]' : 'text-[#17191F]'
                           }`}
                         >
                           {locOpt.label}
                         </span>
                         {locOpt.description && (
-                          <span className="text-[11.5px] text-[#6F7480] block leading-tight">
+                          <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block leading-tight">
                             {locOpt.description}
                           </span>
                         )}
@@ -601,7 +601,7 @@ export default function KioskIntakePage() {
 
                       {/* Checkbox indicator */}
                       <div
-                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors mt-0.5 ${
                           isSelected
                             ? 'bg-[#2365B5] border-[#2365B5] text-white'
                             : 'bg-white border-[#CBD8E5]'
@@ -616,8 +616,8 @@ export default function KioskIntakePage() {
 
               {/* Custom Note Display if recorded via voice or typing */}
               {customSymptomNotes[currentQuestion.id] && (
-                <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#DFE8F1] text-[12.5px] space-y-1">
-                  <span className="text-[10.5px] font-extrabold uppercase text-[#2365B5]">
+                <div className="bg-[#F8FAFC] p-3.5 rounded-2xl border border-[#DFE8F1] text-[13px] space-y-1">
+                  <span className="text-[11px] font-extrabold uppercase text-[#2365B5]">
                     Patient-Reported Voice / Typed Note:
                   </span>
                   <p className="font-bold text-[#17191F]">
@@ -637,15 +637,15 @@ export default function KioskIntakePage() {
                       setCurrentStage('LOCATION')
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  <ArrowLeft size={15} />
+                  <ArrowLeft size={16} />
                   <span>Back</span>
                 </button>
 
                 <button
                   onClick={handleContinueFromSymptoms}
-                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
                   style={{
                     background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
                   }}
@@ -655,7 +655,7 @@ export default function KioskIntakePage() {
                       ? 'Next Question'
                       : 'Continue to Duration'}
                   </span>
-                  <ArrowRight size={15} className="stroke-[2.5]" />
+                  <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
               </div>
             </motion.div>
@@ -671,11 +671,11 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-3.5"
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
             >
               <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
                     {language === 'hi'
                       ? 'यह समस्या कब से हो रही है?'
                       : language === 'mr'
@@ -690,12 +690,13 @@ export default function KioskIntakePage() {
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
+                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] shrink-0"
+                    aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={17} />
+                    <Volume2 size={19} />
                   </button>
                 </div>
-                <p className="text-[12.5px] text-[#6F7480]">
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
                   {language === 'hi'
                     ? 'लक्षण शुरू होने का सही समय चुनें।'
                     : language === 'mr'
@@ -711,19 +712,19 @@ export default function KioskIntakePage() {
               </div>
 
               {/* Symptom Context Badge */}
-              <div className="bg-[#EEF5FC] p-2.5 sm:p-3 rounded-2xl border border-[#CBD8E5] flex items-center justify-between">
-                <span className="text-[12px] text-[#4B5565]">
+              <div className="bg-[#EEF5FC] p-3 sm:p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between gap-2">
+                <span className="text-[13px] text-[#4B5565]">
                   Regarding:{' '}
-                  <strong className="text-[#2365B5]">
+                  <strong className="text-[#2365B5] font-extrabold">
                     {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
                   </strong>
                 </span>
 
                 <button
                   onClick={() => setIsVoiceModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2365B5] text-white rounded-xl text-[12px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#2365B5] text-white rounded-xl text-[13px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
                 >
-                  <Mic size={14} />
+                  <Mic size={15} />
                   <span>Speak Answer</span>
                 </button>
               </div>
@@ -740,7 +741,7 @@ export default function KioskIntakePage() {
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectDuration(opt.id)}
-                      className={`p-3.5 rounded-2xl border flex items-center justify-between text-left transition-all active:scale-98 cursor-pointer ${
+                      className={`p-4 rounded-2xl border flex items-center justify-between text-left transition-all active:scale-98 min-h-[78px] sm:min-h-[84px] cursor-pointer ${
                         isSelected
                           ? 'bg-[#F0F6FD] border-[#2365B5] shadow-xs ring-1 ring-[#2365B5]/30'
                           : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
@@ -750,13 +751,13 @@ export default function KioskIntakePage() {
                     >
                       <div className="space-y-0.5">
                         <span
-                          className={`text-[14px] font-extrabold block ${
+                          className={`text-[15px] sm:text-[15.5px] font-extrabold block ${
                             isSelected ? 'text-[#174A91]' : 'text-[#17191F]'
                           }`}
                         >
                           {title}
                         </span>
-                        <span className="text-[11.5px] text-[#6F7480] block">{desc}</span>
+                        <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block">{desc}</span>
                       </div>
 
                       <div
@@ -777,21 +778,21 @@ export default function KioskIntakePage() {
               <div className="flex justify-between items-center pt-1">
                 <button
                   onClick={() => setCurrentStage('SYMPTOMS')}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  <ArrowLeft size={15} />
+                  <ArrowLeft size={16} />
                   <span>Back to Symptoms</span>
                 </button>
 
                 <button
                   onClick={handleContinueFromDuration}
-                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
                   style={{
                     background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
                   }}
                 >
                   <span>Continue</span>
-                  <ArrowRight size={15} className="stroke-[2.5]" />
+                  <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
               </div>
             </motion.div>
@@ -807,11 +808,11 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-3.5"
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
             >
               <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
                     {language === 'hi'
                       ? 'तकलीफ या दर्द कितना तेज है?'
                       : language === 'mr'
@@ -826,12 +827,13 @@ export default function KioskIntakePage() {
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-1.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0]"
+                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] shrink-0"
+                    aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={17} />
+                    <Volume2 size={19} />
                   </button>
                 </div>
-                <p className="text-[12.5px] text-[#6F7480]">
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
                   {language === 'hi'
                     ? '1 (हल्का) से 10 (गंभीर) के पैमाने पर अपनी परेशानी बताएं।'
                     : language === 'mr'
@@ -857,21 +859,21 @@ export default function KioskIntakePage() {
               <div className="flex items-center justify-between pt-1">
                 <button
                   onClick={() => setCurrentStage('DURATION')}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  <ArrowLeft size={15} />
+                  <ArrowLeft size={16} />
                   <span>Back to Duration</span>
                 </button>
 
                 <button
                   onClick={handleContinueFromSeverity}
-                  className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
                   style={{
                     background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
                   }}
                 >
                   <span>Continue</span>
-                  <ArrowRight size={15} className="stroke-[2.5]" />
+                  <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
               </div>
             </motion.div>
@@ -887,11 +889,11 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-3xl mx-auto w-full my-auto space-y-3.5"
+              className="max-w-3xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
             >
               <div className="text-center space-y-1">
                 <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[21px] sm:text-[25px] font-extrabold text-[#17191F] leading-tight">
+                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
                     {language === 'hi'
                       ? 'कोई खान-पान या जीवनशैली का कारण?'
                       : language === 'mr'
@@ -906,12 +908,13 @@ export default function KioskIntakePage() {
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-1.5 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF]"
+                    className="p-2 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF] shrink-0"
+                    aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={17} />
+                    <Volume2 size={19} />
                   </button>
                 </div>
-                <p className="text-[12.5px] text-[#6F7480]">
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
                   {language === 'hi'
                     ? 'वैकल्पिक प्रश्न: यदि किसी आदत या दिनचर्या से संबंध लगता है तो चुनें।'
                     : language === 'mr'
@@ -938,7 +941,7 @@ export default function KioskIntakePage() {
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectLifestyle(opt.id)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[76px] ${
+                      className={`p-4 rounded-2xl border text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[78px] sm:min-h-[84px] ${
                         isSelected
                           ? 'bg-[#EBFDF5] border-[#079455] shadow-xs ring-1 ring-[#079455]/30'
                           : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
@@ -948,13 +951,13 @@ export default function KioskIntakePage() {
                     >
                       <div className="space-y-0.5">
                         <span
-                          className={`text-[14px] font-extrabold block ${
+                          className={`text-[15px] sm:text-[15.5px] font-extrabold block ${
                             isSelected ? 'text-[#079455]' : 'text-[#17191F]'
                           }`}
                         >
                           {title}
                         </span>
-                        <span className="text-[11.5px] text-[#6F7480] block">{desc}</span>
+                        <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block">{desc}</span>
                       </div>
 
                       <div
@@ -975,29 +978,29 @@ export default function KioskIntakePage() {
               <div className="flex items-center justify-between pt-1">
                 <button
                   onClick={() => setCurrentStage('SEVERITY')}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                 >
-                  <ArrowLeft size={15} />
+                  <ArrowLeft size={16} />
                   <span>Back to Severity</span>
                 </button>
 
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleSkipLifestyle}
-                    className="text-[12.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                    className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-3.5 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
                   >
                     Skip for now →
                   </button>
 
                   <button
                     onClick={handleContinueFromLifestyle}
-                    className="px-6 py-2.5 rounded-xl text-white text-[14px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                    className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
                     style={{
                       background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
                     }}
                   >
                     <span>Continue to Review</span>
-                    <ArrowRight size={15} className="stroke-[2.5]" />
+                    <ArrowRight size={16} className="stroke-[2.5]" />
                   </button>
                 </div>
               </div>
@@ -1014,14 +1017,14 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 text-center"
+              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 text-center overflow-y-auto max-h-full py-1"
             >
-              <div className="w-12 h-12 rounded-2xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
-                <CheckCircle2 size={24} />
+              <div className="w-13 h-13 rounded-2xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
+                <CheckCircle2 size={26} />
               </div>
 
               <div className="space-y-0.5">
-                <h1 className="text-[22px] sm:text-[24px] font-extrabold text-[#17191F] tracking-tight">
+                <h1 className="text-[24px] sm:text-[28px] font-extrabold text-[#17191F] tracking-tight">
                   {language === 'hi'
                     ? 'अपनी जानकारी की समीक्षा करें'
                     : language === 'mr'
@@ -1034,17 +1037,17 @@ export default function KioskIntakePage() {
                     ? 'உங்கள் தகவலை மதிப்பாய்வு செய்யவும்'
                     : 'Review your intake assessment'}
                 </h1>
-                <p className="text-[12.5px] text-[#6F7480]">
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
                   Please verify your responses before proceeding to document scanning.
                 </p>
               </div>
 
               {/* Structured Summary Card with Per-Section Edit Affordances */}
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#DFE8F1] shadow-card text-left space-y-2.5 text-[13px]">
+              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#DFE8F1] shadow-card text-left space-y-3 text-[13.5px]">
                 {/* Patient Header */}
-                <div className="flex justify-between items-center pb-2 border-b border-[#DFE8F1]">
-                  <span className="font-bold text-[#6F7480]">Patient:</span>
-                  <span className="font-extrabold text-[#17191F]">
+                <div className="flex justify-between items-center pb-2.5 border-b border-[#DFE8F1]">
+                  <span className="font-bold text-[#6F7480] text-[13.5px]">Patient:</span>
+                  <span className="font-extrabold text-[#17191F] text-[15px] sm:text-[16px]">
                     {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
                   </span>
                 </div>
@@ -1052,106 +1055,106 @@ export default function KioskIntakePage() {
                 {/* 1. Problem Location */}
                 <div className="flex justify-between items-start pt-1">
                   <div className="space-y-0.5">
-                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
                       📍 Selected Body Areas:
                     </span>
-                    <span className="font-extrabold text-[#17191F]">
+                    <span className="font-extrabold text-[#17191F] text-[14.5px] sm:text-[15.5px]">
                       {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('LOCATION')}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={12} />
+                    <Edit3 size={13} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 2. Specific Symptoms */}
-                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
                       🩺 Reported Symptoms:
                     </span>
-                    <span className="font-bold text-[#17191F]">
+                    <span className="font-bold text-[#17191F] text-[14px] sm:text-[15px]">
                       {Object.values(symptomAnswers).flat().join(', ') || 'Pain / Discomfort'}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('SYMPTOMS')}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={12} />
+                    <Edit3 size={13} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 3. Duration */}
-                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
                       ⏱️ Duration:
                     </span>
-                    <span className="font-bold text-[#17191F]">
+                    <span className="font-bold text-[#17191F] text-[14px] sm:text-[15px]">
                       {resolvedDurationText}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('DURATION')}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={12} />
+                    <Edit3 size={13} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 4. Severity */}
-                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
                       ⚡ Severity Rating:
                     </span>
-                    <span className="font-extrabold text-[#17191F]">
+                    <span className="font-extrabold text-[#17191F] text-[14.5px] sm:text-[15.5px]">
                       {severityRating} / 10 ({severityRating <= 3 ? 'Mild' : severityRating <= 6 ? 'Moderate' : 'Severe'})
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('SEVERITY')}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={12} />
+                    <Edit3 size={13} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 5. Lifestyle Factor */}
-                <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[10.5px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
                       🌿 Lifestyle &amp; Daily Routine:
                     </span>
-                    <span className="font-bold text-[#079455]">
+                    <span className="font-bold text-[#079455] text-[14px] sm:text-[15px]">
                       {resolvedLifestyleText}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('LIFESTYLE')}
-                    className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#2365B5] hover:text-[#174A91] p-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={12} />
+                    <Edit3 size={13} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 6. Voice Transcriptions if any */}
                 {Object.keys(customSymptomNotes).length > 0 && (
-                  <div className="flex justify-between items-start pt-1 border-t border-[#F1F4F9]">
+                  <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
                     <div className="space-y-0.5">
-                      <span className="text-[10.5px] font-bold text-[#2365B5] uppercase block">
+                      <span className="text-[11.5px] sm:text-[12px] font-bold text-[#2365B5] uppercase block">
                         🎙️ Patient-Reported Voice Transcription:
                       </span>
-                      <span className="font-semibold text-[#17191F] italic">
+                      <span className="font-semibold text-[#17191F] text-[13.5px] italic">
                         &quot;{Object.values(customSymptomNotes).join('; ')}&quot;
                       </span>
                     </div>
@@ -1160,8 +1163,8 @@ export default function KioskIntakePage() {
               </div>
 
               {/* Calm Patient Disclaimer Banner */}
-              <div className="bg-[#EEF5FC] border border-[#CBD8E5] rounded-2xl p-2.5 text-center">
-                <p className="text-[11.5px] text-[#4B5565] font-medium">
+              <div className="bg-[#EEF5FC] border border-[#CBD8E5] rounded-2xl p-3 text-center">
+                <p className="text-[12.5px] sm:text-[13px] text-[#4B5565] font-medium leading-relaxed">
                   {language === 'hi'
                     ? 'आपकी जानकारी देखभाल टीम को आपकी स्थिति समझने में मदद करेगी। यह कोई अंतिम निदान नहीं है।'
                     : language === 'mr'
@@ -1177,20 +1180,20 @@ export default function KioskIntakePage() {
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-col gap-2 pt-0.5">
+              <div className="flex flex-col gap-2.5 pt-1">
                 <KioskButton
                   variant="primary"
                   size="fullLg"
                   onClick={handleProceedToDocuments}
                 >
                   <span>Proceed to Document Scanning</span>
-                  <ArrowRight size={17} className="stroke-[2.5]" />
+                  <ArrowRight size={18} className="stroke-[2.5]" />
                 </KioskButton>
 
                 <button
                   type="button"
                   onClick={() => setCurrentStage('LOCATION')}
-                  className="text-[12px] font-bold text-[#6F7480] hover:text-[#17191F] py-1 transition-colors cursor-pointer"
+                  className="text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-1.5 transition-colors cursor-pointer"
                 >
                   Edit All Answers
                 </button>
@@ -1200,14 +1203,14 @@ export default function KioskIntakePage() {
         </AnimatePresence>
 
         {/* ── 3. Bottom Security & Assistance Footer ── */}
-        <footer className="w-full shrink-0 flex items-center justify-between text-[11px] text-[#6F7480] pt-1 select-none border-t border-[#DFE8F1]/60">
+        <footer className="w-full shrink-0 flex items-center justify-between text-[11.5px] sm:text-[12px] text-[#6F7480] pt-1.5 select-none border-t border-[#DFE8F1]/60">
           <div className="flex items-center gap-1.5">
-            <Shield size={12} className="text-[#2365B5]" />
+            <Shield size={13} className="text-[#2365B5]" />
             <span>Your information is encrypted, secure, and private</span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <HelpCircle size={12} className="text-[#6F7480]" />
+            <HelpCircle size={13} className="text-[#6F7480]" />
             <span>Need help? Ask hospital staff</span>
           </div>
         </footer>

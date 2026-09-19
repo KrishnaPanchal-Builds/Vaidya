@@ -111,40 +111,40 @@ export default function KioskAttractPage() {
       <header className="w-full max-w-4xl flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
           <VaidyaWordmark size="md" showDescriptor={true} variant="default" />
-          <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-pastel-mint text-verified-text border border-verified/20">
+          <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-pastel-mint text-verified-text border border-verified/20">
             Station #01 Active
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-[12px] font-bold text-text-secondary bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border shadow-2xs">
-          <Globe size={14} className="text-brand" />
+        <div className="flex items-center gap-2 text-[12.5px] font-bold text-text-secondary bg-white/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-border shadow-2xs">
+          <Globe size={15} className="text-brand" />
           <span>6 Regional Languages</span>
         </div>
       </header>
 
       {/* ── Central Physical Kiosk Device Chassis Frame ── */}
-      <main className="w-full max-w-3xl my-auto z-10 py-4 sm:py-6">
-        <div className="kiosk-device-bezel rounded-3xl p-6 sm:p-10 lg:p-12 text-center space-y-6 sm:space-y-8 relative">
+      <main className="w-full max-w-3xl my-auto z-10 py-3 sm:py-6">
+        <div className="kiosk-device-bezel rounded-3xl p-5 sm:p-9 lg:p-11 text-center space-y-5 sm:space-y-7 relative">
           
           {/* Audio Guidance Cue */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pastel-blue/60 border border-pastel-blue text-[12px] font-bold text-brand shadow-2xs">
-            <Volume2 size={15} />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pastel-blue/60 border border-pastel-blue text-[13px] font-bold text-brand shadow-2xs">
+            <Volume2 size={16} />
             <span>Voice &amp; Touch Assisted Intake Available</span>
           </div>
 
           {/* Dynamic Multilingual Greeting Hero */}
-          <div className="space-y-1.5 sm:space-y-2">
-            <h1 className="text-[40px] sm:text-[54px] font-extrabold text-ink tracking-tight leading-tight transition-all duration-300">
+          <div className="space-y-1.5 sm:space-y-2.5">
+            <h1 className="text-[38px] sm:text-[52px] lg:text-[56px] font-extrabold text-ink tracking-tight leading-tight transition-all duration-300">
               {currentGreeting.text}
             </h1>
-            <p className="text-[14px] sm:text-[15px] font-semibold text-text-secondary max-w-lg mx-auto leading-relaxed">
+            <p className="text-[15px] sm:text-[17px] font-semibold text-text-secondary max-w-lg mx-auto leading-relaxed">
               {currentGreeting.sublabel}
             </p>
           </div>
 
           {/* ── Prominent Sliding Segmented Language Selector ── */}
           <div className="space-y-2.5 pt-1">
-            <span className="text-[11.5px] font-bold uppercase tracking-wider text-text-muted block">
+            <span className="text-[12px] sm:text-[13px] font-bold uppercase tracking-wider text-text-muted block">
               Select Your Preferred Language / भाषा निवडा / भाषा चुनें
             </span>
             
@@ -165,13 +165,13 @@ export default function KioskAttractPage() {
             <button
               onClick={handleBegin}
               disabled={isBeginning}
-              className="kiosk-tactile-btn w-full max-w-md h-16 sm:h-18 rounded-2xl bg-brand text-white text-[18px] sm:text-[19px] font-extrabold flex items-center justify-center gap-3 transition-all cursor-pointer shadow-md active:scale-98"
+              className="kiosk-tactile-btn w-full max-w-md h-16 sm:h-[72px] rounded-2xl bg-brand text-white text-[19px] sm:text-[21px] font-extrabold flex items-center justify-center gap-3 transition-all cursor-pointer shadow-md active:scale-98"
               aria-label="Touch to start patient intake"
             >
               <span>{t.attract.touchToBegin}</span>
-              <ArrowRight size={22} className="stroke-[3]" />
+              <ArrowRight size={24} className="stroke-[3]" />
             </button>
-            <span className="text-[12px] text-text-secondary">
+            <span className="text-[12.5px] sm:text-[13px] text-text-secondary font-medium">
               No registration card required to begin · Speech &amp; Touch enabled
             </span>
           </div>
@@ -180,9 +180,9 @@ export default function KioskAttractPage() {
       </main>
 
       {/* Terminal Footer with ABDM Compliance */}
-      <footer className="w-full max-w-4xl flex items-center justify-between text-[11.5px] text-text-muted z-10 pt-2">
+      <footer className="w-full max-w-4xl flex items-center justify-between text-[12px] font-medium text-text-muted z-10 pt-2">
         <div className="flex items-center gap-1.5">
-          <ShieldCheck size={14} className="text-verified" />
+          <ShieldCheck size={15} className="text-verified" />
           <span>Ephemeral Session · Zero Local Storage</span>
         </div>
         <KioskFooter currentToken={28} />

@@ -90,10 +90,10 @@ export default function KioskLanguagePage() {
       style={{ background: 'var(--color-canvas)', color: 'var(--color-text-primary)' }}
     >
       {/* Spacer for fixed header */}
-      <div className="h-[59px] shrink-0" />
+      <div className="h-14 sm:h-15 shrink-0" />
 
       {/* Scrollable content area */}
-      <div className="flex-1 w-full max-w-[680px] mx-auto px-5 pb-36 pt-6 flex flex-col gap-6">
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 pb-36 pt-4 sm:pt-6 flex flex-col gap-5 sm:gap-6 justify-center">
 
         {/* Heading stack */}
         <div className="flex flex-col items-center text-center gap-1" aria-label="Language selection heading">
@@ -101,7 +101,7 @@ export default function KioskLanguagePage() {
             <h1
               key={line.lang}
               lang={line.lang}
-              className="text-[34px] font-bold text-[var(--color-text-primary)] leading-snug motion-safe:animate-[kiosk-slide-fade-up_0.35s_ease-out]"
+              className="text-[32px] sm:text-[38px] font-extrabold text-[var(--color-text-primary)] leading-tight motion-safe:animate-[kiosk-slide-fade-up_0.35s_ease-out]"
               style={{
                 opacity: line.opacity,
                 animationDelay: `${i * 60}ms`,
@@ -115,10 +115,10 @@ export default function KioskLanguagePage() {
 
         {/* Localized instruction */}
         <div className="flex flex-col items-center text-center gap-1">
-          <p className="text-[17px] text-[var(--color-text-primary)] font-bold">
+          <p className="text-[18px] sm:text-[20px] text-[var(--color-text-primary)] font-extrabold">
             {t.language.title}
           </p>
-          <p className="text-[14px] text-[var(--color-text-secondary)]">
+          <p className="text-[14.5px] sm:text-[15.5px] text-[var(--color-text-secondary)] font-medium">
             {t.language.instructions}
           </p>
         </div>
@@ -127,7 +127,7 @@ export default function KioskLanguagePage() {
         <div
           role="radiogroup"
           aria-label="Select your preferred language"
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 w-full"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 w-full"
           onKeyDown={handleGridKeyDown}
         >
           {KIOSK_LANGUAGES.map((lang, idx) => (
@@ -142,7 +142,7 @@ export default function KioskLanguagePage() {
         </div>
 
         {/* Help note */}
-        <p className="text-center text-[13px] text-[var(--color-text-muted)]">
+        <p className="text-center text-[13.5px] text-[var(--color-text-muted)] font-medium">
           {t.common.staffHelp}
         </p>
       </div>

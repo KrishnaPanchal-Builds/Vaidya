@@ -43,7 +43,7 @@ export const LanguageTile = forwardRef<HTMLButtonElement, LanguageTileProps>(
       className={cn(
         // Base layout
         'relative flex flex-col items-center justify-center gap-1.5 cursor-pointer',
-        'min-h-[92px] px-4 py-5 rounded-2xl',
+        'min-h-[96px] sm:min-h-[104px] px-3.5 sm:px-5 py-4 sm:py-5 rounded-2xl',
         // Transition
         'transition-all duration-150 ease-out',
         'active:scale-[0.97]',
@@ -65,7 +65,7 @@ export const LanguageTile = forwardRef<HTMLButtonElement, LanguageTileProps>(
       {/* Native script name */}
       <span
         className={cn(
-          'text-[21px] font-extrabold leading-tight',
+          'text-[22px] sm:text-[25px] font-extrabold leading-tight tracking-tight text-center',
           isSelected ? 'text-white' : 'text-[var(--color-text-primary)]'
         )}
       >
@@ -75,7 +75,7 @@ export const LanguageTile = forwardRef<HTMLButtonElement, LanguageTileProps>(
       {/* English name */}
       <span
         className={cn(
-          'text-[12px] font-bold tracking-wide uppercase',
+          'text-[12.5px] sm:text-[13.5px] font-bold tracking-wider uppercase text-center',
           isSelected ? 'text-[#DDEFE8]' : 'text-[var(--color-text-secondary)]'
         )}
       >

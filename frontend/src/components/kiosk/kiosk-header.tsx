@@ -75,17 +75,17 @@ export function KioskHeader({ step, language, progressPercent, className }: Kios
       )}
       role="banner"
     >
-      <div className="max-w-[720px] mx-auto px-4 sm:px-5 h-14 flex items-center justify-between gap-3">
-        {/* Left: wordmark */}
-        <div className="flex items-center gap-2 shrink-0">
-          <VaidyaWordmark size="sm" showDescriptor={false} variant="default" />
-          <span className="text-[10px] font-semibold text-[var(--color-text-secondary)] tracking-wider uppercase px-2 py-0.5 rounded bg-[var(--color-brand-mist)] border border-[var(--color-border-strong)] hidden xs:inline-block">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 sm:h-15 flex items-center justify-between gap-3">
+        {/* Left: wordmark + station badge */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <VaidyaWordmark size="md" showDescriptor={false} variant="default" />
+          <span className="text-[11px] font-bold text-[var(--color-brand)] tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[var(--color-brand-mist)] border border-[var(--color-border-strong)] hidden sm:inline-block">
             OPD Kiosk
           </span>
         </div>
 
-        {/* Right: Dynamic in-session Sliding Language Switcher */}
-        <div className="shrink-0 flex items-center gap-2 overflow-x-auto">
+        {/* Right: Dynamic in-session Sliding Language Switcher & Security indicator */}
+        <div className="shrink-0 flex items-center gap-2.5 overflow-x-auto">
           {isActive && (
             <div className="flex items-center">
               <SlidingSegmentedTabs
@@ -99,12 +99,12 @@ export function KioskHeader({ step, language, progressPercent, className }: Kios
             </div>
           )}
 
-          <div className="hidden sm:flex items-center gap-1.5 text-[var(--color-text-muted)] pl-1">
-            <svg viewBox="0 0 16 16" className="w-3 h-3 text-[var(--color-brand)]" fill="none" aria-hidden="true">
+          <div className="hidden sm:flex items-center gap-1.5 text-[var(--color-text-muted)] pl-1.5 border-l border-[var(--color-border)]">
+            <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 text-[var(--color-brand)]" fill="none" aria-hidden="true">
               <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span className="text-[10px] font-semibold tracking-wide uppercase text-[var(--color-text-secondary)]">Secure</span>
+            <span className="text-[11px] font-bold tracking-wide uppercase text-[var(--color-text-secondary)]">Secure</span>
           </div>
         </div>
       </div>

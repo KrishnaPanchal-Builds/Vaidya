@@ -26,35 +26,42 @@ import {
   Clock,
   CheckSquare,
   BookOpen,
+  MapPin,
+  CalendarDays,
+  Layers,
+  TrendingUp,
 } from 'lucide-react'
+
 import {
   DEMO_ENCOUNTERS,
   DEMO_PATIENTS,
-  DEMO_FACTS_ENC001,
   DEMO_CONFLICTS_ENC001,
-  DEMO_DOCUMENTS_ENC001,
   DEMO_TIMELINE_ENC001,
   DEMO_COMPLETENESS_ENC001,
   DEMO_RED_FLAG_ENC002,
+  getDocumentsForEncounter,
+  getFactsForEncounter,
 } from '@/constants/demo-data'
+import {
+  Card,
+  CardHeader,
+  CardContent,
+} from '@/components/ui/card'
 import {
   ConflictCard,
   CompletenessGrid,
-  ProvenanceChip,
   RedFlagBanner,
   Timeline,
+  SourceBadge,
+  FactCard,
+  SnapshotBlock,
+  ClinicalSectionHeader,
+  type ClinicalSourceType,
 } from '@/components/clinical'
 import { useUIStore } from '@/store'
-import type { ClinicalConflict, ClinicalFact, Encounter, Patient } from '@/types'
+import type { ClinicalConflict, ClinicalFact, Encounter, Patient, MedicalDocument } from '@/types'
 import { cn } from '@/lib/utils'
 import { SlidingSegmentedTabs, type TabOption } from '@/components/ui/SlidingSegmentedTabs'
-
-const DOCTOR_EVIDENCE_TABS: TabOption<'NARRATIVE' | 'DOCUMENTS' | 'TIMELINE' | 'COMPLETENESS'>[] = [
-  { id: 'NARRATIVE', label: 'Evidence Narrative & Facts', icon: FileText },
-  { id: 'DOCUMENTS', label: 'Scanned Documents (2)', icon: BookOpen },
-  { id: 'TIMELINE', label: 'Longitudinal Timeline', icon: Clock },
-  { id: 'COMPLETENESS', label: 'Intake Completeness', icon: CheckSquare },
-]
 
 export default function DoctorEncounterPage() {
   const params = useParams()
@@ -62,10 +69,14 @@ export default function DoctorEncounterPage() {
   const encounterId = (params?.id as string) || 'enc-001'
   const { openEvidenceDrawer, addToast } = useUIStore()
 
-  const [encounter, setEncounter] = useState<Encounter | null>(null)
-  const [patient, setPatient] = useState<Patient | null>(null)
-  const [, setFacts] = useState<ClinicalFact[]>([])
-  const [conflicts, setConflicts] = useState<ClinicalConflict[]>([])
+  const initialEnc = DEMO_ENCOUNTERS.find((e) => e.id === encounterId) || DEMO_ENCOUNTERS[0]
+  const initialPat = initialEnc.patient || DEMO_PATIENTS.find((p) => p.id === initialEnc.patientId) || DEMO_PATIENTS[0]
+
+  const [encounter, setEncounter] = useState<Encounter>(initialEnc)
+  const [patient, setPatient] = useState<Patient>(initialPat)
+  const [facts, setFacts] = useState<ClinicalFact[]>(() => getFactsForEncounter(encounterId))
+  const [conflicts, setConflicts] = useState<ClinicalConflict[]>(() => (encounterId === 'enc-001' ? DEMO_CONFLICTS_ENC001 : []))
+  const [documents, setDocuments] = useState<MedicalDocument[]>(() => getDocumentsForEncounter(encounterId))
   const [consultationStatus, setConsultationStatus] = useState<'READY' | 'IN_PROGRESS' | 'COMPLETED'>('READY')
   const [physicianNotes, setPhysicianNotes] = useState(
     'Abdomen soft, non-tender on general palpation. Mild epigastric tenderness elicited. Diagnosis: Chronic Acid Peptic Disease / Dyspepsia with functional heartburn. Advised dietary modifications (avoid spicy/fried foods, elevate head of bed) and prescribed Tab. Pantoprazole 40mg.'
@@ -79,15 +90,21 @@ export default function DoctorEncounterPage() {
     setEncounter(foundEnc)
     const foundPat = foundEnc.patient || DEMO_PATIENTS.find((p) => p.id === foundEnc.patientId) || DEMO_PATIENTS[0]
     setPatient(foundPat)
+    setFacts(getFactsForEncounter(encounterId))
+    setDocuments(getDocumentsForEncounter(encounterId))
+    setConflicts(encounterId === 'enc-001' ? DEMO_CONFLICTS_ENC001 : [])
+  }, [encounterId])
 
-    if (encounterId === 'enc-001' || !params?.id) {
-      setFacts(DEMO_FACTS_ENC001)
-      setConflicts(DEMO_CONFLICTS_ENC001)
-    } else {
-      setFacts([])
-      setConflicts([])
-    }
-  }, [encounterId, params?.id])
+  const avgOcr = documents.length > 0
+    ? Math.round((documents.reduce((acc, d) => acc + (d.ocrConfidence ?? 0.85), 0) / documents.length) * 100)
+    : 0
+
+  const doctorEvidenceTabs: TabOption<'NARRATIVE' | 'DOCUMENTS' | 'TIMELINE' | 'COMPLETENESS'>[] = [
+    { id: 'NARRATIVE', label: 'Evidence & Facts', icon: FileText },
+    { id: 'DOCUMENTS', label: `Documents (${documents.length})`, icon: BookOpen },
+    { id: 'TIMELINE', label: 'Timeline', icon: Clock },
+    { id: 'COMPLETENESS', label: 'Completeness', icon: CheckSquare },
+  ]
 
   const handleResolveConflict = async (
     resolution: 'RESOLVED_A' | 'RESOLVED_B' | 'RESOLVED_UNCERTAIN',
@@ -123,30 +140,91 @@ export default function DoctorEncounterPage() {
   const handleResetDemo = () => {
     setConsultationStatus('READY')
     setIsIntakeVerified(false)
-    addToast({
-      type: 'info',
-      title: 'Demo State Reset',
-      body: 'Encounter reset to initial state ready for presentation.',
-    })
+    addToast({ type: 'info', title: 'Demo State Reset', body: 'Encounter reset to initial state.' })
   }
+
+  const ENCOUNTER_PROFILES: Record<string, {
+    complaint: string
+    durationSeverity: string
+    bodyArea: string
+    intakeSource: string
+    pulse: string
+    bp: string
+    temp: string
+    spo2: string
+    isUrgent?: boolean
+  }> = {
+    'enc-001': {
+      complaint: 'Epigastric burning pain & post-prandial indigestion',
+      durationSeverity: '3 months (Gradual) • 5/10 Moderate',
+      bodyArea: 'Epigastric / Upper GI',
+      intakeSource: 'Voice (मराठी) + OCR',
+      pulse: '88 bpm',
+      bp: '128/82',
+      temp: '98.6°F',
+      spo2: '98%',
+    },
+    'enc-002': {
+      complaint: 'Acute chest discomfort, breathlessness radiating to left arm',
+      durationSeverity: '2 hrs (Acute) • 8/10 Severe',
+      bodyArea: 'Chest, Left Arm & Jaw',
+      intakeSource: 'Voice (Hindi) + ECG OCR',
+      pulse: '112 bpm',
+      bp: '146/94',
+      temp: '98.6°F',
+      spo2: '93%',
+      isUrgent: true,
+    },
+    'enc-003': {
+      complaint: 'Bilateral knee pain, generalized weakness, joint stiffness',
+      durationSeverity: '6 months (Chronic) • 6/10 Moderate',
+      bodyArea: 'Bilateral Lower Limbs (Knees)',
+      intakeSource: 'Voice (हिंदी) + X-Ray OCR',
+      pulse: '76 bpm',
+      bp: '134/86',
+      temp: '98.4°F',
+      spo2: '97%',
+    },
+    'enc-004': {
+      complaint: 'Chronic indigestion, acid reflux, Ahara dietary irregularity',
+      durationSeverity: '1 year (Chronic) • 4/10 Mild-Mod',
+      bodyArea: 'Abdomen / Upper GI',
+      intakeSource: 'Voice (हिंदी) + USG OCR',
+      pulse: '82 bpm',
+      bp: '122/78',
+      temp: '98.6°F',
+      spo2: '99%',
+    },
+    'enc-005': {
+      complaint: 'Second trimester routine antenatal checkup (24 weeks)',
+      durationSeverity: '24 wks Antenatal • Normal',
+      bodyArea: 'Obstetric / Pelvic',
+      intakeSource: 'Voice (اردو) + Lab OCR',
+      pulse: '80 bpm',
+      bp: '118/74',
+      temp: '98.6°F',
+      spo2: '99%',
+    },
+  }
+
+  const profile = ENCOUNTER_PROFILES[encounterId] || ENCOUNTER_PROFILES['enc-001']
+  const isUrgent = profile.isUrgent ?? false
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto" style={{ background: 'var(--color-canvas)' }}>
-      {/* ── 1. PATIENT CLINICAL CONTEXT BANNER ────────────────────────── */}
+
+      {/* ════════════════════════════════════════════════════════════════
+          1. TARGET READING ORDER #1: PATIENT IDENTITY + CONSULTATION STATUS
+      ════════════════════════════════════════════════════════════════ */}
       <header
-        className="px-4 lg:px-8 py-3.5 sticky top-0 z-20 shadow-xs border-b"
-        style={{
-          background: 'var(--color-surface)',
-          borderColor: 'var(--color-border)',
-        }}
+        className="px-4 lg:px-8 py-3 sticky top-0 z-20 shadow-2xs border-b border-[var(--color-border)] bg-[var(--color-surface)]"
       >
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Navigation & Core Identity */}
-          <div className="flex items-center gap-3.5">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3 min-w-0">
+          {/* Left: Back + Token + Patient Identity + ABHA */}
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push('/doctor/queue')}
-              className="p-2 rounded-xl border text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-all"
-              style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              className="p-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)] transition-all shrink-0"
               title="Return to OPD Queue"
             >
               <ArrowLeft size={16} />
@@ -154,100 +232,103 @@ export default function DoctorEncounterPage() {
 
             {/* Token Badge */}
             <div
-              className="w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0 border"
-              style={{
-                background: 'var(--color-brand-mist)',
-                borderColor: 'var(--color-border-strong)',
-                color: 'var(--color-brand)',
-              }}
+              className={cn(
+                'w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border select-none',
+                isUrgent
+                  ? 'bg-[var(--color-critical-subtle)] border-[var(--color-critical)]/40 text-[var(--color-critical)]'
+                  : 'bg-[var(--color-brand-mist)] border-[var(--color-border)] text-[var(--color-brand)]'
+              )}
             >
-              <span className="text-[8px] font-bold uppercase tracking-wider">TOKEN</span>
-              <span className="text-[15px] font-extrabold font-mono leading-none">{encounter?.tokenNumber || 'A-028'}</span>
+              <span className="text-[7.5px] font-bold uppercase tracking-wider">TOKEN</span>
+              <span className="text-[14px] font-bold font-mono leading-none">{encounter?.tokenNumber || 'A-028'}</span>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[18px] font-extrabold text-text-primary tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <h1 className="text-[17px] sm:text-[18px] font-bold tracking-tight text-[var(--color-text-primary)] truncate">
                   {patient?.name || 'Dhananjay Patil'}
                 </h1>
-                <span className="text-[12px] font-semibold text-text-secondary px-2 py-0.5 rounded bg-surface-subtle border border-border">
-                  {patient?.age || 67}Y • {patient?.gender === 'FEMALE' ? 'Female' : 'Male'}
+                <span className="text-[11.5px] font-medium px-2 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] shrink-0">
+                  {patient?.age || 67}Y • {patient?.gender === 'FEMALE' || patient?.sex === 'F' ? 'Female' : 'Male'}
                 </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/20 flex items-center gap-1">
-                  <ShieldCheck size={11} /> ABHA: 12-3456-7890-1234
-                </span>
+                {isUrgent ? (
+                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded border border-[var(--color-critical)]/40 bg-[var(--color-critical-subtle)] text-[var(--color-critical)] flex items-center gap-1 shrink-0 uppercase tracking-wider">
+                    <AlertTriangle size={11} /> Urgent Priority
+                  </span>
+                ) : (
+                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded border border-emerald-200/60 bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] flex items-center gap-1 shrink-0 uppercase tracking-wider">
+                    <ShieldCheck size={11} /> ABHA Linked
+                  </span>
+                )}
               </div>
-              <p className="text-[11.5px] text-text-muted mt-0.5 flex items-center gap-2 flex-wrap">
-                <span>Intake Language: <strong className="text-text-secondary font-medium">Marathi (मराठी)</strong></span>
+              <p className="text-[11px] mt-0.5 flex items-center gap-2 flex-wrap text-[var(--color-text-muted)] truncate">
+                <span>ABHA: <strong className="font-mono text-[var(--color-text-secondary)]">{patient?.abhaNumber || '12-3456-7890-1234'}</strong></span>
                 <span>•</span>
-                <span>Attending: <strong className="text-text-secondary font-medium">Dr. Sunita Rao, MD</strong></span>
+                <span>Intake: <strong className="font-medium text-[var(--color-text-secondary)]">{patient?.preferredLanguage === 'mr' ? 'Marathi (मराठी)' : patient?.preferredLanguage === 'hi' ? 'Hindi (हिंदी)' : patient?.preferredLanguage === 'ur' ? 'Urdu (اردو)' : 'English'}</strong></span>
                 <span>•</span>
-                <span>Station: <strong className="text-text-secondary font-mono">OPD 04</strong></span>
+                <span>Attending: Dr. Sunita Rao, MD</span>
+                <span>•</span>
+                <span>{documents.length} doc(s) (avg {avgOcr}% OCR)</span>
               </p>
             </div>
           </div>
 
-          {/* Right: Vitals Ribbon & Primary Action Controls */}
-          <div className="flex items-center gap-3.5 flex-wrap self-end lg:self-center">
-            {/* Quick Vitals Strip */}
-            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl border bg-surface-subtle font-mono text-[12px]">
+          {/* Right: Vitals strip + Action CTA */}
+          <div className="flex items-center gap-3 flex-wrap self-end lg:self-center shrink-0">
+            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] font-mono text-[12px]">
               <div className="flex items-center gap-1">
-                <HeartPulse size={13} className="text-critical" />
-                <span className="font-bold text-text-primary">88 bpm</span>
+                <HeartPulse size={13} className="text-[var(--color-critical)]" />
+                <span className="font-bold text-[var(--color-text-primary)]">{isUrgent ? '112 bpm' : '88 bpm'}</span>
               </div>
-              <span className="text-border">|</span>
+              <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
-                <Activity size={13} className="text-brand" />
-                <span className="font-bold text-text-primary">128/82</span>
+                <Activity size={13} className="text-[var(--color-brand)]" />
+                <span className="font-bold text-[var(--color-text-primary)]">{isUrgent ? '146/94' : '128/82'}</span>
               </div>
-              <span className="text-border">|</span>
+              <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
-                <Thermometer size={13} className="text-warning" />
-                <span className="font-bold text-text-primary">98.6°F</span>
+                <Thermometer size={13} className="text-[var(--color-warning)]" />
+                <span className="font-bold text-[var(--color-text-primary)]">98.6°F</span>
               </div>
-              <span className="text-border">|</span>
+              <span className="text-[var(--color-border)]">|</span>
               <div className="flex items-center gap-1">
-                <span className="text-[10px] font-bold text-text-muted">SpO2</span>
-                <span className="font-bold text-verified">98%</span>
+                <span className="text-[10px] font-bold text-[var(--color-text-muted)]">SpO2</span>
+                <span className={cn('font-bold', isUrgent ? 'text-[var(--color-critical)]' : 'text-[var(--color-verified-text)]')}>
+                  {isUrgent ? '93%' : '98%'}
+                </span>
               </div>
             </div>
 
             {consultationStatus === 'READY' && (
               <button
                 onClick={handleStartConsultation}
-                className="px-4 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
-                style={{ background: 'var(--color-brand)' }}
+                className="px-4 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all shadow-2xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 bg-[var(--color-brand)]"
               >
                 <Stethoscope size={14} />
                 <span>Start Consultation</span>
               </button>
             )}
-
             {consultationStatus === 'IN_PROGRESS' && (
               <button
                 onClick={handleCompleteEncounter}
-                className="px-4 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
-                style={{ background: 'var(--color-verified)' }}
+                className="px-4 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all shadow-2xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 bg-[var(--color-verified)]"
               >
                 <CheckCircle2 size={14} />
                 <span>Finalize &amp; Prescribe</span>
               </button>
             )}
-
             {consultationStatus === 'COMPLETED' && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPrescriptionModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl text-white text-[12px] font-bold transition-all shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95"
-                  style={{ background: 'var(--color-brand)' }}
+                  className="px-3.5 py-2 rounded-xl text-white text-[12px] font-bold transition-all shadow-2xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 bg-[var(--color-brand)]"
                 >
                   <Printer size={13} />
-                  <span>Print Prescription</span>
+                  <span>Print Rx</span>
                 </button>
                 <button
                   onClick={handleResetDemo}
-                  className="p-2 rounded-xl border text-text-muted hover:text-text-primary transition-colors"
-                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+                  className="p-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] transition-colors"
                   title="Reset Demo State"
                 >
                   <RotateCcw size={14} />
@@ -258,468 +339,532 @@ export default function DoctorEncounterPage() {
         </div>
       </header>
 
-      {/* ── 2. MAIN CLINICAL EVIDENCE WORKSPACE ───────────────────────── */}
-      <main className="max-w-7xl mx-auto p-4 lg:p-8 w-full flex-1 space-y-6">
-        {/* COMPLETED SUCCESS STATE BANNER */}
+      <main className="max-w-7xl mx-auto p-4 lg:p-8 w-full flex-1 space-y-4 min-w-0">
+
+        {/* ════════════════════════════════════════════════════════════════
+            COMPLETED STATE BANNER (When consultation finalized)
+        ════════════════════════════════════════════════════════════════ */}
         {consultationStatus === 'COMPLETED' && (
-          <section
-            className="rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 border-2 animate-fade-in"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-verified)',
-            }}
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-border">
+          <Card level={2} variant="verified" className="p-5 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-verified-subtle text-verified flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] flex items-center justify-center shrink-0">
                   <FileCheck2 size={22} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-[17px] font-extrabold text-text-primary">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-[16px] sm:text-[17px] font-bold text-[var(--color-text-primary)]">
                       Consultation Finalized &amp; FHIR R4 Bundle Generated
                     </h2>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/30">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] border border-emerald-200/60">
                       ABDM Synced
                     </span>
                   </div>
-                  <p className="text-[12px] text-text-muted mt-0.5">
-                    Prescription signed by Dr. Sunita Rao • Synced to ABHA Address: <strong className="font-mono text-text-secondary">dpatil@abdm</strong>
+                  <p className="text-[12px] mt-0.5 text-[var(--color-text-muted)]">
+                    Prescription signed by Dr. Sunita Rao • ABHA: <strong className="font-mono text-[var(--color-text-secondary)]">dpatil@abdm</strong>
                   </p>
                 </div>
               </div>
-
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   onClick={() => setPrescriptionModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all shadow-xs flex items-center gap-1.5"
-                  style={{ background: 'var(--color-brand)' }}
+                  className="px-3.5 py-2 rounded-xl text-white text-[12.5px] font-bold shadow-2xs flex items-center gap-1.5 bg-[var(--color-brand)]"
                 >
-                  <Printer size={13} />
-                  <span>View Prescription</span>
+                  <Printer size={13} /><span>View Prescription</span>
                 </button>
                 <button
                   onClick={() => router.push('/patient/dashboard')}
-                  className="px-3.5 py-2 rounded-xl border text-[12.5px] font-bold transition-all flex items-center gap-1.5 bg-verified-subtle text-verified-text border-verified/30"
+                  className="px-3.5 py-2 rounded-xl border border-emerald-200/60 text-[12.5px] font-bold flex items-center gap-1.5 bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)]"
                 >
-                  <Heart size={13} />
-                  <span>Patient Portal View →</span>
+                  <Heart size={13} /><span>Patient Portal →</span>
                 </button>
                 <button
                   onClick={() => router.push('/doctor/queue')}
-                  className="px-3.5 py-2 rounded-xl border text-text-secondary hover:text-text-primary text-[12.5px] font-semibold transition-colors"
-                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+                  className="px-3.5 py-2 rounded-xl border border-[var(--color-border)] text-[12.5px] font-semibold text-[var(--color-text-secondary)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-subtle)] transition-colors"
                 >
                   Next Patient
                 </button>
               </div>
             </div>
-
-            {/* Prescribed Drugs Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px]">
-              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
-                  Active Prescriptions (2)
-                </span>
-                <p className="font-bold text-text-primary">1. Tab. Pantoprazole 40mg (OD × 14d)</p>
-                <p className="font-bold text-text-primary">2. Syrup Sucralfate 10ml (TDS × 7d)</p>
+              <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Active Prescriptions (2)</span>
+                <p className="font-bold text-[var(--color-text-primary)]">1. Tab. Pantoprazole 40mg (OD × 14d)</p>
+                <p className="font-bold text-[var(--color-text-primary)]">2. Syrup Sucralfate 10ml (TDS × 7d)</p>
               </div>
-              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
-                  ABDM Integration Status
-                </span>
-                <p className="font-bold text-verified flex items-center gap-1">
-                  <CheckCircle2 size={13} /> FHIR DiagnosticReport Published
-                </p>
-                <p className="text-[11.5px] text-text-muted">HIP ID: IN-MH-PUN-0042</p>
+              <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">ABDM Integration</span>
+                <p className="font-bold text-[var(--color-verified-text)] flex items-center gap-1"><CheckCircle2 size={13} /> FHIR DiagnosticReport Published</p>
+                <p className="text-[11.5px] text-[var(--color-text-muted)]">HIP ID: IN-MH-PUN-0042</p>
               </div>
-              <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">
-                  Follow-up &amp; AYUSH Advice
-                </span>
-                <p className="font-bold text-text-primary">Review in 2 weeks</p>
-                <p className="text-[11.5px] text-brand font-medium">Ayush Pitta-pacifying Ahara advised</p>
+              <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Follow-up &amp; AYUSH</span>
+                <p className="font-bold text-[var(--color-text-primary)]">Review in 2 weeks</p>
+                <p className="text-[11.5px] font-medium text-[var(--color-brand)]">Pitta-pacifying Ahara advised</p>
               </div>
             </div>
-          </section>
+          </Card>
         )}
 
-        {/* CLINICAL CONCERN / RED FLAG BANNER */}
-        {encounterId === 'enc-002' ? (
+        {/* ════════════════════════════════════════════════════════════════
+            2. TARGET READING ORDER #2: IMMEDIATE CLINICAL PRIORITY / RED FLAGS
+            (Literal first thing rendered after identity, full width, unmissable)
+        ════════════════════════════════════════════════════════════════ */}
+        {isUrgent ? (
           <RedFlagBanner alert={DEMO_RED_FLAG_ENC002} />
         ) : (
-          <div
-            className="border rounded-xl px-4 py-2.5 flex items-center justify-between shadow-xs bg-verified-subtle border-verified/30 text-verified-text"
-          >
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck size={16} className="text-verified shrink-0" />
-              <p className="text-[12.5px] font-medium">
-                <strong className="font-bold">No acute red flags detected</strong> during multilingual voice triage or document OCR ingestion.
+          <div className="rounded-xl px-4 py-2.5 flex items-center justify-between border border-emerald-200/60 bg-[var(--color-verified-subtle)] shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <ShieldCheck size={16} className="text-[var(--color-verified-text)] shrink-0" />
+              <p className="text-[12.5px] font-medium text-[var(--color-verified-text)] truncate">
+                <strong className="font-bold">Triage Status Clear:</strong> No acute red flags detected during multilingual voice triage or OCR ingestion.
               </p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white text-verified-text border border-verified/30">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-emerald-200/60 bg-white text-[var(--color-verified-text)] shrink-0">
               Triage Clear
             </span>
           </div>
         )}
 
-        {/* WORKSPACE NAVIGATION TABS (Layer 1: Floating Frosted Rail) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
+        {/* ════════════════════════════════════════════════════════════════
+            3. TARGET READING ORDER #3: CHIEF COMPLAINT & 4-BLOCK SNAPSHOT
+            (Exactly 4 surviving blocks: Chief complaint, Duration+Severity,
+             Body area, Intake source)
+        ════════════════════════════════════════════════════════════════ */}
+        <Card level={2} variant={isUrgent ? 'critical' : 'default'} className="overflow-hidden">
+          <CardHeader className={isUrgent ? 'bg-[var(--color-critical-subtle)] border-[var(--color-critical)]/30' : undefined}>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={cn('text-[11px] font-bold uppercase tracking-wider truncate', isUrgent ? 'text-[var(--color-critical)]' : 'text-[var(--color-text-muted)]')}>
+                Clinical Snapshot
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {consultationStatus === 'IN_PROGRESS' && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-brand-mist)] text-[var(--color-brand)] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  In Consultation
+                </span>
+              )}
+              {consultationStatus === 'READY' && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-brand-mist)] text-[var(--color-brand)]">
+                  Ready for Review
+                </span>
+              )}
+              {consultationStatus === 'COMPLETED' && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-emerald-200/60 bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] flex items-center gap-1">
+                  <CheckCircle2 size={11} /> Finalized
+                </span>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-3.5">
+            {/* Block 1: Chief complaint (primary, full-width) */}
+            <div
+              className={cn(
+                'p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0',
+                isUrgent
+                  ? 'bg-[var(--color-critical-subtle)] border-[var(--color-critical)]/40 border-l-4 border-l-[var(--color-critical)]'
+                  : 'bg-[var(--color-surface)] border-[var(--color-border)]'
+              )}
+            >
+              <div className="min-w-0">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] block mb-0.5">
+                  Chief Complaint
+                </span>
+                <p className="text-[15.5px] font-bold text-[var(--color-text-primary)] leading-snug">
+                  {profile.complaint}
+                </p>
+              </div>
+              <SourceBadge type={isUrgent ? 'voice' : 'patient'} className="self-start sm:self-center" />
+            </div>
+
+            {/* Blocks 2, 3, 4: Standalone Compact Units Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Block 2: Duration + Severity (paired) */}
+              <SnapshotBlock
+                label="Duration · Severity"
+                value={profile.durationSeverity}
+                accent={isUrgent ? 'critical' : 'neutral'}
+                icon={Activity}
+              />
+              {/* Block 3: Body Area */}
+              <SnapshotBlock
+                label="Body Area"
+                value={profile.bodyArea}
+                icon={MapPin}
+              />
+              {/* Block 4: Intake Source */}
+              <SnapshotBlock
+                label="Intake Source"
+                value={profile.intakeSource}
+                icon={Mic}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ════════════════════════════════════════════════════════════════
+            4. TARGET READING ORDER #4, 5, 6, 7: PROGRESSIVE DISCLOSURE TABS
+            (Evidence & Facts, Documents, Timeline, Completeness)
+        ════════════════════════════════════════════════════════════════ */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0 pt-1">
           <SlidingSegmentedTabs
-            options={DOCTOR_EVIDENCE_TABS}
+            options={doctorEvidenceTabs}
             selectedId={activeTab}
             onChange={(newTab) => setActiveTab(newTab)}
             variant="default"
             layoutId="doctor-evidence-mode-pill"
             ariaLabel="Select Evidence Section"
           />
-
           <button
-            onClick={() => openEvidenceDrawer('fact-001')}
-            className="text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] hover:underline flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg bg-white border border-[#DFE8F1] shadow-2xs transition-all"
+            onClick={() => openEvidenceDrawer(facts[0]?.id || documents[0]?.id || 'doc-001')}
+            className="text-[12px] font-bold flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg border border-[var(--color-border)] shadow-2xs transition-all hover:bg-[var(--color-surface-subtle)] text-[var(--color-brand)] bg-[var(--color-surface)]"
           >
             <Search size={13} />
             <span>Open Provenance Drawer</span>
           </button>
         </div>
 
-        {/* ── 3. TAB A: CLINICAL EVIDENCE NARRATIVE & AYUSH WORKSPACE ─── */}
+        {/* ── TAB 1: EVIDENCE & FACTS (Collapsible Sections) ─────────────── */}
         {activeTab === 'NARRATIVE' && (
-          <div className="space-y-6">
-            {/* Structured Provenance Fact Grid (Layer 2: Clinical Content Surface) */}
-            <section
-              className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
-              style={{
-                background: 'var(--clinical-surface)',
-                borderColor: 'var(--clinical-card-border)',
-                boxShadow: '0 2px 8px rgba(41, 87, 135, 0.04)',
-              }}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-brand-mist text-brand flex items-center justify-center">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <h2 className="text-[16px] font-extrabold text-text-primary tracking-tight">
-                      Synthesized Pre-Consultation Evidence
-                    </h2>
-                    <p className="text-[11.5px] text-text-muted">
-                      Source-attributed clinical entities extracted across Marathi Voice Intake, ABDM EHR history, and 3 scanned physical prescriptions.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-surface-subtle text-text-secondary border border-border">
-                    4 Facts Verified
+          <div className="space-y-4">
+            {/* Level 2 Card: Fixed-Structure Fact Cards */}
+            <Card level={2} className="p-5 space-y-4">
+              <ClinicalSectionHeader
+                icon={Sparkles}
+                title="Structured Clinical Findings &amp; Evidence"
+                subtitle="Extracted entities with fixed structure: Category · Primary Finding · Supporting Detail · Source Badge."
+                badge={
+                  <span className="text-[10.5px] font-mono px-2 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)]">
+                    {facts.length} Facts Extracted
                   </span>
-                </div>
-              </div>
+                }
+              />
 
-              {/* Grid of Evidence Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {/* Fact 1: Chief Complaint */}
-                <div
-                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
-                  onClick={() => openEvidenceDrawer('fact-001')}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
-                      Chief Complaint
-                    </span>
-                    <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.94} />
-                  </div>
-                  <p className="text-[15px] font-bold text-text-primary">
-                    Epigastric burning pain &amp; post-prandial indigestion
-                  </p>
-                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
-                    <span className="flex items-center gap-1">
-                      <Mic size={11} className="text-brand" /> Bhashini Marathi ASR
-                    </span>
-                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
-                  </div>
-                </div>
+                {facts.map((fact) => {
+                  let srcType: ClinicalSourceType = 'patient'
+                  if (fact.sourceType === 'DOCUMENT_EXTRACT') {
+                    srcType = fact.degradationTier === 3 || fact.confidenceTier === 3 ? 'unverified' : 'ocr'
+                  } else if (fact.sourceType === 'INTERVIEW') {
+                    srcType = 'voice'
+                  }
 
-                {/* Fact 2: Duration */}
-                <div
-                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
-                  onClick={() => openEvidenceDrawer('fact-002')}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
-                      Symptom Duration &amp; Progression
-                    </span>
-                    <ProvenanceChip tier={3} sourceType="INTERVIEW" confidence={0.91} />
-                  </div>
-                  <p className="text-[15px] font-bold text-text-primary">
-                    3 months duration (gradually worsening over past 2 weeks)
-                  </p>
-                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
-                    <span className="flex items-center gap-1">
-                      <Clock size={11} className="text-text-muted" /> Patient Voice &amp; Touch Intake
-                    </span>
-                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
-                  </div>
-                </div>
-
-                {/* Fact 3: Aggravating Factors */}
-                <div
-                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
-                  onClick={() => openEvidenceDrawer('fact-003')}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
-                      Aggravation &amp; Relieving Factors
-                    </span>
-                    <ProvenanceChip tier={2} sourceType="DOCUMENT_EXTRACT" confidence={0.88} />
-                  </div>
-                  <p className="text-[15px] font-bold text-text-primary">
-                    Aggravated by empty stomach and spicy foods; partial relief with antacids
-                  </p>
-                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
-                    <span className="flex items-center gap-1">
-                      <FileText size={11} className="text-verified" /> OCR Scan (Previous Rx 2024)
-                    </span>
-                    <span className="text-brand font-semibold text-[11px]">Inspect Source →</span>
-                  </div>
-                </div>
-
-                {/* Fact 4: AYUSH Ahara/Vihara Correlation */}
-                <div
-                  className="p-4 rounded-xl border bg-surface-subtle space-y-2 cursor-pointer hover:border-brand/40 transition-colors"
-                  onClick={() => openEvidenceDrawer('fact-004')}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand">
-                      AYUSH Ahara &amp; Vihara Lifestyle Correlation
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-mist text-brand">
-                      NAMASTE Portal Synced
-                    </span>
-                  </div>
-                  <p className="text-[15px] font-bold text-text-primary">
-                    Pitta-dominant Agnimandya: Irregular meal timings, high Ushna/Tikshna Ahara intake
-                  </p>
-                  <div className="text-[11.5px] text-text-muted flex items-center justify-between pt-1 border-t border-border/60">
-                    <span className="flex items-center gap-1">
-                      <Sparkles size={11} className="text-brand" /> AYUSH Intake Domain
-                    </span>
-                    <span className="text-brand font-semibold text-[11px]">Inspect Protocol →</span>
-                  </div>
-                </div>
+                  return (
+                    <FactCard
+                      key={fact.id}
+                      category={`${fact.domain} • ${fact.fieldName.replace(/_/g, ' ')}`}
+                      primary={fact.rawValue}
+                      detail={fact.groundTruthSnippet || fact.extractedSnippet || fact.sourceText || `Confidence: ${Math.round((fact.ocrConfidence || fact.confidence || 0.9) * 100)}%`}
+                      sourceType={srcType}
+                      sourceName={fact.sourceId}
+                      factId={fact.id}
+                      onClick={() => openEvidenceDrawer(fact.id)}
+                    />
+                  )
+                })}
               </div>
-            </section>
+            </Card>
 
-            {/* Clinical Discrepancy & Conflict Cards if present */}
+            {/* Clinical Conflicts / Discrepancies (Progressive Disclosure) */}
             {conflicts.length > 0 && (
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[14px] font-extrabold uppercase tracking-wider text-critical flex items-center gap-1.5">
-                    <AlertTriangle size={15} /> Clinical Discrepancy Detected (1)
+                  <h3 className="text-[13px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-[var(--color-warning-text)]">
+                    <AlertTriangle size={14} /> Clinical Discrepancy Detected ({conflicts.length})
                   </h3>
-                  <span className="text-[11px] text-text-muted">Physician verification requested</span>
+                  <span className="text-[11px] text-[var(--color-text-muted)]">Physician verification requested</span>
                 </div>
                 {conflicts.map((conflict) => (
-                  <ConflictCard
-                    key={conflict.id}
-                    conflict={conflict}
-                    onResolve={handleResolveConflict}
-                  />
+                  <ConflictCard key={conflict.id} conflict={conflict} onResolve={handleResolveConflict} />
                 ))}
               </section>
             )}
 
-            {/* Differential Diagnoses & Clinical Evidence Citations */}
-            <section
-              className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
-              style={{
-                background: 'var(--color-surface)',
-                borderColor: 'var(--color-border)',
-              }}
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-border">
-                <h3 className="text-[15px] font-extrabold text-text-primary flex items-center gap-2">
-                  <Stethoscope size={16} className="text-brand" />
-                  <span>Differential Diagnoses &amp; Guideline Correlation</span>
-                </h3>
-                <span className="text-[11px] font-mono text-text-muted">ICD-11 &amp; SNOMED CT</span>
+            {/* Level 2 Card: Supporting Clinical History (Collapsed by Default) */}
+            <details className="group border border-[var(--color-border)] rounded-2xl bg-[var(--color-surface)] shadow-2xs overflow-hidden">
+              <summary className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-[var(--color-surface-subtle)] transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--color-brand-mist)] text-[var(--color-brand)] border border-[var(--color-border)]">
+                    <CalendarDays size={15} />
+                  </div>
+                  <div>
+                    <h3 className="text-[14px] font-bold text-[var(--color-text-primary)]">
+                      Supporting Clinical History &amp; Baseline Context
+                    </h3>
+                    <p className="text-[11.5px] text-[var(--color-text-muted)]">
+                      Past medical history, active medications, allergies, and social background.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[11px] font-bold text-[var(--color-brand)] group-open:rotate-180 transition-transform">
+                  ▼
+                </span>
+              </summary>
+
+              <div className="p-5 pt-0 border-t border-[var(--color-border)] divide-y divide-[var(--color-border)]">
+                {[
+                  {
+                    category: 'Past Medical History',
+                    primary: 'Hypertension (controlled, 5 years)',
+                    detail: 'No diabetes mellitus diagnosed. No previous abdominal surgical history.',
+                    type: 'patient' as ClinicalSourceType,
+                  },
+                  {
+                    category: 'Current Medications',
+                    primary: 'Tab. Amlodipine 5mg (OD) · Antacid syrup (PRN)',
+                    detail: 'Amlodipine taken regularly for 3 years. Antacid taken intermittently without prescription.',
+                    type: 'ocr' as ClinicalSourceType,
+                  },
+                  {
+                    category: 'Allergy & Adverse Reactions',
+                    primary: 'No known drug allergies reported at intake',
+                    detail: 'Discrepancy noted with historical record (Penicillin sensitivity documented in 2021).',
+                    type: 'unverified' as ClinicalSourceType,
+                  },
+                  {
+                    category: 'Family History',
+                    primary: 'Father: Peptic ulcer disease · Mother: Hypertension',
+                    detail: 'Strong familial predisposition to acid peptic disorder and essential hypertension.',
+                    type: 'voice' as ClinicalSourceType,
+                  },
+                  {
+                    category: 'Social & Lifestyle',
+                    primary: 'Non-smoker · Occasional alcohol · Sedentary office work',
+                    detail: 'Irregular meal timings due to commute; high tea and fried snack consumption.',
+                    type: 'ai' as ClinicalSourceType,
+                  },
+                  {
+                    category: 'ABDM / FHIR Status',
+                    primary: 'Patient record linked · Consent granted',
+                    detail: 'HIP ID: IN-MH-PUN-0042 · ABHA Health Locker connection verified.',
+                    type: 'abdm' as ClinicalSourceType,
+                  },
+                ].map((row) => (
+                  <div key={row.category} className="py-3 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 min-w-0">
+                    <span className="shrink-0 text-[10.5px] font-bold uppercase tracking-wider w-full sm:w-[170px] text-[var(--color-text-muted)] pt-0.5">
+                      {row.category}
+                    </span>
+                    <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold text-[var(--color-text-primary)] leading-snug">
+                          {row.primary}
+                        </p>
+                        <p className="text-[11.5px] text-[var(--color-text-secondary)] mt-0.5">
+                          {row.detail}
+                        </p>
+                      </div>
+                      <SourceBadge type={row.type} />
+                    </div>
+                  </div>
+                ))}
               </div>
+            </details>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px]">
-                <div className="p-3.5 rounded-xl border bg-brand-mist/20 border-brand/30 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-text-primary">1. Functional Dyspepsia</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-brand text-white">88% Match</span>
+            {/* Differential Diagnoses & AI Guidance (Collapsed by Default) */}
+            <details className="group border border-[var(--color-border)] rounded-2xl bg-[var(--color-surface)] shadow-2xs overflow-hidden">
+              <summary className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none hover:bg-[var(--color-surface-subtle)] transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--color-brand-mist)] text-[var(--color-brand)] border border-[var(--color-border)]">
+                    <Layers size={15} />
                   </div>
-                  <p className="text-[11.5px] text-text-secondary">ICD-11: MD90.0 • Rome IV Diagnostic Criteria satisfied.</p>
+                  <div>
+                    <h3 className="text-[14px] font-bold text-[var(--color-text-primary)]">
+                      Differential Diagnoses &amp; Guideline Correlation
+                    </h3>
+                    <p className="text-[11.5px] text-[var(--color-text-muted)]">
+                      AI-generated guidance suggestions · Requires physician clinical confirmation.
+                    </p>
+                  </div>
                 </div>
+                <span className="text-[11px] font-bold text-[var(--color-brand)] group-open:rotate-180 transition-transform">
+                  ▼
+                </span>
+              </summary>
 
-                <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-text-primary">2. Peptic Ulcer Disease</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-surface-subtle text-text-secondary border border-border">42% Match</span>
+              <div className="p-5 pt-0 border-t border-[var(--color-border)]">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px] mt-4">
+                  <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-[var(--color-text-primary)]">1. Functional Dyspepsia</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white bg-[var(--color-brand)]">88% Match</span>
+                      </div>
+                      <p className="text-[11.5px] text-[var(--color-text-secondary)] mt-1">ICD-11: MD90.0 · Rome IV criteria satisfied with postprandial distress.</p>
+                    </div>
+                    <SourceBadge type="ai" />
                   </div>
-                  <p className="text-[11.5px] text-text-secondary">ICD-11: DA40 • No melena, hematemesis, or alarm symptoms.</p>
-                </div>
 
-                <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-text-primary">3. Gastroesophageal Reflux</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-surface-subtle text-text-secondary border border-border">35% Match</span>
+                  <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-[var(--color-text-primary)]">2. Peptic Ulcer Disease</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)]">42% Match</span>
+                      </div>
+                      <p className="text-[11.5px] text-[var(--color-text-secondary)] mt-1">ICD-11: DA40 · Epigastric burning without melena or alarm signs.</p>
+                    </div>
+                    <SourceBadge type="ai" />
                   </div>
-                  <p className="text-[11.5px] text-text-secondary">ICD-11: DA22 • Retrosternal burning without dysphagia.</p>
+
+                  <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-[var(--color-text-primary)]">3. Gastroesophageal Reflux</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)]">35% Match</span>
+                      </div>
+                      <p className="text-[11.5px] text-[var(--color-text-secondary)] mt-1">ICD-11: DA22 · Retrosternal burning sensation without dysphagia.</p>
+                    </div>
+                    <SourceBadge type="ai" />
+                  </div>
                 </div>
               </div>
-            </section>
+            </details>
           </div>
         )}
 
-        {/* ── 4. TAB B: SCANNED DOCUMENTS INSPECTOR ────────────────────── */}
+        {/* ── TAB 2: DOCUMENTS (Equal-Height Grid with Fixed Zones) ───── */}
         {activeTab === 'DOCUMENTS' && (
-          <section
-            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <div>
-                <h3 className="text-[16px] font-extrabold text-text-primary">
-                  Physical Medical Documents ({DEMO_DOCUMENTS_ENC001.length})
-                </h3>
-                <p className="text-[12px] text-text-muted">
-                  Digitized at kiosk OCR station with bounding box entity extraction.
-                </p>
-              </div>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-verified-subtle text-verified-text border border-verified/30">
-                100% Extraction Verified
-              </span>
-            </div>
+          <Card level={2} className="p-5 space-y-4">
+            <ClinicalSectionHeader
+              icon={BookOpen}
+              title={`Digitized Clinical Documents (${documents.length})`}
+              subtitle="Scanned at kiosk OCR station with bounding box entity extraction and degradation tier ratings."
+              badge={
+                documents.some((d) => d.degradationTier === 3) ? (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--color-warning-subtle)] text-[var(--color-warning-text)] border border-[var(--color-warning-subtle)] flex items-center gap-1">
+                    <AlertTriangle size={12} /> Verification Required (Tier 3)
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] border border-emerald-200/60">
+                    Extraction Complete
+                  </span>
+                )
+              }
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {DEMO_DOCUMENTS_ENC001.map((doc) => (
-                <div
-                  key={doc.id}
-                  onClick={() => openEvidenceDrawer('fact-002')}
-                  className="p-4 rounded-xl border bg-surface-subtle hover:border-brand transition-all cursor-pointer group flex flex-col justify-between gap-3 shadow-xs"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-brand-mist text-brand">
+            {/* Equal-Height Card Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+              {documents.map((doc) => {
+                const isDocTier3 = doc.degradationTier === 3
+                return (
+                  <div
+                    key={doc.id}
+                    onClick={() => openEvidenceDrawer(doc.id)}
+                    className={cn(
+                      'p-4 rounded-xl border bg-[var(--color-surface)] hover:border-[var(--color-brand)] hover:shadow-2xs transition-all cursor-pointer group flex flex-col justify-between gap-3 text-left min-w-0 h-full',
+                      isDocTier3 ? 'border-[var(--color-warning)]/40 border-l-4 border-l-[var(--color-warning)]' : 'border-[var(--color-border)]'
+                    )}
+                  >
+                    {/* Zone 1: Document Type + Tier + OCR Confidence */}
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--color-brand-mist)] text-[var(--color-brand)] border border-[var(--color-border)] truncate">
                         {doc.documentType.replace(/_/g, ' ')}
                       </span>
-                      <span className="text-[10.5px] font-mono font-bold text-verified">
-                        {Math.round((doc.ocrConfidence || 0.95) * 100)}% OCR
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={cn(
+                            'text-[9.5px] font-bold px-1.5 py-0.2 rounded border',
+                            isDocTier3
+                              ? 'bg-[var(--color-warning-subtle)] text-[var(--color-warning-text)] border-[var(--color-warning-subtle)]'
+                              : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] border-[var(--color-border)]'
+                          )}
+                        >
+                          Tier {doc.degradationTier || 1}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-[11px] font-mono font-bold',
+                            isDocTier3 ? 'text-[var(--color-warning-text)]' : 'text-[var(--color-verified-text)]'
+                          )}
+                        >
+                          {Math.round((doc.ocrConfidence || 0.95) * 100)}% OCR
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Zone 2: File Name & Quality */}
+                    <div className="min-w-0 my-1">
+                      <h4
+                        className="text-[13.5px] font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors truncate"
+                        title={doc.originalFilename}
+                      >
+                        {doc.originalFilename}
+                      </h4>
+                      <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5">
+                        {doc.pageCount} page(s) • {isDocTier3 ? '⚠️ Faded / Cursive Script' : 'Clean Electronic Scan'}
+                      </p>
+                    </div>
+
+                    {/* Zone 3: Extracted Entity Count + Verification Status */}
+                    <div className="flex items-center justify-between text-[11px] text-[var(--color-text-muted)] pt-2 border-t border-[var(--color-border)] min-w-0">
+                      <span className="truncate">
+                        {doc.extractedFactsCount || 3} entities extracted
+                      </span>
+                      <span className="font-bold flex items-center gap-1 text-[var(--color-brand)] group-hover:underline shrink-0">
+                        <span>Inspect</span>
+                        <ExternalLink size={11} />
                       </span>
                     </div>
-                    <h4 className="text-[14px] font-bold text-text-primary group-hover:text-brand transition-colors">
-                      {doc.originalFilename}
-                    </h4>
                   </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-text-muted pt-2 border-t border-border">
-                    <span>{doc.extractedFactsCount || 4} entities extracted</span>
-                    <span className="text-brand font-bold flex items-center gap-1 group-hover:underline">
-                      <span>Inspect Bounding Box</span>
-                      <ExternalLink size={11} />
-                    </span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
-          </section>
+          </Card>
         )}
 
-        {/* ── 5. TAB C: TIMELINE ───────────────────────────────────────── */}
+        {/* ── TAB 3: TIMELINE (Refined Chronological Flow) ────────────── */}
         {activeTab === 'TIMELINE' && (
-          <section
-            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
-          >
-            <div>
-              <h3 className="text-[16px] font-extrabold text-text-primary">
-                Longitudinal Patient Health Timeline
-              </h3>
-              <p className="text-[12px] text-text-muted">
-                Historical records merged with today&apos;s digital intake stream.
-              </p>
-            </div>
+          <Card level={2} className="p-5 space-y-4">
+            <ClinicalSectionHeader
+              icon={TrendingUp}
+              title="Longitudinal Health Timeline"
+              subtitle="Prior health events and medical milestones arranged chronologically."
+            />
             <Timeline events={DEMO_TIMELINE_ENC001} />
-          </section>
+          </Card>
         )}
 
-        {/* ── 6. TAB D: COMPLETENESS GRID ─────────────────────────────── */}
+        {/* ── TAB 4: COMPLETENESS ─────────────────────────────────────── */}
         {activeTab === 'COMPLETENESS' && (
-          <section
-            className="rounded-2xl p-5 sm:p-6 border shadow-xs space-y-4"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
-          >
-            <div>
-              <h3 className="text-[16px] font-extrabold text-text-primary">
-                11-Domain Clinical Intake Completeness Matrix
-              </h3>
-              <p className="text-[12px] text-text-muted">
-                Standardized clinical readiness check before issuing prescription.
-              </p>
-            </div>
+          <Card level={2} className="p-5 space-y-4">
+            <ClinicalSectionHeader
+              icon={CheckSquare}
+              title="11-Domain Clinical Intake Completeness Matrix"
+              subtitle="Standardized clinical readiness check before issuing final prescription."
+            />
             <CompletenessGrid entries={DEMO_COMPLETENESS_ENC001} />
-          </section>
+          </Card>
         )}
 
-        {/* ── 7. PHYSICIAN DECISION CONSOLE (ALWAYS VISIBLE AT BOTTOM) ─── */}
-        <section
-          className="rounded-2xl p-5 sm:p-6 border-2 shadow-sm space-y-4"
-          style={{
-            background: 'var(--color-surface)',
-            borderColor: 'var(--color-border-strong)',
-          }}
-        >
-          <div className="flex items-center justify-between pb-2 border-b border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-brand-mist text-brand flex items-center justify-center">
-                <Edit3 size={16} />
-              </div>
-              <div>
-                <h3 className="text-[15px] font-extrabold text-text-primary">
-                  Physician Examination &amp; Final Rx Orders
-                </h3>
-                <p className="text-[11.5px] text-text-muted">
-                  Enter physical findings, confirm verification, and emit digital FHIR prescription.
-                </p>
-              </div>
-            </div>
-            <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-brand-mist text-brand border border-border-strong">
-              Physician Station #04
-            </span>
-          </div>
+        {/* ════════════════════════════════════════════════════════════════
+            8. TARGET READING ORDER #8: EXAMINATION & CLINICAL ACTIONS
+            (Physician Decision Console — always visible at bottom)
+        ════════════════════════════════════════════════════════════════ */}
+        <Card level={2} className="p-5 space-y-4 border-2 border-[var(--color-border)] shadow-2xs">
+          <ClinicalSectionHeader
+            icon={Edit3}
+            title="Physician Examination &amp; Clinical Rx Orders"
+            subtitle="Document physical exam findings, confirm intake validation, and emit digital FHIR prescription."
+            badge={
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-brand-mist)] text-[var(--color-brand)]">
+                OPD Station #04
+              </span>
+            }
+          />
 
-          {/* Physical Examination Textarea */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider block mb-1.5 text-text-secondary">
-              Physical Examination &amp; Clinical Decision Notes
+            <label className="text-[11px] font-bold uppercase tracking-wider block mb-1.5 text-[var(--color-text-secondary)]">
+              Physical Examination Findings &amp; Decision Notes
             </label>
             <textarea
               value={physicianNotes}
               onChange={(e) => setPhysicianNotes(e.target.value)}
-              placeholder="Enter abdomen palpation findings, differential assessment, or patient counselling instructions..."
-              className="w-full h-24 text-[13px] p-3 rounded-xl border focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand resize-none transition-all"
-              style={{
-                background: 'var(--color-surface-subtle)',
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-primary)',
-              }}
+              placeholder="Enter palpation findings, differential assessment, or patient counselling instructions..."
+              className="w-full h-24 text-[13px] p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] resize-none transition-all placeholder:text-[var(--color-text-muted)]"
             />
           </div>
 
-          {/* Action Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
             <button
               onClick={() => {
@@ -731,141 +876,115 @@ export default function DoctorEncounterPage() {
                 })
               }}
               className={cn(
-                'w-full sm:w-auto px-4 py-2 rounded-xl border text-[12.5px] font-bold transition-all flex items-center justify-center gap-2 active:scale-98'
+                'w-full sm:w-auto px-4 py-2 rounded-xl border text-[12px] font-bold transition-all flex items-center justify-center gap-2 active:scale-[0.98]',
+                isIntakeVerified
+                  ? 'bg-[var(--color-verified-subtle)] border-emerald-200/60 text-[var(--color-verified-text)]'
+                  : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-subtle)]'
               )}
-              style={{
-                background: isIntakeVerified ? 'var(--color-verified-subtle)' : 'var(--color-surface-subtle)',
-                borderColor: isIntakeVerified ? 'var(--color-verified-subtle)' : 'var(--color-border)',
-                color: isIntakeVerified ? 'var(--color-verified-text)' : 'var(--color-text-primary)',
-              }}
             >
-              <CheckCircle2 size={15} className={isIntakeVerified ? 'text-verified' : 'text-text-muted'} />
-              <span>{isIntakeVerified ? 'Intake Verified by Physician ✓' : 'Mark Intake Verified'}</span>
+              <CheckCircle2 size={14} className={isIntakeVerified ? 'text-[var(--color-verified-text)]' : 'text-[var(--color-text-muted)]'} />
+              <span>{isIntakeVerified ? 'Intake Verified ✓' : 'Mark Intake Verified'}</span>
             </button>
 
             <button
               onClick={handleCompleteEncounter}
-              className="w-full sm:w-auto px-5 py-2 rounded-xl text-white text-[13px] font-bold transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98 hover:opacity-90"
-              style={{ background: 'var(--color-brand)' }}
+              className="w-full sm:w-auto px-5 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all shadow-2xs flex items-center justify-center gap-2 active:scale-[0.98] hover:opacity-90 bg-[var(--color-brand)]"
             >
               <span>Finalize Consultation &amp; Sync to ABDM</span>
-              <ChevronRight size={15} />
+              <ChevronRight size={14} />
             </button>
           </div>
-        </section>
+        </Card>
       </main>
 
-      {/* ── 8. PRESCRIPTION PRINT & EHR VIEW MODAL ───────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════
+          PRESCRIPTION MODAL
+      ══════════════════════════════════════════════════════════════ */}
       {prescriptionModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div
-            className="w-full max-w-2xl rounded-2xl p-6 sm:p-8 border shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
-            style={{
-              background: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+          <div className="w-full max-w-2xl rounded-2xl p-6 sm:p-8 border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-[18px]"
-                  style={{ background: 'var(--color-brand)' }}
-                >
+                <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-[18px] bg-[var(--color-brand)]">
                   V
                 </div>
                 <div>
-                  <h3 className="text-[17px] font-extrabold text-text-primary">
+                  <h3 className="text-[17px] font-extrabold text-[var(--color-text-primary)]">
                     Hospital OPD Electronic Prescription
                   </h3>
-                  <p className="text-[11.5px] text-text-muted">
-                    Dept. of Internal Medicine • Room 104 • ABHA Health Locker Integration
+                  <p className="text-[11.5px] text-[var(--color-text-muted)]">
+                    Dept. of Internal Medicine • Room 104 • ABHA Health Locker
                   </p>
                 </div>
               </div>
-
               <button
                 onClick={() => setPrescriptionModalOpen(false)}
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-subtle"
+                className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)]"
               >
                 <X size={17} />
               </button>
             </div>
 
-            {/* Patient & Physician Grid */}
-            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl border bg-surface-subtle text-[12.5px]">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[12.5px]">
               <div>
-                <p className="text-text-muted text-[10.5px] font-bold uppercase">Patient</p>
-                <p className="font-bold text-text-primary">{patient?.name || 'Dhananjay Patil'}</p>
-                <p className="text-text-secondary">{patient?.age || 67}Y • Token {encounter?.tokenNumber || 'A-028'}</p>
-                <p className="font-mono text-brand text-[11px]">ABHA: 12-3456-7890-1234</p>
+                <p className="text-[10.5px] font-bold uppercase text-[var(--color-text-muted)]">Patient</p>
+                <p className="font-bold text-[var(--color-text-primary)]">{patient?.name || 'Dhananjay Patil'}</p>
+                <p className="text-[var(--color-text-secondary)]">{patient?.age || 67}Y • Token {encounter?.tokenNumber || 'A-028'}</p>
+                <p className="font-mono text-[11px] text-[var(--color-brand)]">ABHA: 12-3456-7890-1234</p>
               </div>
-
               <div className="text-right">
-                <p className="text-text-muted text-[10.5px] font-bold uppercase">Prescriber</p>
-                <p className="font-bold text-text-primary">Dr. Sunita Rao, MD</p>
-                <p className="text-text-secondary">Reg. No: MMC-2012-48291</p>
-                <p className="text-verified text-[11px] font-bold">Date: Today</p>
+                <p className="text-[10.5px] font-bold uppercase text-[var(--color-text-muted)]">Prescriber</p>
+                <p className="font-bold text-[var(--color-text-primary)]">Dr. Sunita Rao, MD</p>
+                <p className="text-[var(--color-text-secondary)]">Reg. No: MMC-2012-48291</p>
+                <p className="text-[11px] font-bold text-[var(--color-verified-text)]">Date: Today</p>
               </div>
             </div>
 
-            {/* Rx Medications */}
             <div className="space-y-2.5">
-              <h4 className="text-[13.5px] font-extrabold text-text-primary flex items-center gap-1.5">
-                <span className="font-serif italic text-brand text-[17px]">℞</span>
-                <span>Prescribed Medications (2)</span>
+              <h4 className="text-[13.5px] font-extrabold flex items-center gap-1.5 text-[var(--color-text-primary)]">
+                <span className="font-serif italic text-[17px] text-[var(--color-brand)]">℞</span>
+                Prescribed Medications (2)
               </h4>
-
               <div className="space-y-2">
-                <div className="p-3 rounded-xl border bg-surface flex items-center justify-between text-[12.5px]">
-                  <div>
-                    <p className="font-bold text-text-primary">1. Tab. Pantoprazole 40 mg</p>
-                    <p className="text-[11.5px] text-text-secondary">1 Tab • Once daily before breakfast (OD) • 14 days</p>
+                {[
+                  { name: '1. Tab. Pantoprazole 40 mg', detail: '1 Tab • Once daily before breakfast (OD) • 14 days' },
+                  { name: '2. Syrup Sucralfate 10 ml', detail: '2 tsp • Three times daily after meals (TDS) • 7 days' },
+                ].map((med) => (
+                  <div
+                    key={med.name}
+                    className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between text-[12.5px]"
+                  >
+                    <div>
+                      <p className="font-bold text-[var(--color-text-primary)]">{med.name}</p>
+                      <p className="text-[11.5px] text-[var(--color-text-secondary)]">{med.detail}</p>
+                    </div>
+                    <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[var(--color-brand-mist)] text-[var(--color-brand)]">Oral</span>
                   </div>
-                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-brand-mist text-brand">
-                    Oral
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl border bg-surface flex items-center justify-between text-[12.5px]">
-                  <div>
-                    <p className="font-bold text-text-primary">2. Syrup Sucralfate 10 ml</p>
-                    <p className="text-[11.5px] text-text-secondary">2 tsp • Three times daily after meals (TDS) • 7 days</p>
-                  </div>
-                  <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-brand-mist text-brand">
-                    Oral
-                  </span>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Diagnosis & Lifestyle */}
-            <div className="p-3.5 rounded-xl border bg-surface-subtle space-y-1 text-[12.5px]">
-              <p className="text-[10.5px] font-bold uppercase tracking-wider text-text-muted">Clinical Diagnosis</p>
-              <p className="font-bold text-text-primary">Chronic Acid Peptic Disease / Dyspepsia (Physician Verified)</p>
-              <p className="text-[11.5px] text-text-secondary">Advice: Avoid oily, excessively spicy foods. Elevate head of bed. Follow up in 2 weeks.</p>
+            <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] space-y-1 text-[12.5px]">
+              <p className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Clinical Diagnosis</p>
+              <p className="font-bold text-[var(--color-text-primary)]">Chronic Acid Peptic Disease / Dyspepsia (Physician Verified)</p>
+              <p className="text-[11.5px] text-[var(--color-text-secondary)]">Advice: Avoid oily, excessively spicy foods. Elevate head of bed. Follow up in 2 weeks.</p>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-text-muted flex items-center gap-1">
-                <ShieldCheck size={13} className="text-verified" />
-                <span>Digitally signed via ABDM Bridge</span>
+              <span className="text-[11px] flex items-center gap-1 text-[var(--color-text-muted)]">
+                <ShieldCheck size={13} className="text-[var(--color-verified-text)]" />
+                Digitally signed via ABDM Bridge
               </span>
-
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="px-4 py-2 rounded-xl text-white text-[12.5px] font-bold transition-all flex items-center gap-1.5 shadow-xs"
-                  style={{ background: 'var(--color-brand)' }}
+                  className="px-4 py-2 rounded-xl text-white text-[12.5px] font-bold flex items-center gap-1.5 shadow-xs bg-[var(--color-brand)]"
                 >
-                  <Printer size={13} />
-                  <span>Print Prescription</span>
+                  <Printer size={13} /><span>Print</span>
                 </button>
                 <button
                   onClick={() => setPrescriptionModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border text-text-secondary hover:text-text-primary text-[12.5px] font-semibold"
-                  style={{ borderColor: 'var(--color-border)' }}
+                  className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[12.5px] font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-subtle)]"
                 >
                   Close
                 </button>
@@ -877,3 +996,4 @@ export default function DoctorEncounterPage() {
     </div>
   )
 }
+
