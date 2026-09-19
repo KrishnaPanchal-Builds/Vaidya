@@ -55,25 +55,25 @@ export function EvidenceDrawer() {
       onClose={closeEvidenceDrawer}
       title="Optical Source Provenance & Audit"
     >
-      <div className="p-5 sm:p-6 space-y-5">
+      <div className="p-4 sm:p-5 space-y-4 max-w-full overflow-hidden">
         {(fact || document) && (
           <>
             {/* ── 1. Top Identity & Confidence Header ───────────────────────── */}
             <div
               className={cn(
-                'rounded-2xl p-4.5 border space-y-2.5 shadow-2xs',
+                'rounded-xl p-4 border space-y-2.5 shadow-2xs min-w-0 overflow-hidden',
                 isTier3
                   ? 'bg-[var(--color-warning-subtle)] border-[var(--color-warning)]/40 border-l-4 border-l-[var(--color-warning)]'
                   : 'bg-[var(--color-surface-subtle)] border-[var(--color-border)]'
               )}
             >
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[var(--color-brand)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-[var(--color-brand)] truncate">
                   {fact ? `${fact.domain} • ${fact.fieldName.replace(/_/g, ' ')}` : (document?.documentType.replace(/_/g, ' ') || 'CLINICAL DOCUMENT')}
                 </span>
                 <span
                   className={cn(
-                    'text-[10px] font-bold uppercase px-2 py-0.5 rounded border tracking-wider',
+                    'text-[9.5px] font-bold uppercase px-2 py-0.5 rounded border tracking-wider shrink-0 self-start sm:self-auto whitespace-nowrap',
                     isTier3
                       ? 'bg-[var(--color-warning)] text-white border-[var(--color-warning)]'
                       : 'bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] border-emerald-200/60'
@@ -83,13 +83,13 @@ export function EvidenceDrawer() {
                 </span>
               </div>
 
-              <div>
-                <p className="text-[17px] sm:text-[18px] font-bold text-[var(--color-text-primary)] leading-snug">
+              <div className="space-y-1 min-w-0">
+                <p className="text-[16px] sm:text-[17px] font-bold text-[var(--color-text-primary)] leading-snug break-words">
                   {fact ? fact.rawValue : document?.originalFilename}
-                  {fact?.valueUnit && <span className="text-[14px] font-semibold text-[var(--color-text-muted)] ml-1">{fact.valueUnit}</span>}
+                  {fact?.valueUnit && <span className="text-[13.5px] font-semibold text-[var(--color-text-muted)] ml-1">{fact.valueUnit}</span>}
                 </p>
                 {document && (
-                  <p className="text-[11.5px] text-[var(--color-text-muted)] mt-0.5 font-mono">
+                  <p className="text-[11px] text-[var(--color-text-muted)] font-mono break-all leading-relaxed pt-0.5">
                     File: {document.originalFilename} • {document.pageCount} page(s)
                   </p>
                 )}
@@ -97,29 +97,29 @@ export function EvidenceDrawer() {
             </div>
 
             {/* ── 2. Source Channel & OCR Confidence Strip ──────────────────── */}
-            <div className="space-y-1.5">
-              <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] block">
+            <div className="space-y-1.5 min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] block">
                 Ingestion Channel &amp; OCR Telemetry
               </span>
-              <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between gap-3 shadow-2xs">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-between gap-3 shadow-2xs min-w-0 overflow-hidden">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
                     className={cn(
-                      'w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
+                      'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
                       fact?.sourceType === 'INTERVIEW'
                         ? 'bg-[var(--color-brand-mist)] text-[var(--color-brand)]'
                         : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] border border-[var(--color-border)]'
                     )}
                   >
-                    {fact?.sourceType === 'INTERVIEW' ? <Mic size={18} /> : <FileText size={18} />}
+                    {fact?.sourceType === 'INTERVIEW' ? <Mic size={16} /> : <FileText size={16} />}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-[var(--color-text-primary)] truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12.5px] font-bold text-[var(--color-text-primary)] truncate">
                       {fact?.sourceType === 'INTERVIEW'
                         ? 'Patient Multilingual Voice Intake'
                         : document?.documentType.replace(/_/g, ' ') || 'Scanned Physical Record'}
                     </p>
-                    <p className="text-[11px] font-mono text-[var(--color-text-muted)] truncate">
+                    <p className="text-[10.5px] font-mono text-[var(--color-text-muted)] truncate">
                       {document ? `Doc ID: ${document.id}` : (fact?.sourceDocumentId ? `Doc ID: ${fact.sourceDocumentId}` : 'Audio Session: Bhashini ASR')}
                     </p>
                   </div>
@@ -135,15 +135,15 @@ export function EvidenceDrawer() {
 
             {/* ── 3. Realistic Scanned Document Image Viewport ──────────────── */}
             {activeImage && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                    <FileCheck2 size={13} className="text-[var(--color-brand)]" />
+              <div className="space-y-2 min-w-0">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5 truncate">
+                    <FileCheck2 size={13} className="text-[var(--color-brand)] shrink-0" />
                     Optical Scan &amp; Bounding Box Crop
                   </span>
                   <button
                     onClick={() => setImageExpanded(!imageExpanded)}
-                    className="text-[11px] font-semibold text-[var(--color-brand)] hover:underline flex items-center gap-1"
+                    className="text-[11px] font-semibold text-[var(--color-brand)] hover:underline flex items-center gap-1 shrink-0"
                   >
                     <Maximize2 size={12} />
                     <span>{imageExpanded ? 'Fit View' : 'Zoom Document'}</span>
@@ -152,7 +152,7 @@ export function EvidenceDrawer() {
 
                 <div
                   className={cn(
-                    'relative rounded-xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface-subtle)] transition-all flex items-center justify-center p-2',
+                    'relative rounded-xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface-subtle)] transition-all flex items-center justify-center p-2 min-w-0',
                     imageExpanded ? 'h-[440px]' : 'h-[260px]'
                   )}
                 >
@@ -165,9 +165,9 @@ export function EvidenceDrawer() {
                     priority
                   />
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-[var(--color-text-muted)] px-1">
+                <div className="flex items-center justify-between text-[10.5px] text-[var(--color-text-muted)] px-1 gap-2 flex-wrap">
                   <span>Quality Score: {Math.round((document?.qualityScore || ocrScore) * 100)}%</span>
-                  <span className="font-mono text-[10.5px]">
+                  <span className="font-mono">
                     {isTier3 ? '⚠️ Degradation: Skew + Cursive Noise' : '✓ Digitized at Kiosk Ingestion Station'}
                   </span>
                 </div>
@@ -176,37 +176,37 @@ export function EvidenceDrawer() {
 
             {/* ── 4. Tier 3 Degraded Scan: Mismatch Comparison ──────────────── */}
             {isTier3 && (
-              <div className="rounded-xl border border-[var(--color-warning)]/50 bg-[var(--color-surface)] p-4 space-y-3 shadow-2xs">
-                <div className="flex items-center gap-2 text-[var(--color-warning-text)]">
-                  <AlertTriangle size={15} />
-                  <h4 className="text-[12.5px] font-bold uppercase tracking-wider">
+              <div className="rounded-xl border border-[var(--color-warning)]/50 bg-[var(--color-surface)] p-3.5 sm:p-4 space-y-2.5 shadow-2xs min-w-0 overflow-hidden">
+                <div className="flex items-center gap-1.5 text-[var(--color-warning-text)]">
+                  <AlertTriangle size={14} className="shrink-0" />
+                  <h4 className="text-[11.5px] font-bold uppercase tracking-wider truncate">
                     OCR Discrepancy &amp; Verification Required
                   </h4>
                 </div>
 
-                <div className="space-y-2 text-[12px]">
+                <div className="space-y-2 text-[12px] min-w-0">
                   {/* Garbled OCR Result */}
-                  <div className="p-3 rounded-lg border border-red-200 bg-red-50/70 text-red-950 font-mono space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-red-700 block">
+                  <div className="p-2.5 rounded-lg border border-red-200 bg-red-50/70 text-red-950 font-mono space-y-1 min-w-0">
+                    <span className="text-[9.5px] font-bold uppercase text-red-700 block">
                       [Raw OCR Extraction — Garbled Text / Incomplete]
                     </span>
-                    <p className="font-bold text-[12.5px]">
+                    <p className="font-bold text-[12px] break-words leading-snug">
                       {document?.rawOcrGarbledText || fact?.extractedSnippet || 'Tab. Ranit~[??] 150mg B~[?] / Susp. Gelus[???] 10ml T~[?] (OCR Garbled)'}
                     </p>
                   </div>
 
                   {/* Ground Truth Meaning */}
-                  <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/70 text-emerald-950 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-emerald-700 block">
+                  <div className="p-2.5 rounded-lg border border-emerald-200 bg-emerald-50/70 text-emerald-950 space-y-1 min-w-0">
+                    <span className="text-[9.5px] font-bold uppercase text-emerald-700 block">
                       [Actual Image Ground Truth / Intended Order]
                     </span>
-                    <p className="font-medium text-[12.5px]">
+                    <p className="font-medium text-[12px] break-words leading-snug">
                       {document?.groundTruthText || fact?.groundTruthSnippet || 'Tab. Ranitidine 150mg BD x 14d before food, Susp. Gelusil 10ml TDS post prandial.'}
                     </p>
                   </div>
 
                   {/* Discrepancy Rationale */}
-                  <p className="text-[11.5px] text-[var(--color-text-secondary)] italic pt-1">
+                  <p className="text-[11px] text-[var(--color-text-secondary)] italic pt-0.5 break-words leading-relaxed">
                     <strong>Cause of Error:</strong> {document?.ocrDiscrepancyReason || fact?.ocrDiscrepancy || 'Aged paper fold crease and physician cursive handwriting caused character fragmentation. Optical inspection confirms correct formulation.'}
                   </p>
                 </div>
@@ -215,11 +215,11 @@ export function EvidenceDrawer() {
 
             {/* ── 5. Clean Extracted Text for Tier 1 / Tier 2 ───────────────── */}
             {!isTier3 && fact?.sourceType !== 'INTERVIEW' && (
-              <div className="space-y-1.5">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] block">
+              <div className="space-y-1.5 min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] block">
                   Extracted Machine-Readable Snippet
                 </span>
-                <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] font-mono text-[12.5px] text-[var(--color-text-primary)] border-l-4 border-l-[var(--color-brand)]">
+                <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] font-mono text-[12px] text-[var(--color-text-primary)] border-l-4 border-l-[var(--color-brand)] break-words leading-relaxed">
                   {document?.extractedTextSnippet || fact?.extractedSnippet || fact?.sourceText || fact?.rawValue}
                 </div>
               </div>
@@ -227,16 +227,16 @@ export function EvidenceDrawer() {
 
             {/* ── 6. Speech Audio Transcript (Voice Intake) ─────────────────── */}
             {fact?.sourceType === 'INTERVIEW' && (
-              <div className="space-y-2 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)]">
-                <div className="flex items-center gap-2 text-[var(--color-brand)] text-[12px] font-bold">
-                  <Mic size={14} />
+              <div className="space-y-2 p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] min-w-0">
+                <div className="flex items-center gap-1.5 text-[var(--color-brand)] text-[11.5px] font-bold">
+                  <Mic size={14} className="shrink-0" />
                   <span>Bhashini Multilingual Speech Model</span>
                 </div>
-                <p className="text-[13.5px] font-medium italic p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)]">
+                <p className="text-[13px] font-medium italic p-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] break-words leading-snug">
                   &quot;{fact.extractedSnippet || fact.rawValue}&quot;
                 </p>
                 {fact.groundTruthSnippet && (
-                  <p className="text-[11.5px] text-[var(--color-text-muted)]">
+                  <p className="text-[11px] text-[var(--color-text-muted)] break-words leading-relaxed">
                     {fact.groundTruthSnippet}
                   </p>
                 )}
@@ -244,21 +244,21 @@ export function EvidenceDrawer() {
             )}
 
             {/* ── 7. Physician Verification & CTA Actions ──────────────────── */}
-            <div className="pt-3 border-t border-[var(--color-border)] space-y-2.5">
+            <div className="pt-2.5 border-t border-[var(--color-border)] space-y-2">
               <button
                 onClick={handleVerify}
                 className={cn(
-                  'w-full h-11 text-[13.5px] font-bold rounded-xl text-white transition-all shadow-2xs flex items-center justify-center gap-2 active:scale-[0.98]',
+                  'w-full h-10 text-[13px] font-bold rounded-xl text-white transition-all shadow-2xs flex items-center justify-center gap-2 active:scale-[0.98]',
                   isVerified ? 'bg-[var(--color-verified)]' : 'bg-[var(--color-brand)] hover:opacity-90'
                 )}
               >
-                <CheckCircle2 size={16} />
+                <CheckCircle2 size={15} />
                 <span>{isVerified ? 'Optical Evidence Confirmed ✓' : 'Confirm Optical Match & Verify'}</span>
               </button>
 
               <button
                 onClick={closeEvidenceDrawer}
-                className="w-full h-9.5 text-[12.5px] font-semibold border border-[var(--color-border)] rounded-xl transition-colors bg-[var(--color-surface)] hover:bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)]"
+                className="w-full h-9 text-[12px] font-semibold border border-[var(--color-border)] rounded-xl transition-colors bg-[var(--color-surface)] hover:bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)]"
               >
                 Close Drawer
               </button>
@@ -267,10 +267,10 @@ export function EvidenceDrawer() {
         )}
 
         {!fact && !document && (
-          <div className="text-center py-14 space-y-3">
-            <Search size={36} className="mx-auto text-[var(--color-text-muted)]" />
-            <p className="text-[15px] font-bold text-[var(--color-text-primary)]">Source Evidence Not Found</p>
-            <p className="text-[12px] text-[var(--color-text-secondary)] max-w-xs mx-auto">
+          <div className="text-center py-12 space-y-2.5">
+            <Search size={32} className="mx-auto text-[var(--color-text-muted)]" />
+            <p className="text-[14px] font-bold text-[var(--color-text-primary)]">Source Evidence Not Found</p>
+            <p className="text-[11.5px] text-[var(--color-text-secondary)] max-w-xs mx-auto">
               The selected item ID could not be matched with attached optical scans or audio recordings.
             </p>
           </div>

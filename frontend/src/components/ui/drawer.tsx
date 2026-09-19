@@ -12,7 +12,7 @@ interface DrawerProps {
   width?: string
 }
 
-export function Drawer({ open, onClose, title, children, side = 'right', width = 'w-[420px]' }: DrawerProps) {
+export function Drawer({ open, onClose, title, children, side = 'right', width = 'w-full sm:w-[480px] max-w-[95vw]' }: DrawerProps) {
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden'
     else document.body.style.overflow = ''

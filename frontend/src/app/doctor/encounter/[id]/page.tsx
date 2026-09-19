@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowLeft,
   Sparkles,
@@ -66,8 +66,16 @@ import { SlidingSegmentedTabs, type TabOption } from '@/components/ui/SlidingSeg
 export default function DoctorEncounterPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const encounterId = (params?.id as string) || 'enc-001'
   const { openEvidenceDrawer, addToast } = useUIStore()
+
+  useEffect(() => {
+    const inspectTarget = searchParams.get('inspect')
+    if (inspectTarget) {
+      openEvidenceDrawer(inspectTarget)
+    }
+  }, [searchParams, openEvidenceDrawer])
 
   const initialEnc = DEMO_ENCOUNTERS.find((e) => e.id === encounterId) || DEMO_ENCOUNTERS[0]
   const initialPat = initialEnc.patient || DEMO_PATIENTS.find((p) => p.id === initialEnc.patientId) || DEMO_PATIENTS[0]
