@@ -29,9 +29,11 @@ import {
   Edit3,
   Check,
   AlertCircle,
+  Keyboard,
 } from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { getLocalizedBodyRegionLabel } from '@/lib/translations/body-regions-translations'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 import {
   InteractiveBodyMap,
@@ -68,10 +70,10 @@ export default function KioskIntakePage() {
   // ── 2. Stage 1: Selected Body Regions & Categories ──
   const [selectedRegionIds, setSelectedRegionIds] = useState<BodyRegionId[]>(['chest'])
 
-  // Derived selected items list for SelectedAreasPanel & summary
+  // Derived selected items list for SelectedAreasPanel & summary with dynamic localization
   const selectedItems: SelectedItem[] = selectedRegionIds.map((id) => ({
     id,
-    label: BODY_REGIONS[id]?.label || id,
+    label: getLocalizedBodyRegionLabel(id, language),
     categoryId: BODY_REGIONS[id]?.categoryId,
   }))
 
@@ -106,8 +108,9 @@ export default function KioskIntakePage() {
   // ── 6. Stage 5: AYUSH Lifestyle / Triggers ──
   const [selectedLifestyleTrigger, setSelectedLifestyleTrigger] = useState<string>('food_meals')
 
-  // ── 7. Voice Modal State ──
+  // ── 7. Voice & Typing Modal State ──
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
+  const [voiceModalMode, setVoiceModalMode] = useState<'VOICE' | 'TYPING'>('VOICE')
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState(false)
 
   // Register kiosk step
@@ -291,8 +294,12 @@ export default function KioskIntakePage() {
     router.push('/kiosk/documents')
   }
 
-  // ── VOICE MODAL CONFIRMATION HANDLER ──
-  const handleConfirmVoiceTranscript = (answerText: string, mappedOptionId?: string) => {
+  // ── VOICE & TYPING CONFIRMATION HANDLER ──
+  const handleConfirmVoiceTranscript = (
+    answerText: string,
+    source: 'VOICE' | 'TYPED' = 'VOICE',
+    mappedOptionId?: string
+  ) => {
     updateActivity()
     if (currentStage === 'SYMPTOMS') {
       if (mappedOptionId) {
@@ -302,10 +309,11 @@ export default function KioskIntakePage() {
           ...prev,
           [currentQuestion.id]: answerText,
         }))
+        setIntakeAnswer(`symptom_custom_${currentQuestion.id}`, answerText, source)
       }
     } else if (currentStage === 'DURATION') {
       setCustomDurationText(answerText)
-      setIntakeAnswer('duration', answerText)
+      setIntakeAnswer('duration', answerText, source)
       setCompletedStages((prev) => (prev.includes('DURATION') ? prev : [...prev, 'DURATION']))
       setCurrentStage('SEVERITY')
     }
@@ -400,6 +408,7 @@ export default function KioskIntakePage() {
                     selectedRegions={selectedRegionIds}
                     onToggleRegion={handleToggleRegion}
                     onResetView={handleResetView}
+                    language={language}
                   />
                 </div>
 
@@ -416,6 +425,7 @@ export default function KioskIntakePage() {
                     <SymptomCategoryGrid
                       selectedCategories={activeCategoryIds}
                       onToggleCategory={handleToggleCategory}
+                      language={language}
                       heading={
                         language === 'hi'
                           ? 'आपको क्या परेशानी है?'
@@ -548,13 +558,35 @@ export default function KioskIntakePage() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => setIsVoiceModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#2365B5] text-white rounded-xl text-[13px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
-                >
-                  <Mic size={15} />
-                  <span>Speak Answer</span>
-                </button>
+                {/* Dual Voice & Typing Actions (Never Hidden) */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    id="kiosk-stage2-speak-btn"
+                    type="button"
+                    onClick={() => {
+                      setVoiceModalMode('VOICE')
+                      setIsVoiceModalOpen(true)
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2365B5] text-white rounded-xl text-[12.5px] font-extrabold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
+                  >
+                    <Mic size={14} />
+                    <span>Speak Answer</span>
+                  </button>
+
+                  <button
+                    id="kiosk-stage2-type-btn"
+                    type="button"
+                    onClick={() => {
+                      setVoiceModalMode('TYPING')
+                      setIsVoiceModalOpen(true)
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-[#CBD8E5] text-[#2365B5] rounded-xl text-[12.5px] font-bold shadow-2xs hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-colors cursor-pointer"
+                  >
+                    <Keyboard size={14} />
+                    <span className="hidden sm:inline">Type instead</span>
+                    <span className="sm:hidden">Type</span>
+                  </button>
+                </div>
               </div>
 
               {/* Validation Warning */}
@@ -1216,13 +1248,14 @@ export default function KioskIntakePage() {
         </footer>
       </main>
 
-      {/* ── 4. Multimodal Voice Assistant Modal Dialog ── */}
+      {/* ── 4. Multimodal Voice & Typing Assistant Modal Dialog ── */}
       <VoiceIntakeModal
         isOpen={isVoiceModalOpen}
         onClose={() => setIsVoiceModalOpen(false)}
         onConfirmAnswer={handleConfirmVoiceTranscript}
         questionTitle={localizedQ.title}
         language={language}
+        initialMode={voiceModalMode}
       />
     </div>
   )

@@ -42,8 +42,8 @@ interface KioskStore extends KioskSession {
   /** Set patient summary data for in-memory session display */
   setPatientData: (patientData: KioskSession['patientData'], isReturning: boolean) => void
 
-  /** Record a clinical intake answer */
-  setIntakeAnswer: (key: string, value: string) => void
+  /** Record a clinical intake answer with optional modality source */
+  setIntakeAnswer: (key: string, value: string, source?: 'VOICE' | 'TYPED' | 'TOUCH') => void
 
   /** Add a captured document to the session in-memory list */
   addDocument: (doc: KioskSession['documents'][number]) => void
@@ -74,6 +74,7 @@ const EMPTY_SESSION: KioskSession = {
   patientRef: null,
   patientData: null,
   intakeAnswers: {},
+  intakeSources: {},
   documents: [],
   encounterRef: null,
   isReturningPatient: null,
@@ -94,6 +95,7 @@ export const useKioskStore = create<KioskStore>((set) => ({
       patientRef: null,
       patientData: null,
       intakeAnswers: {},
+      intakeSources: {},
       documents: [],
       encounterRef: null,
       isReturningPatient: null,
@@ -121,9 +123,10 @@ export const useKioskStore = create<KioskStore>((set) => ({
       lastActivityAt: Date.now(),
     }),
 
-  setIntakeAnswer: (key, value) =>
+  setIntakeAnswer: (key, value, source = 'TOUCH') =>
     set((state) => ({
       intakeAnswers: { ...state.intakeAnswers, [key]: value },
+      intakeSources: { ...state.intakeSources, [key]: source },
       lastActivityAt: Date.now(),
     })),
 

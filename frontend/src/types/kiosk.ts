@@ -102,6 +102,10 @@ export interface KioskSession {
    */
   intakeAnswers: Record<string, string>
   /**
+   * Source metadata for each intake response (VOICE vs TYPED vs TOUCH)
+   */
+  intakeSources?: Record<string, 'VOICE' | 'TYPED' | 'TOUCH'>
+  /**
    * In-memory list of documents captured in the current session.
    * Cleared completely on resetSession(). Never persisted.
    */
