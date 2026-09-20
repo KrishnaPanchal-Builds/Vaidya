@@ -60,7 +60,7 @@ import {
 
 export default function KioskIntakePage() {
   const router = useRouter()
-  const { language } = useKioskTranslation()
+  const { language, t } = useKioskTranslation()
   const { patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
 
   // ── 1. Progressive Stage State ──
@@ -570,7 +570,7 @@ export default function KioskIntakePage() {
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2365B5] text-white rounded-xl text-[12.5px] font-extrabold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
                   >
                     <Mic size={14} />
-                    <span>Speak Answer</span>
+                    <span>{t.intake.speakAnswer}</span>
                   </button>
 
                   <button
@@ -583,8 +583,7 @@ export default function KioskIntakePage() {
                     className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-[#CBD8E5] text-[#2365B5] rounded-xl text-[12.5px] font-bold shadow-2xs hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-colors cursor-pointer"
                   >
                     <Keyboard size={14} />
-                    <span className="hidden sm:inline">Type instead</span>
-                    <span className="sm:hidden">Type</span>
+                    <span>{t.intake.typeInstead}</span>
                   </button>
                 </div>
               </div>
@@ -757,7 +756,7 @@ export default function KioskIntakePage() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-[#2365B5] text-white rounded-xl text-[13px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
                 >
                   <Mic size={15} />
-                  <span>Speak Answer</span>
+                  <span>{t.intake.speakAnswer}</span>
                 </button>
               </div>
 

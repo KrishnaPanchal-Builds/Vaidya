@@ -152,6 +152,7 @@ export interface KioskTranslationSchema {
     lifeStress: string
     lifeNoPattern: string
     speakAnswer: string
+    typeInstead: string
     hearQuestion: string
     playingAudio: string
     voiceModalListening: string
@@ -390,6 +391,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'Worse with stress or irregular sleep',
       lifeNoPattern: 'No specific food or routine pattern',
       speakAnswer: 'Speak answer',
+      typeInstead: 'Type instead',
       hearQuestion: 'Hear question',
       playingAudio: '🔊 Playing question audio…',
       voiceModalListening: 'Listening to your voice…',
@@ -625,6 +627,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'तनाव या नींद की कमी से बढ़ता है',
       lifeNoPattern: 'कोई खास असर नहीं दिखता',
       speakAnswer: 'बोलकर बताएं',
+      typeInstead: 'टाइप करें',
       hearQuestion: 'प्रश्न सुनें',
       playingAudio: '🔊 प्रश्न का ऑडियो चल रहा है…',
       voiceModalListening: 'हम आपकी बात सुन रहे हैं…',
@@ -860,6 +863,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'ताणतणाव किंवा झोपेच्या अभावाने वाढतो',
       lifeNoPattern: 'काही विशिष्ट फरक पडत नाही',
       speakAnswer: 'बोलून सांगा',
+      typeInstead: 'टाइप करा',
       hearQuestion: 'प्रश्न ऐका',
       playingAudio: '🔊 प्रश्नाचा ऑडिओ सुरू आहे…',
       voiceModalListening: 'आम्ही ऐकत आहोत… बोला',
@@ -1095,6 +1099,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'તણાવ કે ઊંઘના અભાવે વધે છે',
       lifeNoPattern: 'કોઈ ચોક્કસ ફરક પડતો નથી',
       speakAnswer: 'બોલીને જણાવો',
+      typeInstead: 'લખીને જણાવો',
       hearQuestion: 'પ્રશ્ન સાંભળો',
       playingAudio: '🔊 પ્રશ્નનો ઑડિયો ચાલુ છે…',
       voiceModalListening: 'અમે સાંભળી રહ્યા છીએ… બોલો',
@@ -1330,6 +1335,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'মানসিক চাপ বা কম ঘুমের কারণে বাড়ে',
       lifeNoPattern: 'কোনো নির্দিষ্ট প্রভাব দেখা যায় না',
       speakAnswer: 'মুখে বলুন',
+      typeInstead: 'টাইপ করুন',
       hearQuestion: 'প্রশ্ন শুনুন',
       playingAudio: '🔊 প্রশ্নের অডিও চলছে…',
       voiceModalListening: 'আমরা আপনার কথা শুনছি… বলুন',
@@ -1565,6 +1571,7 @@ export const KIOSK_TRANSLATIONS: Record<SupportedKioskLanguage, KioskTranslation
       lifeStress: 'மன அழுத்தம் அல்லது தூக்கமின்மையால் அதிகரிக்கிறது',
       lifeNoPattern: 'குறிப்பிட்ட காரணம் எதுவும் தெரியவில்லை',
       speakAnswer: 'பேசி பதிலளிக்கவும்',
+      typeInstead: 'டைப் செய்யவும்',
       hearQuestion: 'கேள்வியை கேட்க',
       playingAudio: '🔊 கேள்வி ஆடியோ ஒலிக்கிறது…',
       voiceModalListening: 'நாங்கள் கேட்கிறோம்… பேசுங்கள்',
