@@ -856,6 +856,25 @@ export const DURATION_OPTIONS: IntakeDurationOption[] = [
       ta: 'துல்லியமாக கூற முடியவில்லை',
     },
   },
+  {
+    id: 'custom_other_duration',
+    title: {
+      en: 'Other / Type your duration',
+      hi: 'अन्य / समय खुद लिखें',
+      mr: 'इतर / कालावधी स्वतः लिहा',
+      gu: 'અન્ય / સમય જાતે લખો',
+      bn: 'অন্য / সময় নিজে লিখুন',
+      ta: 'வேறு / காலத்தை எழுதவும்',
+    },
+    desc: {
+      en: 'Specify exact duration or when it started',
+      hi: 'शुरू होने का सटीक समय खुद लिखें',
+      mr: 'कधी सुरू झाले ते स्वतः सांगा किंवा लिहा',
+      gu: 'ચોક્કસ સમય જણાવો અથવા લખો',
+      bn: 'সঠিক সময় উল্লেখ করুন বা লিখুন',
+      ta: 'துல்லியமான கால அளவை எழுதவும்',
+    },
+  },
 ]
 
 // ── 3. NON-JUDGMENTAL LIFESTYLE TRIGGERS (SECTION 4) ──

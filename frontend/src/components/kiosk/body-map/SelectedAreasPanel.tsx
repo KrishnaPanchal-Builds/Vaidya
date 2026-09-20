@@ -15,7 +15,7 @@ interface SelectedAreasPanelProps {
   selectedItems: SelectedItem[]
   onRemoveItem: (id: string) => void
   onClearAll: () => void
-  onContinue: () => void
+  onContinue?: () => void
   isLoading?: boolean
   emptyText?: string
   helperText?: string

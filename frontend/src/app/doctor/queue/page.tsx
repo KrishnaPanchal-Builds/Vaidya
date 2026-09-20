@@ -169,7 +169,7 @@ export default function DoctorQueuePage() {
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[var(--color-canvas)]">
       {/* ─── 1. TOP HEADER & COMPACT METRICS ───────────────────────────── */}
       <div className="px-4 sm:px-6 md:px-8 py-5 shrink-0 shadow-2xs border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-w-0">
+        <div className="w-full max-w-[1920px] mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-w-0 px-1 sm:px-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border border-[var(--color-border)] bg-[var(--color-brand-mist)] text-[var(--color-brand)]">
@@ -246,14 +246,14 @@ export default function DoctorQueuePage() {
       </div>
 
       {/* ─── 2. MAIN PATIENT QUEUE ──────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 w-full flex-1 flex flex-col gap-4 min-w-0">
+      <div className="w-full max-w-[1920px] mx-auto p-4 sm:p-6 md:p-8 xl:p-10 w-full flex-1 flex flex-col gap-4 sm:gap-5 min-w-0">
         {/* Search & Filter Ribbon (Level 2 Card) */}
         <Card
           level={2}
-          className="p-3.5 flex flex-col md:flex-row items-center justify-between gap-3 min-w-0"
+          className="p-3.5 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 min-w-0"
         >
           {/* Search Input */}
-          <div className="relative w-full md:w-96 min-w-0">
+          <div className="relative w-full md:flex-1 md:max-w-xl min-w-0">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
             <input
               type="text"
@@ -349,10 +349,10 @@ export default function DoctorQueuePage() {
                   )}
                 >
                   {/* Default Row: Capped Density to Exactly 3 Surviving Metadata Items */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 min-w-0">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-5 p-4 sm:p-5 min-w-0">
 
                     {/* ── ZONE 1 (LEFT): Token + Patient Name ── */}
-                    <div className="flex items-center gap-3 shrink-0 lg:w-[240px] min-w-0">
+                    <div className="flex items-center gap-3.5 shrink-0 lg:w-[260px] xl:w-[320px] 2xl:w-[360px] min-w-0">
                       {/* OPD Token Box */}
                       <div
                         className={cn(
@@ -394,27 +394,29 @@ export default function DoctorQueuePage() {
 
                     {/* ── ZONE 2 (CENTER): 3 SURVIVING METADATA ITEMS ── */}
                     {/* Item 1: Chief Complaint | Item 3: Document/Intake Status */}
-                    <div className="flex-1 lg:px-3 min-w-0 space-y-0.5">
+                    <div className="flex-1 lg:px-4 xl:px-6 min-w-0 space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
                           Chief Complaint
                         </span>
                       </div>
-                      <p className="text-[13px] font-semibold text-[var(--color-text-primary)] leading-snug truncate">
+                      <p className="text-[13.5px] sm:text-[14px] font-semibold text-[var(--color-text-primary)] leading-snug truncate">
                         {meta.complaint}
                       </p>
                       {/* Document & Intake Status */}
-                      <p className="text-[11px] text-[var(--color-text-secondary)] flex items-center gap-1.5 truncate">
+                      <p className="text-[11.5px] text-[var(--color-text-secondary)] flex items-center gap-2 truncate">
                         <span>{meta.intakeSummary}</span>
                         <span>•</span>
                         <span>{meta.docs} document{meta.docs !== 1 ? 's' : ''}</span>
+                        <span>•</span>
+                        <span>Intake Language: <strong>{meta.language}</strong></span>
                       </p>
                     </div>
 
-                    {/* ── ZONE 3 (RIGHT): Item 2: Wait Time + Status + 1 CTA ── */}
-                    <div className="flex items-center justify-between lg:justify-end gap-3.5 shrink-0 lg:w-[220px] pt-2.5 lg:pt-0 border-t lg:border-t-0 border-[var(--color-border)]">
+                    {/* ── ZONE 3 (RIGHT): Wait Time + Primary Action ── */}
+                    <div className="flex items-center justify-between lg:justify-end gap-3.5 sm:gap-5 shrink-0 lg:w-auto xl:min-w-[240px] pt-2.5 lg:pt-0 border-t lg:border-t-0 border-[var(--color-border)]">
                       {/* Wait Time */}
-                      <div className="text-left lg:text-right space-y-0.5 min-w-[80px]">
+                      <div className="text-left lg:text-right space-y-0.5 min-w-[85px]">
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border',

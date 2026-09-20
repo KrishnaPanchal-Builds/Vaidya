@@ -22,9 +22,7 @@ import {
   Shield,
   HelpCircle,
   ArrowRight,
-  ArrowLeft,
   Volume2,
-  Mic,
   CheckCircle2,
   Edit3,
   Check,
@@ -35,6 +33,7 @@ import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 import { getLocalizedBodyRegionLabel } from '@/lib/translations/body-regions-translations'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
+import { KioskBottomDock } from '@/components/kiosk/KioskBottomDock'
 import {
   InteractiveBodyMap,
   SymptomCategoryGrid,
@@ -246,13 +245,18 @@ export default function KioskIntakePage() {
   // ── STAGE 3 HANDLERS: Duration ──
   const handleSelectDuration = (durId: string) => {
     updateActivity()
+    if (durId === 'custom_other_duration') {
+      setVoiceModalMode('TYPING')
+      setIsVoiceModalOpen(true)
+      return
+    }
     setSelectedDuration(durId)
     setIntakeAnswer('duration', durId)
   }
 
   const handleContinueFromDuration = () => {
     updateActivity()
-    setIntakeAnswer('duration', selectedDuration)
+    setIntakeAnswer('duration', customDurationText || selectedDuration)
     setCompletedStages((prev) => (prev.includes('DURATION') ? prev : [...prev, 'DURATION']))
     setCurrentStage('SEVERITY')
   }
@@ -279,14 +283,6 @@ export default function KioskIntakePage() {
     setCurrentStage('REVIEW')
   }
 
-  const handleSkipLifestyle = () => {
-    updateActivity()
-    setSelectedLifestyleTrigger('no_specific_pattern')
-    setIntakeAnswer('lifestyle_trigger', 'no_specific_pattern')
-    setCompletedStages((prev) => (prev.includes('LIFESTYLE') ? prev : [...prev, 'LIFESTYLE']))
-    setCurrentStage('REVIEW')
-  }
-
   // ── STAGE 6 HANDLERS: Review & Final Navigation ──
   const handleProceedToDocuments = () => {
     updateActivity()
@@ -301,7 +297,21 @@ export default function KioskIntakePage() {
     mappedOptionId?: string
   ) => {
     updateActivity()
-    if (currentStage === 'SYMPTOMS') {
+    if (currentStage === 'LOCATION') {
+      setIntakeAnswer('chief_complaint_spoken', answerText, source)
+      const lower = answerText.toLowerCase()
+      if (lower.includes('chest') || lower.includes('chhati') || lower.includes('chati') || lower.includes('छाती') || lower.includes('हृदय') || lower.includes('heart')) {
+        setSelectedRegionIds((prev) => (prev.includes('chest') ? prev : [...prev, 'chest']))
+      } else if (lower.includes('head') || lower.includes('sar') || lower.includes('sir') || lower.includes('डोके') || lower.includes('सिर') || lower.includes('matha')) {
+        setSelectedRegionIds((prev) => (prev.includes('head') ? prev : [...prev, 'head']))
+      } else if (lower.includes('stomach') || lower.includes('pet') || lower.includes('belly') || lower.includes('पोट') || lower.includes('पेट')) {
+        setSelectedRegionIds((prev) => (prev.includes('stomach') ? prev : [...prev, 'stomach']))
+      } else if (lower.includes('throat') || lower.includes('gala') || lower.includes('ghasa') || lower.includes('घसा') || lower.includes('गला') || lower.includes('neck')) {
+        setSelectedRegionIds((prev) => (prev.includes('neck') ? prev : [...prev, 'neck']))
+      } else if (lower.includes('back') || lower.includes('peeth') || lower.includes('path') || lower.includes('पाठी') || lower.includes('पीठ')) {
+        setSelectedRegionIds((prev) => (prev.includes('upper_back') ? prev : [...prev, 'upper_back']))
+      }
+    } else if (currentStage === 'SYMPTOMS') {
       if (mappedOptionId) {
         handleToggleSymptomOption(currentQuestion.id, mappedOptionId)
       } else {
@@ -313,9 +323,11 @@ export default function KioskIntakePage() {
       }
     } else if (currentStage === 'DURATION') {
       setCustomDurationText(answerText)
+      setSelectedDuration('custom_other_duration')
       setIntakeAnswer('duration', answerText, source)
-      setCompletedStages((prev) => (prev.includes('DURATION') ? prev : [...prev, 'DURATION']))
-      setCurrentStage('SEVERITY')
+    } else if (currentStage === 'LIFESTYLE') {
+      setSelectedLifestyleTrigger(answerText)
+      setIntakeAnswer('lifestyle_trigger', answerText, source)
     }
   }
 
@@ -459,7 +471,7 @@ export default function KioskIntakePage() {
                       selectedItems={selectedItems}
                       onRemoveItem={handleRemoveSelectedItem}
                       onClearAll={handleClearAll}
-                      onContinue={handleContinueFromLocation}
+                      onContinue={undefined}
                       emptyText={
                         language === 'hi'
                           ? 'आपके चुने हुए अंग यहाँ दिखेंगे'
@@ -490,6 +502,30 @@ export default function KioskIntakePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Fixed Ergonomic Action Dock */}
+              <KioskBottomDock
+                onSpeak={() => {
+                  setVoiceModalMode('VOICE')
+                  setIsVoiceModalOpen(true)
+                }}
+                onType={() => {
+                  setVoiceModalMode('TYPING')
+                  setIsVoiceModalOpen(true)
+                }}
+                onNext={handleContinueFromLocation}
+                isNextDisabled={selectedRegionIds.length === 0}
+                nextLabel={
+                  language === 'hi'
+                    ? 'आगे: लक्षण →'
+                    : language === 'mr'
+                    ? 'पुढे: लक्षणे →'
+                    : 'Next: Symptoms'
+                }
+                onBack={() => router.push('/kiosk')}
+                backLabel={language === 'hi' ? 'भाषा' : 'Language'}
+                language={language}
+              />
             </motion.div>
           )}
 
@@ -527,7 +563,7 @@ export default function KioskIntakePage() {
                 )}
               </div>
 
-              {/* Context Badge, Multi-select indicator & Voice Assistant CTA */}
+              {/* Context Badge & Multi-select indicator */}
               <div className="bg-[#EEF5FC] p-3 sm:p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between gap-2 shadow-2xs">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[11.5px] sm:text-[12px] font-extrabold uppercase tracking-wider text-[#2365B5] bg-white px-2.5 py-1 rounded-lg border border-[#CBD8E5]">
@@ -556,36 +592,6 @@ export default function KioskIntakePage() {
                       (Question {activeQuestionIndex + 1} of {applicableQuestions.length})
                     </span>
                   )}
-                </div>
-
-                {/* Dual Voice & Typing Actions (Never Hidden) */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    id="kiosk-stage2-speak-btn"
-                    type="button"
-                    onClick={() => {
-                      setVoiceModalMode('VOICE')
-                      setIsVoiceModalOpen(true)
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2365B5] text-white rounded-xl text-[12.5px] font-extrabold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
-                  >
-                    <Mic size={14} />
-                    <span>Speak Answer</span>
-                  </button>
-
-                  <button
-                    id="kiosk-stage2-type-btn"
-                    type="button"
-                    onClick={() => {
-                      setVoiceModalMode('TYPING')
-                      setIsVoiceModalOpen(true)
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-[#CBD8E5] text-[#2365B5] rounded-xl text-[12.5px] font-bold shadow-2xs hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-colors cursor-pointer"
-                  >
-                    <Keyboard size={14} />
-                    <span className="hidden sm:inline">Type instead</span>
-                    <span className="sm:hidden">Type</span>
-                  </button>
                 </div>
               </div>
 
@@ -644,6 +650,44 @@ export default function KioskIntakePage() {
                     </button>
                   )
                 })}
+
+                {/* Explicit Other / Type your answer option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVoiceModalMode('TYPING')
+                    setIsVoiceModalOpen(true)
+                  }}
+                  className="p-4 rounded-2xl border-2 border-dashed border-[#2365B5]/50 bg-[#F0F6FD]/60 hover:bg-[#EEF5FC] text-left transition-all duration-150 active:scale-98 flex items-center justify-between gap-2.5 min-h-[78px] sm:min-h-[84px] cursor-pointer shadow-2xs"
+                  aria-label="Other, type your answer"
+                >
+                  <div className="space-y-0.5">
+                    <span className="text-[15px] sm:text-[15.5px] font-extrabold text-[#2365B5] flex items-center gap-2 leading-tight">
+                      <Keyboard size={16} />
+                      {language === 'hi'
+                        ? 'अन्य / लिखकर बताएं'
+                        : language === 'mr'
+                        ? 'इतर / टाईप करा'
+                        : language === 'gu'
+                        ? 'અન્ય / લખીને જણાવો'
+                        : language === 'bn'
+                        ? 'অন্যান্য / লিখে জানান'
+                        : language === 'ta'
+                        ? 'மற்றவை / தட்டச்சு செய்யவும்'
+                        : 'Other / Type your answer'}
+                    </span>
+                    <span className="text-[12px] sm:text-[12.5px] text-[#6F7480] block leading-tight">
+                      {language === 'hi'
+                        ? 'यदि आपका लक्षण सूची में नहीं है'
+                        : language === 'mr'
+                        ? 'तुमचे लक्षण यादीत नसल्यास'
+                        : 'If your symptom is not listed'}
+                    </span>
+                  </div>
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border border-[#2365B5] bg-white text-[#2365B5] font-extrabold text-[14px]">
+                    +
+                  </div>
+                </button>
               </div>
 
               {/* Custom Note Display if recorded via voice or typing */}
@@ -658,38 +702,33 @@ export default function KioskIntakePage() {
                 </div>
               )}
 
-              {/* Navigation CTAs */}
-              <div className="flex items-center justify-between pt-1">
-                <button
-                  onClick={() => {
-                    updateActivity()
-                    if (activeQuestionIndex > 0) {
-                      setActiveQuestionIndex((prev) => prev - 1)
-                    } else {
-                      setCurrentStage('LOCATION')
-                    }
-                  }}
-                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={16} />
-                  <span>Back</span>
-                </button>
-
-                <button
-                  onClick={handleContinueFromSymptoms}
-                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
-                  style={{
-                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
-                  }}
-                >
-                  <span>
-                    {activeQuestionIndex < applicableQuestions.length - 1
-                      ? 'Next Question'
-                      : 'Continue to Duration'}
-                  </span>
-                  <ArrowRight size={16} className="stroke-[2.5]" />
-                </button>
-              </div>
+              {/* Fixed Ergonomic Action Dock */}
+              <KioskBottomDock
+                onSpeak={() => {
+                  setVoiceModalMode('VOICE')
+                  setIsVoiceModalOpen(true)
+                }}
+                onType={() => {
+                  setVoiceModalMode('TYPING')
+                  setIsVoiceModalOpen(true)
+                }}
+                onNext={handleContinueFromSymptoms}
+                nextLabel={
+                  activeQuestionIndex < applicableQuestions.length - 1
+                    ? (language === 'hi' ? 'अगला प्रश्न →' : 'Next Question →')
+                    : (language === 'hi' ? 'आगे: अवधि →' : 'Next: Duration →')
+                }
+                onBack={() => {
+                  updateActivity()
+                  if (activeQuestionIndex > 0) {
+                    setActiveQuestionIndex((prev) => prev - 1)
+                  } else {
+                    setCurrentStage('LOCATION')
+                  }
+                }}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
+                language={language}
+              />
             </motion.div>
           )}
 
@@ -744,21 +783,16 @@ export default function KioskIntakePage() {
               </div>
 
               {/* Symptom Context Badge */}
-              <div className="bg-[#EEF5FC] p-3 sm:p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between gap-2">
+              <div className="bg-[#EEF5FC] p-3 sm:p-3.5 rounded-2xl border border-[#CBD8E5] flex items-center justify-between gap-2 shadow-2xs">
                 <span className="text-[13px] text-[#4B5565]">
                   Regarding:{' '}
                   <strong className="text-[#2365B5] font-extrabold">
                     {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
                   </strong>
                 </span>
-
-                <button
-                  onClick={() => setIsVoiceModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#2365B5] text-white rounded-xl text-[13px] font-bold shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer shrink-0"
-                >
-                  <Mic size={15} />
-                  <span>Speak Answer</span>
-                </button>
+                <span className="text-[12px] font-bold text-[#6F7480]">
+                  {language === 'hi' ? 'समय अवधि चुनें' : 'Select onset time'}
+                </span>
               </div>
 
               {/* Standardized Duration Options Grid */}
@@ -806,27 +840,22 @@ export default function KioskIntakePage() {
                 })}
               </div>
 
-              {/* Navigation CTAs */}
-              <div className="flex justify-between items-center pt-1">
-                <button
-                  onClick={() => setCurrentStage('SYMPTOMS')}
-                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={16} />
-                  <span>Back to Symptoms</span>
-                </button>
-
-                <button
-                  onClick={handleContinueFromDuration}
-                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
-                  style={{
-                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
-                  }}
-                >
-                  <span>Continue</span>
-                  <ArrowRight size={16} className="stroke-[2.5]" />
-                </button>
-              </div>
+              {/* Fixed Ergonomic Action Dock */}
+              <KioskBottomDock
+                onSpeak={() => {
+                  setVoiceModalMode('VOICE')
+                  setIsVoiceModalOpen(true)
+                }}
+                onType={() => {
+                  setVoiceModalMode('TYPING')
+                  setIsVoiceModalOpen(true)
+                }}
+                onNext={handleContinueFromDuration}
+                nextLabel={language === 'hi' ? 'आगे: गंभीरता →' : 'Next: Severity →'}
+                onBack={() => setCurrentStage('SYMPTOMS')}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back to Symptoms'}
+                language={language}
+              />
             </motion.div>
           )}
 
@@ -887,27 +916,18 @@ export default function KioskIntakePage() {
                 language={language}
               />
 
-              {/* Navigation CTAs */}
-              <div className="flex items-center justify-between pt-1">
-                <button
-                  onClick={() => setCurrentStage('DURATION')}
-                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
-                >
-                  <ArrowLeft size={16} />
-                  <span>Back to Duration</span>
-                </button>
-
-                <button
-                  onClick={handleContinueFromSeverity}
-                  className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
-                  style={{
-                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
-                  }}
-                >
-                  <span>Continue</span>
-                  <ArrowRight size={16} className="stroke-[2.5]" />
-                </button>
-              </div>
+              {/* Fixed Ergonomic Action Dock */}
+              <KioskBottomDock
+                onSpeak={() => {
+                  setVoiceModalMode('VOICE')
+                  setIsVoiceModalOpen(true)
+                }}
+                onNext={handleContinueFromSeverity}
+                nextLabel={language === 'hi' ? 'आगे: जीवनशैली →' : 'Next: Lifestyle →'}
+                onBack={() => setCurrentStage('DURATION')}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back to Duration'}
+                language={language}
+              />
             </motion.div>
           )}
 
@@ -1004,38 +1024,60 @@ export default function KioskIntakePage() {
                     </button>
                   )
                 })}
-              </div>
 
-              {/* Navigation & Skip Option */}
-              <div className="flex items-center justify-between pt-1">
+                {/* Explicit Other / Type lifestyle habit */}
                 <button
-                  onClick={() => setCurrentStage('SEVERITY')}
-                  className="inline-flex items-center gap-2 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-4 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => {
+                    setVoiceModalMode('TYPING')
+                    setIsVoiceModalOpen(true)
+                  }}
+                  className="p-4 rounded-2xl border-2 border-dashed border-[#079455]/50 bg-[#EBFDF5]/60 hover:bg-[#EBFDF5] text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[78px] sm:min-h-[84px] shadow-2xs"
+                  aria-label="Other habit or trigger"
                 >
-                  <ArrowLeft size={16} />
-                  <span>Back to Severity</span>
+                  <div className="space-y-0.5">
+                    <span className="text-[15px] sm:text-[15.5px] font-extrabold text-[#079455] flex items-center gap-2">
+                      <Keyboard size={16} />
+                      {language === 'hi'
+                        ? 'अन्य / लिखकर बताएं'
+                        : language === 'mr'
+                        ? 'इतर / टाईप करा'
+                        : language === 'gu'
+                        ? 'અન્ય / લખીને જણાવો'
+                        : language === 'bn'
+                        ? 'অন্যান্য / লিখে জানান'
+                        : language === 'ta'
+                        ? 'மற்றவை / தட்டச்சு செய்யவும்'
+                        : 'Other / Type custom habit'}
+                    </span>
+                    <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block">
+                      {language === 'hi'
+                        ? 'कोई अन्य खान-पान या दिनचर्या का कारण'
+                        : 'Any other dietary or daily routine factor'}
+                    </span>
+                  </div>
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border border-[#079455] bg-white text-[#079455] font-extrabold text-[14px]">
+                    +
+                  </div>
                 </button>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleSkipLifestyle}
-                    className="text-[13.5px] font-bold text-[#6F7480] hover:text-[#17191F] py-2.5 px-3.5 rounded-xl hover:bg-[#F1F4F9] transition-colors cursor-pointer"
-                  >
-                    Skip for now →
-                  </button>
-
-                  <button
-                    onClick={handleContinueFromLifestyle}
-                    className="px-7 py-3 rounded-xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
-                    style={{
-                      background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
-                    }}
-                  >
-                    <span>Continue to Review</span>
-                    <ArrowRight size={16} className="stroke-[2.5]" />
-                  </button>
-                </div>
               </div>
+
+              {/* Fixed Ergonomic Action Dock */}
+              <KioskBottomDock
+                onSpeak={() => {
+                  setVoiceModalMode('VOICE')
+                  setIsVoiceModalOpen(true)
+                }}
+                onType={() => {
+                  setVoiceModalMode('TYPING')
+                  setIsVoiceModalOpen(true)
+                }}
+                onNext={handleContinueFromLifestyle}
+                nextLabel={language === 'hi' ? 'समीक्षा करें →' : 'Review Answers →'}
+                onBack={() => setCurrentStage('SEVERITY')}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back to Severity'}
+                language={language}
+              />
             </motion.div>
           )}
 

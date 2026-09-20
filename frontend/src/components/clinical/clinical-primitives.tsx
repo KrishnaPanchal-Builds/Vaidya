@@ -120,60 +120,95 @@ export function FactCard({
   className,
 }: FactCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const isLongDetail = detail && detail.length > 70
+  const isOcrSource = sourceType === 'ocr' || sourceType === 'unverified'
+  const isLongDetail = detail && detail.length > 60
 
   return (
     <div
-      onClick={onClick}
       className={cn(
-        'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col justify-between gap-2.5 transition-all text-left min-w-0 shadow-xs',
-        onClick ? 'cursor-pointer hover:border-[var(--color-brand)] hover:shadow-sm' : '',
+        'rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col justify-between gap-2.5 transition-all text-left min-w-0 shadow-2xs hover:shadow-xs',
         className
       )}
     >
       {/* Zone 1: Category + Source Badge */}
       <div className="flex items-center justify-between gap-2 min-w-0">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] truncate">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] truncate">
           {category}
         </span>
         <SourceBadge type={sourceType} />
       </div>
 
       {/* Zone 2: Primary Finding (dominant) */}
-      <div className="text-[13.5px] font-semibold text-[var(--color-text-primary)] leading-snug min-w-0">
+      <div className="text-[14px] font-bold text-[var(--color-text-primary)] leading-snug min-w-0">
         {primary}
       </div>
 
-      {/* Zone 3: Supporting Detail (line clamped if long) */}
+      {/* Zone 3: Supporting Detail (Collapsible for OCR/documents) */}
       {detail && (
         <div className="min-w-0">
-          <p
-            className={cn(
-              'text-[12.5px] text-[var(--color-text-secondary)] leading-relaxed',
-              !expanded && isLongDetail && 'line-clamp-2'
-            )}
-          >
-            {detail}
-          </p>
-          {isLongDetail && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                setExpanded(!expanded)
-              }}
-              className="mt-1 text-[11px] font-semibold text-[var(--color-brand)] flex items-center gap-0.5 hover:underline"
-            >
-              {expanded ? (
-                <>
-                  <span>Show less</span> <ChevronUp size={12} />
-                </>
-              ) : (
-                <>
-                  <span>Read more</span> <ChevronDown size={12} />
-                </>
+          {!isOcrSource ? (
+            <div>
+              <p
+                className={cn(
+                  'text-[12.5px] text-[var(--color-text-secondary)] leading-relaxed',
+                  !expanded && isLongDetail && 'line-clamp-2'
+                )}
+              >
+                {detail}
+              </p>
+              {isLongDetail && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setExpanded(!expanded)
+                  }}
+                  className="mt-1 text-[11px] font-bold text-[var(--color-brand)] flex items-center gap-0.5 hover:underline cursor-pointer"
+                >
+                  {expanded ? (
+                    <>
+                      <span>Show less</span> <ChevronUp size={12} />
+                    </>
+                  ) : (
+                    <>
+                      <span>Read more</span> <ChevronDown size={12} />
+                    </>
+                  )}
+                </button>
               )}
-            </button>
+            </div>
+          ) : (
+            <div className="pt-0.5">
+              {expanded ? (
+                <div className="bg-[#F8FAFC] border border-[#DFE8F1] rounded-xl p-2.5 text-[11.5px] font-mono text-[#4B5565] space-y-1">
+                  <span className="text-[9.5px] uppercase font-bold text-[#6F7480] block">Raw OCR Extract:</span>
+                  <p className="break-words leading-relaxed">&ldquo;{detail}&rdquo;</p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setExpanded(false)
+                    }}
+                    className="text-[11px] font-bold text-[var(--color-brand)] hover:underline mt-1"
+                  >
+                    Hide raw text
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setExpanded(true)
+                    }}
+                    className="text-[11px] text-[#6F7480] hover:text-[#17191F] font-medium underline decoration-dotted"
+                  >
+                    Show OCR text
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -181,11 +216,17 @@ export function FactCard({
       {/* Zone 4: Source Attribution + Inspect Link */}
       {(sourceName || factId) && (
         <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)] text-[11px] text-[var(--color-text-muted)] min-w-0">
-          <span className="truncate pr-2">{sourceName || 'VAIDYA Multi-Modal Extraction'}</span>
+          <span className="truncate pr-2 font-mono text-[10.5px]">
+            {sourceName ? `Ref: ${sourceName}` : 'VAIDYA Multi-Modal Extraction'}
+          </span>
           {onClick && (
-            <span className="font-bold text-[var(--color-brand)] shrink-0 flex items-center gap-0.5">
-              Inspect →
-            </span>
+            <button
+              type="button"
+              onClick={onClick}
+              className="font-extrabold text-[var(--color-brand)] hover:text-[#174A91] shrink-0 flex items-center gap-1 bg-[#EEF5FC] hover:bg-[#D3E2F0] px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+            >
+              <span>Inspect Source 🔍</span>
+            </button>
           )}
         </div>
       )}

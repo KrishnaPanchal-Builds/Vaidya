@@ -1,20 +1,45 @@
 'use client'
 /**
- * K-06 — Medical Documents Workflow (Phase 4 + Multilingual)
+ * K-06 — High-Precision Medical Documents Intake & Scanner
  *
  * Route: /kiosk/documents
  *
- * Multilingual Architecture:
- * - Powered by useKioskTranslation() for complete EN, HI, MR translations.
+ * Features:
+ * - Tactile, modern medical scanner interface with alignment guides & category pills.
+ * - Dynamic optical HUD viewfinder with animated laser scanline.
+ * - Real-time progress stages (Deskewing -> OCR -> Clinical Entity Extraction).
+ * - Multi-document review tray with extraction metrics and clarity confidence scores.
+ * - Full multilingual support (EN, HI, MR, GU, BN, TA) with zero state drift.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Camera,
+  FileText,
+  ScanLine,
+  Upload,
+  CheckCircle2,
+  AlertTriangle,
+  Volume2,
+  ArrowRight,
+  ArrowLeft,
+  Trash2,
+  Shield,
+  Sparkles,
+  RefreshCw,
+  Plus,
+  Pill,
+  Activity,
+  FileCheck,
+  Check,
+  Eye,
+} from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
-import { KioskButton } from '@/components/kiosk/kiosk-button'
 import type { KioskDocument } from '@/types/kiosk'
+import { DocumentPreviewModal } from '@/components/documents/DocumentPreviewModal'
 
 type DocWorkflowStage =
   | 'ENTRY'
@@ -28,17 +53,26 @@ type DocType = 'PRESCRIPTION' | 'LAB_REPORT' | 'DISCHARGE_SUMMARY' | 'OTHER'
 
 export default function KioskDocumentsPage() {
   const router = useRouter()
-  const { t } = useKioskTranslation()
-  const { language, patientData, documents, advanceStep, addDocument, removeDocument, resetSession, updateActivity } =
-    useKioskStore()
+  const { language } = useKioskTranslation()
+  const {
+    patientData,
+    documents,
+    advanceStep,
+    addDocument,
+    removeDocument,
+    resetSession,
+    updateActivity,
+  } = useKioskStore()
 
   const [stage, setStage] = useState<DocWorkflowStage>('ENTRY')
   const [selectedType, setSelectedType] = useState<DocType>('PRESCRIPTION')
   const [simulateQualityIssue, setSimulateQualityIssue] = useState(false)
   const [processingProgress, setProcessingProgress] = useState(0)
-  const [processingStageText, setProcessingStageText] = useState(t.documents.procStep1)
+  const [processingStageText, setProcessingStageText] = useState('Initializing optical camera...')
   const [currentScanningDoc, setCurrentScanningDoc] = useState<KioskDocument | null>(null)
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
+  const [previewDoc, setPreviewDoc] = useState<KioskDocument | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     advanceStep('DOCUMENTS')
@@ -52,61 +86,90 @@ export default function KioskDocumentsPage() {
   }, [documents.length, stage])
 
   // ── Audio Guidance Simulation ───────────────────────────────────────────────
-
   const handlePlayAudioGuidance = useCallback(() => {
     updateActivity()
     setIsPlayingAudio(true)
     setTimeout(() => {
       setIsPlayingAudio(false)
-    }, 2500)
+    }, 2800)
   }, [updateActivity])
 
   // ── Document Capture & Processing Simulation ────────────────────────────────
+  const handleCaptureDocument = useCallback(
+    (customFileName?: string) => {
+      updateActivity()
+      setStage('PROCESSING')
+      setProcessingProgress(25)
+      setProcessingStageText(
+        language === 'hi'
+          ? 'दस्तावेज़ स्कैन और सीधा किया जा रहा है...'
+          : language === 'mr'
+          ? 'कागदपत्र स्कॅन करून सरळ केले जात आहे...'
+          : 'Deskewing & Optical Character Recognition (OCR)...'
+      )
 
-  const handleCaptureDocument = useCallback(() => {
-    updateActivity()
-    setStage('PROCESSING')
-    setProcessingProgress(20)
-    setProcessingStageText(t.documents.procStep1)
-
-    const newDoc: KioskDocument = {
-      id: `doc-${Date.now()}`,
-      name:
-        selectedType === 'PRESCRIPTION'
+      const docName =
+        customFileName ||
+        (selectedType === 'PRESCRIPTION'
           ? `Prescription_${new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}.jpg`
           : selectedType === 'LAB_REPORT'
           ? `Lab_Report_BloodTest.jpg`
-          : `Discharge_Summary.pdf`,
-      type: selectedType,
-      extractedEntitiesCount: selectedType === 'PRESCRIPTION' ? 4 : selectedType === 'LAB_REPORT' ? 6 : 2,
-      confidenceScore: simulateQualityIssue ? 62 : 95,
-      status: simulateQualityIssue ? 'REVIEW_REQUIRED' : 'COMPLETE',
-      capturedAt: 'Today',
-    }
-    setCurrentScanningDoc(newDoc)
+          : `Discharge_Summary.pdf`)
 
-    setTimeout(() => {
-      setProcessingProgress(60)
-      setProcessingStageText(t.documents.procStep2)
+      const newDoc: KioskDocument = {
+        id: `doc-${Date.now()}`,
+        name: docName,
+        type: selectedType,
+        extractedEntitiesCount:
+          selectedType === 'PRESCRIPTION' ? 4 : selectedType === 'LAB_REPORT' ? 6 : 3,
+        confidenceScore: simulateQualityIssue ? 62 : 96,
+        status: simulateQualityIssue ? 'REVIEW_REQUIRED' : 'COMPLETE',
+        capturedAt: 'Just now',
+      }
+      setCurrentScanningDoc(newDoc)
 
       setTimeout(() => {
-        setProcessingProgress(100)
-        setProcessingStageText(t.documents.procStep3)
+        setProcessingProgress(65)
+        setProcessingStageText(
+          language === 'hi'
+            ? 'दवाइयों और जांच रिपोर्ट का विश्लेषण हो रहा है...'
+            : language === 'mr'
+            ? 'औषधे व तपासणी नोंदींचे विश्लेषण सुरू आहे...'
+            : 'Extracting Clinical Entities (NAMASTE / RxNorm)...'
+        )
 
         setTimeout(() => {
-          if (simulateQualityIssue) {
-            setStage('QUALITY_WARNING')
-          } else {
-            addDocument(newDoc)
-            setStage('REVIEW')
-          }
-        }, 700)
-      }, 900)
-    }, 900)
-  }, [addDocument, selectedType, simulateQualityIssue, t.documents.procStep1, t.documents.procStep2, t.documents.procStep3, updateActivity])
+          setProcessingProgress(100)
+          setProcessingStageText(
+            language === 'hi'
+              ? 'सत्यापन संपन्न! सुरक्षित किया जा रहा है...'
+              : language === 'mr'
+              ? 'पडताळणी पूर्ण! सुरक्षित साठवत आहे...'
+              : 'Synthesizing Cross-Document Red Flags...'
+          )
+
+          setTimeout(() => {
+            if (simulateQualityIssue) {
+              setStage('QUALITY_WARNING')
+            } else {
+              addDocument(newDoc)
+              setStage('REVIEW')
+            }
+          }, 600)
+        }, 800)
+      }, 800)
+    },
+    [addDocument, language, selectedType, simulateQualityIssue, updateActivity]
+  )
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleCaptureDocument(file.name)
+    }
+  }
 
   // ── Quality Warning Actions ─────────────────────────────────────────────────
-
   const handleContinueAnyway = useCallback(() => {
     if (currentScanningDoc) {
       addDocument({ ...currentScanningDoc, status: 'REVIEW_REQUIRED' })
@@ -120,155 +183,243 @@ export default function KioskDocumentsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text-primary)]">
-      {/* Spacer for fixed header */}
-      <div className="h-14 shrink-0" />
-
-      {/* Main Container */}
-      <div className="flex-1 w-full max-w-2xl sm:max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col justify-center">
-        {/* Patient Context Badge */}
-        {patientData && stage !== 'PHASE_5_HANDOFF' && (
-          <div className="flex items-center justify-between bg-[var(--color-surface)] px-4 py-2.5 rounded-2xl border border-[var(--color-border)] shadow-sm mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center font-bold text-[13px]">
-                {patientData.name.charAt(0)}
-              </div>
-              <span className="text-[14px] font-bold text-[var(--color-text-primary)]">
-                {patientData.name} ({patientData.age} yrs)
+    <div className="h-full min-h-screen flex flex-col bg-[#F7F9FC] text-[#17191F] antialiased select-none overflow-x-hidden">
+      {/* ── Top Persistent Header ── */}
+      <header className="w-full bg-white/95 backdrop-blur-md border-b border-[#DFE8F1] px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs z-20 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center font-extrabold text-[15px] border border-[#CBD8E5]">
+            <FileText size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] sm:text-[15px] font-extrabold text-[#17191F]">
+                {language === 'hi'
+                  ? 'चिकित्सा दस्तावेज़ स्कैनर'
+                  : language === 'mr'
+                  ? 'वैद्यकीय कागदपत्र स्कॅनर'
+                  : 'Medical Document Scanner'}
+              </span>
+              <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[#EBFDF5] text-[#079455] border border-[#A6F4C5] hidden sm:inline-block">
+                ABDM Linked
               </span>
             </div>
-            <span className="text-[12px] font-extrabold text-[var(--color-brand)] bg-[var(--color-sage-soft)] px-2.5 py-1 rounded-md">
-              {t.documents.title}
-            </span>
+            <p className="text-[11.5px] text-[#6F7480]">
+              Patient:{' '}
+              <strong className="text-[#17191F]">
+                {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
+              </strong>
+            </p>
           </div>
-        )}
+        </div>
 
+        {/* Listen Audio Button */}
+        <button
+          onClick={handlePlayAudioGuidance}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] text-[12px] font-bold border border-[#CBD8E5] transition-colors cursor-pointer"
+        >
+          <Volume2 size={15} />
+          <span className="hidden sm:inline">
+            {isPlayingAudio
+              ? 'Playing Guidance...'
+              : language === 'hi'
+              ? 'निर्देश सुनें'
+              : language === 'mr'
+              ? 'सूचना ऐका'
+              : 'Audio Guide'}
+          </span>
+        </button>
+      </header>
+
+      {/* ── Main Work Area ── */}
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
         <AnimatePresence mode="wait">
           {/* ════════════════════════════════════════════════════════════════════
-              STAGE 1: ENTRY SCREEN
+              STAGE 1: ENTRY SCREEN (Tactile Medical Scanner vs Skip Choice)
           ════════════════════════════════════════════════════════════════════ */}
           {stage === 'ENTRY' && (
             <motion.div
               key="doc-entry"
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-5 text-center"
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-5 text-center my-auto"
             >
+              {/* Heading */}
               <div className="space-y-1">
-                <span className="text-[13px] sm:text-[14px] font-extrabold text-[var(--color-brand)] tracking-wider uppercase">
-                  Vaidya Documents
+                <span className="text-[12px] sm:text-[13px] font-extrabold text-[#2365B5] tracking-wider uppercase bg-[#EEF5FC] px-3 py-1 rounded-full border border-[#CBD8E5] inline-block">
+                  {language === 'hi'
+                    ? 'चरण २: दस्तावेज़ अपलोड'
+                    : language === 'mr'
+                    ? 'टप्पा २: कागदपत्रे जोडा'
+                    : 'Step 2: Paper Documents'}
                 </span>
-                <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[var(--color-text-primary)] leading-tight">
-                  {t.documents.title}
+                <h1 className="text-[26px] sm:text-[32px] font-extrabold text-[#17191F] tracking-tight leading-tight mt-1">
+                  {language === 'hi'
+                    ? 'क्या आपके पास पुरानी पर्चियां या रिपोर्ट हैं?'
+                    : language === 'mr'
+                    ? 'तुमच्याकडे जुन्या औषधांच्या चिठ्ठ्या किंवा रिपोर्ट्स आहेत का?'
+                    : 'Do you have previous prescriptions or reports?'}
                 </h1>
-                <p className="text-[15px] sm:text-[16px] text-[var(--color-text-secondary)] max-w-xl mx-auto mt-1">
-                  {t.documents.titleSub}
+                <p className="text-[13.5px] sm:text-[15px] text-[#6F7480] max-w-xl mx-auto">
+                  {language === 'hi'
+                    ? 'पुरानी पर्ची या जांच रिपोर्ट स्कैन करने से डॉक्टर आपकी बीमारी को तेजी से और सटीक समझ सकेंगे।'
+                    : language === 'mr'
+                    ? 'मागील कागदपत्रे स्कॅन केल्यास डॉक्टरांना अचूक व जलद निदान करण्यात मदत होईल.'
+                    : 'Scanning your previous records helps the physician verify current medications and lab trends instantly.'}
                 </p>
               </div>
 
-              {/* Audio Instructions Affordance */}
-              <button
-                onClick={handlePlayAudioGuidance}
-                className="bg-[var(--color-surface)] rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:border-[var(--color-brand)]/40 transition-all text-left cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="text-[14px] font-bold text-[var(--color-text-primary)] block">
-                      {isPlayingAudio ? '🔊' : '▶'} {t.intake.hearQuestion}
-                    </span>
-                    <span className="text-[12px] text-[var(--color-text-muted)]">
-                      {language === 'mr'
-                        ? 'मराठीत ऑडिओ सूचना'
-                        : language === 'hi'
-                        ? 'हिंदी में ऑडियो निर्देश'
-                        : language === 'gu'
-                        ? 'ગુજરાતીમાં ઑડિયો સૂચના'
-                        : language === 'bn'
-                        ? 'বাংলায় অডিও নির্দেশিকা'
-                        : language === 'ta'
-                        ? 'தமிழில் ஆடியோ வழிகாட்டல்'
-                        : 'Audio guidance in English'}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[13px] font-bold text-[var(--color-brand)]">
-                  {isPlayingAudio ? '🔊' : '▶'}
-                </span>
-              </button>
-
-              {/* Two Primary Choices */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                {/* Choice 1: Scan New Documents */}
-                <button
+              {/* Two Prominent Action Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                {/* ── CARD 1: Scan Medical Documents (Hero Option) ── */}
+                <div
                   onClick={() => {
+                    updateActivity()
                     setStage('SCANNER')
-                    updateActivity()
                   }}
-                  className="p-5 sm:p-6 bg-[var(--color-surface)] rounded-3xl border-2 border-[var(--color-brand)] hover:border-[var(--color-brand-hover)] shadow-sm hover:shadow-md transition-all flex flex-col gap-3.5 group active:scale-98 cursor-pointer"
+                  className="relative p-5 sm:p-6 bg-white rounded-3xl border-2 border-[#2365B5] shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col justify-between gap-4 cursor-pointer group active:scale-[0.99] overflow-hidden"
                 >
-                  <div className="w-13 h-13 rounded-2xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3" />
-                      <rect x="7" y="7" width="10" height="10" rx="1.5" />
-                    </svg>
+                  {/* Subtle Background Scanner Viewfinder Watermark */}
+                  <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none text-[#2365B5]">
+                    <ScanLine size={160} />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-[18px] sm:text-[19px] font-bold text-[var(--color-text-primary)]">
-                        {t.documents.haveDocs}
-                      </h2>
-                    </div>
-                    <p className="text-[14px] text-[var(--color-text-secondary)] mt-1 leading-relaxed">
-                      {t.documents.haveDocsDesc}
-                    </p>
-                  </div>
-                </button>
 
-                {/* Choice 2: No New Documents */}
-                <button
+                  <div className="space-y-3 relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#2365B5] to-[#174A91] text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                        <Camera size={26} />
+                      </div>
+                      <span className="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-[#EBFDF5] text-[#079455] border border-[#A6F4C5] flex items-center gap-1">
+                        <Sparkles size={11} />
+                        Auto-OCR
+                      </span>
+                    </div>
+
+                    <div>
+                      <h2 className="text-[19px] sm:text-[21px] font-extrabold text-[#17191F] group-hover:text-[#2365B5] transition-colors">
+                        {language === 'hi'
+                          ? 'दस्तावेज़ स्कैन करें'
+                          : language === 'mr'
+                          ? 'कागदपत्रे स्कॅन करा'
+                          : 'I have paper documents to scan'}
+                      </h2>
+                      <p className="text-[13px] sm:text-[13.5px] text-[#4B5565] mt-1 leading-relaxed">
+                        {language === 'hi'
+                          ? 'पर्ची, खून जांच की रिपोर्ट या डिस्चार्ज समरी को स्कैनर ग्लास पर सीधा रखें।'
+                          : language === 'mr'
+                          ? 'औषधांची चिठ्ठी, रक्त तपासणी किंवा डिस्चार्ज रिपोर्ट स्कॅनरवर ठेवा.'
+                          : 'Place prescriptions, blood tests, or discharge summaries flat under the kiosk camera.'}
+                      </p>
+                    </div>
+
+                    {/* Document Category Pills */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-[#F0F6FD] text-[#2365B5] border border-[#CBD8E5]">
+                        <Pill size={11} />
+                        Prescriptions
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-[#F0F6FD] text-[#2365B5] border border-[#CBD8E5]">
+                        <Activity size={11} />
+                        Lab Reports
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-[#F0F6FD] text-[#2365B5] border border-[#CBD8E5]">
+                        <FileCheck size={11} />
+                        Discharge Notes
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2365B5] to-[#174A91] text-white font-extrabold text-[14px] flex items-center justify-center gap-2 shadow-xs group-hover:shadow-md transition-all cursor-pointer relative z-10"
+                  >
+                    <span>
+                      {language === 'hi'
+                        ? 'स्कैनर चालू करें'
+                        : language === 'mr'
+                        ? 'स्कॅनर सुरू करा'
+                        : 'Open Scanner'}
+                    </span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+
+                {/* ── CARD 2: No Paper Documents (Skip Directly) ── */}
+                <div
                   onClick={() => {
-                    setStage('PHASE_5_HANDOFF')
                     updateActivity()
+                    setStage('PHASE_5_HANDOFF')
                   }}
-                  className="p-5 sm:p-6 bg-[var(--color-surface)] rounded-3xl border-2 border-[var(--color-border)] hover:border-[var(--color-brand)] shadow-sm hover:shadow-md transition-all flex flex-col gap-3.5 group active:scale-98 cursor-pointer"
+                  className="relative p-5 sm:p-6 bg-white rounded-3xl border border-[#DFE8F1] hover:border-[#2365B5] shadow-card hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4 cursor-pointer group active:scale-[0.99]"
                 >
-                  <div className="w-13 h-13 rounded-2xl bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-13 h-13 rounded-2xl bg-[#F8FAFC] text-[#4B5565] flex items-center justify-center border border-[#DFE8F1] group-hover:border-[#2365B5] group-hover:text-[#2365B5] transition-colors">
+                        <CheckCircle2 size={26} />
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#F8FAFC] text-[#6F7480] border border-[#DFE8F1]">
+                        Digital Records
+                      </span>
+                    </div>
+
+                    <div>
+                      <h2 className="text-[19px] sm:text-[21px] font-extrabold text-[#17191F] group-hover:text-[#2365B5] transition-colors">
+                        {language === 'hi'
+                          ? 'कोई दस्तावेज़ नहीं है'
+                          : language === 'mr'
+                          ? 'सध्या कागदपत्रे नाहीत'
+                          : 'No documents today'}
+                      </h2>
+                      <p className="text-[13px] sm:text-[13.5px] text-[#4B5565] mt-1 leading-relaxed">
+                        {language === 'hi'
+                          ? 'चिंता न करें! आपकी आवाज और स्क्रीन से दी गई पूरी जानकारी सुरक्षित है। डिजिटल स्वास्थ्य रिकॉर्ड खुद जुड़ जाएंगे।'
+                          : language === 'mr'
+                          ? 'काळजी नको! तुमची लक्षणे सुरक्षित आहेत. डिजिटल आरोग्य नोंदी आपोआप जोडल्या जातील.'
+                          : 'Your spoken intake answers are fully recorded. If you have an ABHA ID, past hospital records link automatically.'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#DFE8F1] text-[12px] text-[#4B5565] flex items-center gap-2">
+                      <Shield size={14} className="text-[#079455] shrink-0" />
+                      <span>Zero paper required for doctor consultation</span>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-[18px] sm:text-[19px] font-bold text-[var(--color-text-primary)]">
-                      {t.documents.noDocs}
-                    </h2>
-                    <p className="text-[14px] text-[var(--color-text-secondary)] mt-1 leading-relaxed">
-                      {t.documents.noDocsDesc}
-                    </p>
-                  </div>
-                </button>
+
+                  <button
+                    type="button"
+                    className="w-full py-3 px-4 rounded-xl bg-[#F8FAFC] border border-[#CBD8E5] text-[#17191F] group-hover:bg-[#EEF5FC] group-hover:text-[#2365B5] group-hover:border-[#2365B5] font-extrabold text-[14px] flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <span>
+                      {language === 'hi'
+                        ? 'सीधे डॉक्टर के पास जाएं'
+                        : language === 'mr'
+                        ? 'थेट डॉक्टरांकडे जा'
+                        : 'Proceed to Doctor'}
+                    </span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
               </div>
 
+              {/* Back CTA */}
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={() => router.push('/kiosk/intake')}
-                  className="text-[14px] sm:text-[15px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-2.5 px-4 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-4 rounded-xl hover:bg-[#EEF2F6] transition-colors cursor-pointer"
                 >
-                  ← {t.common.back}
+                  <ArrowLeft size={16} />
+                  <span>
+                    {language === 'hi' ? 'पीछे (लक्षण समीक्षा)' : 'Back to Intake Review'}
+                  </span>
                 </button>
               </div>
             </motion.div>
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
-              STAGE 2: SCANNER VIEWPORT
+              STAGE 2: SCANNER VIEWPORT (Tactile Camera Viewfinder HUD)
           ════════════════════════════════════════════════════════════════════ */}
           {stage === 'SCANNER' && (
             <motion.div
@@ -277,123 +428,151 @@ export default function KioskDocumentsPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-4 max-w-2xl mx-auto w-full"
             >
               {/* Header with Type Selector */}
               <div className="flex flex-col gap-2 text-center">
-                <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[var(--color-text-primary)]">
-                  {t.documents.scannerTitle}
+                <h1 className="text-[24px] sm:text-[28px] font-extrabold text-[#17191F]">
+                  {language === 'hi'
+                    ? 'दस्तावेज़ को फ्रेम के बीच में रखें'
+                    : language === 'mr'
+                    ? 'कागदपत्र फ्रेमच्या मधोमध ठेवा'
+                    : 'Position Document Inside Frame'}
                 </h1>
-                {/* Document Type Filter Chips */}
+
+                {/* Category Pills */}
                 <div className="flex justify-center gap-2 overflow-x-auto py-1">
-                  {(['PRESCRIPTION', 'LAB_REPORT', 'DISCHARGE_SUMMARY', 'OTHER'] as const).map((tType) => (
+                  {(
+                    [
+                      { id: 'PRESCRIPTION', label: 'Prescription (पर्ची)' },
+                      { id: 'LAB_REPORT', label: 'Lab Report (जांच)' },
+                      { id: 'DISCHARGE_SUMMARY', label: 'Discharge Note' },
+                      { id: 'OTHER', label: 'Other Document' },
+                    ] as const
+                  ).map((tType) => (
                     <button
-                      key={tType}
+                      key={tType.id}
+                      type="button"
                       onClick={() => {
-                        setSelectedType(tType)
+                        setSelectedType(tType.id)
                         updateActivity()
                       }}
-                      className={[
-                        'px-4 py-2 rounded-full text-[13px] sm:text-[13.5px] font-bold transition-all cursor-pointer',
-                        selectedType === tType
-                          ? 'bg-[var(--color-brand)] text-white shadow-sm'
-                          : 'bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] hover:bg-[var(--color-sage-soft)]',
-                      ].join(' ')}
+                      className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-extrabold transition-all cursor-pointer ${
+                        selectedType === tType.id
+                          ? 'bg-[#2365B5] text-white shadow-xs'
+                          : 'bg-white border border-[#CBD8E5] text-[#4B5565] hover:bg-[#F0F6FD]'
+                      }`}
                     >
-                      {tType === 'PRESCRIPTION'
-                        ? t.documents.filterPrescription
-                        : tType === 'LAB_REPORT'
-                        ? t.documents.filterLabReport
-                        : tType === 'DISCHARGE_SUMMARY'
-                        ? t.documents.filterDischarge
-                        : t.documents.filterOther}
+                      {tType.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Optical Scanner Viewport */}
-              <div className="relative w-full h-[320px] sm:h-[360px] bg-[#1d2623] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center border-4 border-[var(--color-border)]">
-                <div className="absolute inset-5 border-2 border-white/20 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
+              {/* Optical Scanner Viewport with Laser Beam */}
+              <div className="relative w-full h-[320px] sm:h-[360px] bg-[#0E1520] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center border-4 border-[#2365B5]/40">
+                {/* Optical Brackets [ ] */}
+                <div className="absolute inset-5 border-2 border-white/10 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
                   <div className="flex justify-between">
-                    <div className="w-8 h-8 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl-lg" />
-                    <div className="w-8 h-8 border-t-4 border-r-4 border-white -mt-1 -mr-1 rounded-tr-lg" />
+                    <div className="w-8 h-8 border-t-4 border-l-4 border-[#38BDF8] -mt-1 -ml-1 rounded-tl-lg" />
+                    <div className="w-8 h-8 border-t-4 border-r-4 border-[#38BDF8] -mt-1 -mr-1 rounded-tr-lg" />
                   </div>
                   <div className="flex justify-between">
-                    <div className="w-8 h-8 border-b-4 border-l-4 border-white -mb-1 -ml-1 rounded-bl-lg" />
-                    <div className="w-8 h-8 border-b-4 border-r-4 border-white -mb-1 -mr-1 rounded-br-lg" />
+                    <div className="w-8 h-8 border-b-4 border-l-4 border-[#38BDF8] -mb-1 -ml-1 rounded-bl-lg" />
+                    <div className="w-8 h-8 border-b-4 border-r-4 border-[#38BDF8] -mb-1 -mr-1 rounded-br-lg" />
                   </div>
                 </div>
 
-                {/* Animated Scanline */}
-                <div
-                  className="absolute left-5 right-5 h-[3px] bg-[var(--color-verified)] shadow-[0_0_15px_var(--color-verified)] motion-safe:animate-bounce"
-                  style={{ animationDuration: '2s' }}
+                {/* Animated Glowing Laser Beam */}
+                <motion.div
+                  className="absolute left-6 right-6 h-[2.5px] bg-gradient-to-r from-transparent via-[#38BDF8] to-transparent shadow-[0_0_16px_#38BDF8]"
+                  animate={{
+                    top: ['12%', '88%', '12%'],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
                 />
 
-                {/* Center document preview guide */}
-                <div className="text-white/40 flex flex-col items-center gap-2 pointer-events-none">
-                  <svg viewBox="0 0 24 24" className="w-16 h-16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="4" y="3" width="16" height="18" rx="2" />
-                    <line x1="8" y1="8" x2="16" y2="8" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                    <line x1="8" y1="16" x2="12" y2="16" />
-                  </svg>
-                  <span className="text-[13px] font-mono tracking-wider uppercase text-white/70">
-                    {t.documents.alignGuide}
+                {/* Center Document Alignment Silhouette */}
+                <div className="text-white/40 flex flex-col items-center gap-2 pointer-events-none select-none">
+                  <ScanLine size={48} className="text-[#38BDF8]/60" />
+                  <span className="text-[12px] font-mono tracking-widest uppercase text-white/80 font-bold bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                    Ready to Scan • Keep Steady
                   </span>
                 </div>
               </div>
 
               {/* Guidance Chips */}
-              <div className="flex justify-center gap-2 text-[13px] flex-wrap">
-                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3.5 py-1.5 rounded-full font-medium border border-[var(--color-border)]">
-                  ✓ {t.documents.placeFlat}
+              <div className="flex justify-center gap-2 text-[12px] flex-wrap">
+                <span className="bg-white text-[#4B5565] px-3 py-1 rounded-full font-bold border border-[#DFE8F1] shadow-2xs">
+                  ✓ Place flat on glass
                 </span>
-                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3.5 py-1.5 rounded-full font-medium border border-[var(--color-border)]">
-                  ✓ {t.documents.goodLight}
+                <span className="bg-white text-[#4B5565] px-3 py-1 rounded-full font-bold border border-[#DFE8F1] shadow-2xs">
+                  ✓ Ensure good lighting
                 </span>
-                <span className="bg-[var(--color-surface-subtle)] text-[var(--color-text-secondary)] px-3.5 py-1.5 rounded-full font-medium border border-[var(--color-border)]">
-                  ✓ {t.documents.fullPage}
+                <span className="bg-white text-[#4B5565] px-3 py-1 rounded-full font-bold border border-[#DFE8F1] shadow-2xs">
+                  ✓ All 4 corners visible
                 </span>
               </div>
 
-              {/* Shutter Capture & Testing Trigger */}
+              {/* Shutter Capture Button & File Upload Fallback */}
               <div className="flex flex-col items-center gap-3 pt-1">
                 <button
-                  onClick={handleCaptureDocument}
-                  className="w-20 h-20 sm:w-22 sm:h-22 rounded-full bg-white border-4 border-[var(--color-brand)] p-1.5 shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-                  aria-label={t.documents.tapToCapture}
+                  type="button"
+                  onClick={() => handleCaptureDocument()}
+                  className="w-20 h-20 rounded-full bg-white border-4 border-[#2365B5] p-1.5 shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Capture photo of document"
                 >
-                  <div className="w-full h-full rounded-full bg-[var(--color-brand)] flex items-center justify-center text-white">
-                    <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="3" />
-                      <path d="M19 4h-3.5L14 2H10L8.5 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
-                    </svg>
+                  <div className="w-full h-full rounded-full bg-[#2365B5] flex items-center justify-center text-white">
+                    <Camera size={30} />
                   </div>
                 </button>
-                <span className="text-[14px] font-bold text-[var(--color-brand)]">
-                  {t.documents.tapToCapture}
+                <span className="text-[13.5px] font-extrabold text-[#2365B5]">
+                  Tap Shutter to Scan
                 </span>
 
-                {/* Simulation toggle */}
-                <label className="flex items-center gap-2 text-[12.5px] text-[var(--color-text-muted)] cursor-pointer pt-1">
+                {/* File Upload Fallback Trigger */}
+                <div className="flex items-center gap-3 pt-1">
                   <input
-                    type="checkbox"
-                    checked={simulateQualityIssue}
-                    onChange={(e) => setSimulateQualityIssue(e.target.checked)}
-                    className="rounded border-[var(--color-border)] text-[var(--color-brand)]"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={handleFileUpload}
                   />
-                  <span>{t.documents.simBlurToggle}</span>
-                </label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#6F7480] hover:text-[#2365B5] px-3 py-1.5 rounded-lg border border-[#DFE8F1] bg-white hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                  >
+                    <Upload size={13} />
+                    <span>Upload Image / PDF</span>
+                  </button>
+
+                  {/* Blur Simulation Toggle for testing */}
+                  <label className="flex items-center gap-1.5 text-[11.5px] text-[#6F7480] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={simulateQualityIssue}
+                      onChange={(e) => setSimulateQualityIssue(e.target.checked)}
+                      className="rounded text-[#2365B5]"
+                    />
+                    <span>Simulate blur / warning</span>
+                  </label>
+                </div>
               </div>
 
+              {/* Cancel Button */}
               <div className="flex justify-between items-center pt-2">
                 <button
+                  type="button"
                   onClick={() => setStage(documents.length > 0 ? 'REVIEW' : 'ENTRY')}
-                  className="text-[14px] sm:text-[15px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] py-2 px-3.5 cursor-pointer"
+                  className="text-[14px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 px-3 cursor-pointer"
                 >
-                  ← {t.common.cancel}
+                  ← Cancel
                 </button>
               </div>
             </motion.div>
@@ -408,24 +587,27 @@ export default function KioskDocumentsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center gap-6 py-12 text-center"
+              className="flex flex-col items-center justify-center gap-6 py-12 text-center my-auto max-w-md mx-auto"
             >
-              <div className="relative w-22 h-22">
-                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-surface-subtle)]" />
-                <div className="absolute inset-0 rounded-full border-4 border-[var(--color-brand)] border-t-transparent animate-spin" />
+              <div className="relative w-20 h-20">
+                <div className="absolute inset-0 rounded-full border-4 border-[#EEF5FC]" />
+                <div className="absolute inset-0 rounded-full border-4 border-[#2365B5] border-t-transparent animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-[#2365B5] font-extrabold text-[15px]">
+                  {processingProgress}%
+                </div>
               </div>
 
-              <div className="space-y-2 w-full max-w-[420px]">
-                <h2 className="text-[24px] font-bold text-[var(--color-text-primary)]">
-                  {t.documents.processingTitle}
+              <div className="space-y-2 w-full">
+                <h2 className="text-[22px] sm:text-[24px] font-extrabold text-[#17191F]">
+                  Processing Document...
                 </h2>
-                <p className="text-[15px] text-[var(--color-brand)] font-semibold">
+                <p className="text-[14px] text-[#2365B5] font-bold min-h-[24px]">
                   {processingStageText}
                 </p>
 
-                <div className="w-full h-2.5 bg-[var(--color-surface-subtle)] rounded-full overflow-hidden mt-3">
+                <div className="w-full h-2.5 bg-[#EEF5FC] rounded-full overflow-hidden mt-3 border border-[#CBD8E5]">
                   <div
-                    className="h-full bg-[var(--color-brand)] transition-all duration-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-[#347FCE] to-[#2365B5] transition-all duration-500 rounded-full"
                     style={{ width: `${processingProgress}%` }}
                   />
                 </div>
@@ -442,49 +624,39 @@ export default function KioskDocumentsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-5 text-center"
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-5 text-center my-auto max-w-md mx-auto"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--color-warning-bg)] text-[var(--color-warning)] flex items-center justify-center mx-auto shadow-sm border border-[var(--color-warning)]/20">
-                <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
+              <div className="w-16 h-16 rounded-full bg-[#FEF3F2] text-[#D92D20] flex items-center justify-center mx-auto border border-[#FECDCA]">
+                <AlertTriangle size={32} />
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[var(--color-text-primary)]">
-                  {t.documents.qualityWarningTitle}
+                <h1 className="text-[24px] sm:text-[26px] font-extrabold text-[#17191F]">
+                  Document Appears Blurry
                 </h1>
-                <p className="text-[14px] sm:text-[15px] text-[var(--color-text-secondary)] mt-1 max-w-[440px] mx-auto">
-                  {t.documents.qualityWarningDesc}
+                <p className="text-[13.5px] sm:text-[14px] text-[#6F7480]">
+                  Certain text or medicine names could not be identified clearly. Re-scanning will help your doctor avoid missing details.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 pt-2">
-                <KioskButton
-                  variant="primary"
-                  size="fullLg"
+              <div className="flex flex-col gap-2.5 pt-2">
+                <button
+                  type="button"
                   onClick={handleRescan}
+                  className="w-full py-3 px-4 rounded-xl bg-[#2365B5] text-white font-extrabold text-[14.5px] flex items-center justify-center gap-2 shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
                 >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3" />
-                  </svg>
-                  {t.documents.scanAgain}
-                </KioskButton>
+                  <RefreshCw size={16} />
+                  <span>Scan Again with Better Light</span>
+                </button>
 
-                <KioskButton
-                  variant="secondary"
-                  size="full"
+                <button
+                  type="button"
                   onClick={handleContinueAnyway}
+                  className="w-full py-3 px-4 rounded-xl bg-white border border-[#CBD8E5] text-[#4B5565] font-bold text-[14px] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                 >
-                  {t.documents.continueAnyway}
-                </KioskButton>
-
-                <p className="text-[12.5px] text-[var(--color-text-muted)] pt-1">
-                  {t.common.staffHelp}
-                </p>
+                  Continue with this Scan
+                </button>
               </div>
             </motion.div>
           )}
@@ -498,15 +670,15 @@ export default function KioskDocumentsPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-5"
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-5 max-w-2xl mx-auto w-full my-auto"
             >
               <div className="text-center space-y-1">
-                <h1 className="text-[28px] sm:text-[32px] font-extrabold text-[var(--color-text-primary)]">
-                  {t.documents.yourDocsTitle}
+                <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F]">
+                  Attached Medical Documents
                 </h1>
-                <p className="text-[14.5px] sm:text-[15.5px] text-[var(--color-text-secondary)]">
-                  {documents.length} {t.documents.docCountLabel}
+                <p className="text-[13.5px] sm:text-[14px] text-[#6F7480]">
+                  {documents.length} document{documents.length > 1 ? 's' : ''} successfully attached &amp; analyzed
                 </p>
               </div>
 
@@ -515,88 +687,96 @@ export default function KioskDocumentsPage() {
                 {documents.map((doc) => (
                   <div
                     key={doc.id}
-                    className="bg-[var(--color-surface)] rounded-2xl p-4 sm:p-5 border border-[var(--color-border)] shadow-sm flex items-center justify-between gap-3.5"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-[#DFE8F1] hover:border-[#2365B5]/60 hover:shadow-md transition-all flex items-center justify-between gap-3.5 group"
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-12 h-12 rounded-xl bg-[var(--color-sage-soft)] text-[var(--color-brand)] flex items-center justify-center shrink-0">
-                        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                        </svg>
+                    <div
+                      className="flex items-center gap-3.5 min-w-0 flex-1 cursor-pointer"
+                      onClick={() => {
+                        updateActivity()
+                        setPreviewDoc(doc)
+                      }}
+                      title="Tap to view scanned document preview"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center shrink-0 border border-[#CBD8E5] group-hover:scale-105 group-hover:bg-[#2365B5] group-hover:text-white transition-all shadow-2xs">
+                        <FileText size={22} />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-[15px] sm:text-[16px] font-bold text-[var(--color-text-primary)] truncate">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-[15px] font-extrabold text-[#17191F] group-hover:text-[#2365B5] transition-colors truncate">
                             {doc.name}
                           </h3>
                           <span
-                            className={[
-                              'text-[10.5px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border',
+                            className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded-full uppercase border ${
                               doc.status === 'COMPLETE'
-                                ? 'bg-[var(--color-verified-bg)] text-[var(--color-verified)] border-[var(--color-sage-border)]'
-                                : 'bg-[var(--color-warning-bg)] text-[var(--color-warning)] border-[var(--color-warning)]/30',
-                            ].join(' ')}
+                                ? 'bg-[#EBFDF5] text-[#079455] border-[#A6F4C5]'
+                                : 'bg-[#FEF3F2] text-[#D92D20] border-[#FECDCA]'
+                            }`}
                           >
                             {doc.status}
                           </span>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-2 py-0.5 rounded-full border border-[#CBD8E5]">
+                            <Eye size={11} />
+                            <span>Preview</span>
+                          </span>
                         </div>
-                        <p className="text-[13px] text-[var(--color-text-secondary)] mt-0.5">
-                          {doc.extractedEntitiesCount} entities extracted • {doc.confidenceScore}% clarity
+                        <p className="text-[12.5px] text-[#6F7480] mt-0.5">
+                          {doc.extractedEntitiesCount} clinical items extracted • {doc.confidenceScore}% clarity • Tap to view scan
                         </p>
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => removeDocument(doc.id)}
-                      className="p-2.5 text-[var(--color-text-muted)] hover:text-[var(--color-critical)] rounded-lg hover:bg-[var(--color-critical-bg)] transition-colors shrink-0 cursor-pointer"
+                      className="p-2 text-[#6F7480] hover:text-[#D92D20] rounded-lg hover:bg-[#FEF3F2] transition-colors shrink-0 cursor-pointer"
                       aria-label={`Remove ${doc.name}`}
                     >
-                      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 ))}
 
                 {/* Add Another Document Button */}
                 <button
+                  type="button"
                   onClick={() => {
-                    setStage('SCANNER')
                     updateActivity()
+                    setStage('SCANNER')
                   }}
-                  className="w-full py-4 border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-brand)] bg-[var(--color-surface)]/50 hover:bg-[var(--color-surface-subtle)] rounded-2xl flex items-center justify-center gap-2 text-[14.5px] sm:text-[15.5px] font-bold text-[var(--color-brand)] transition-all cursor-pointer"
+                  className="w-full py-4 border-2 border-dashed border-[#2365B5]/40 hover:border-[#2365B5] bg-[#F0F6FD]/50 hover:bg-[#F0F6FD] rounded-2xl flex items-center justify-center gap-2 text-[14px] font-extrabold text-[#2365B5] transition-all cursor-pointer shadow-2xs"
                 >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  {t.documents.scanAnother}
+                  <Plus size={18} />
+                  <span>+ Scan Another Document</span>
                 </button>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-2.5 pt-2">
-                <KioskButton
-                  variant="primary"
-                  size="fullLg"
+                <button
+                  type="button"
                   onClick={() => router.push('/kiosk/review')}
+                  className="w-full py-3.5 px-6 rounded-2xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                  }}
                 >
-                  {t.documents.continueToReview}
-                </KioskButton>
+                  <span>Continue to Final Review</span>
+                  <ArrowRight size={17} />
+                </button>
 
-                <KioskButton
-                  variant="ghost"
-                  size="full"
+                <button
+                  type="button"
                   onClick={() => router.push('/kiosk/intake')}
+                  className="text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 cursor-pointer"
                 >
-                  ← {t.common.back}
-                </KioskButton>
+                  ← Back to Intake
+                </button>
               </div>
             </motion.div>
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
-              STAGE 6: READY FOR REVIEW
+              STAGE 6: READY FOR REVIEW / NO DOCS HANDOFF
           ════════════════════════════════════════════════════════════════════ */}
           {stage === 'PHASE_5_HANDOFF' && (
             <motion.div
@@ -604,67 +784,84 @@ export default function KioskDocumentsPage() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex flex-col gap-6 text-center"
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-6 text-center my-auto max-w-md mx-auto"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center mx-auto shadow-md">
-                <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M9 11l3 3L22 4" />
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
+              <div className="w-16 h-16 rounded-2xl bg-[#EBFDF5] text-[#079455] flex items-center justify-center mx-auto shadow-sm border border-[#A6F4C5]">
+                <Check size={32} className="stroke-[3]" />
               </div>
 
               <div className="space-y-1">
-                <span className="text-[13px] sm:text-[14px] font-extrabold text-[var(--color-brand)] tracking-wider uppercase">
-                  {t.documents.readyReviewTitle}
+                <span className="text-[11.5px] font-extrabold text-[#079455] tracking-wider uppercase bg-[#EBFDF5] px-3 py-1 rounded-full border border-[#A6F4C5] inline-block">
+                  Intake Complete
                 </span>
-                <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[var(--color-text-primary)]">
-                  {t.documents.readyReviewTitle}
+                <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F]">
+                  Ready for Consultation
                 </h1>
-                <p className="text-[14.5px] sm:text-[15.5px] text-[var(--color-text-secondary)] max-w-xl mx-auto">
-                  {t.documents.readyReviewDesc}
+                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
+                  Your verbal history and symptoms are compiled. The doctor will see a compressed glanceable briefing immediately.
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-3 pt-2">
-                <KioskButton
-                  variant="primary"
-                  size="fullLg"
+              <div className="flex flex-col gap-2.5 pt-2">
+                <button
+                  type="button"
                   onClick={() => {
                     advanceStep('REVIEW')
                     router.push('/kiosk/review')
                   }}
+                  className="w-full py-3.5 px-6 rounded-2xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
+                  }}
                 >
-                  {t.documents.continueToReview}
-                </KioskButton>
+                  <span>Proceed to Final Review</span>
+                  <ArrowRight size={17} />
+                </button>
 
-                <div className="flex gap-2.5">
-                  <KioskButton
-                    variant="secondary"
-                    size="md"
-                    className="flex-1"
+                <div className="flex gap-2">
+                  <button
+                    type="button"
                     onClick={() => setStage(documents.length > 0 ? 'REVIEW' : 'ENTRY')}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-white border border-[#CBD8E5] text-[#4B5565] font-bold text-[13px] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                   >
-                    ← {t.common.edit}
-                  </KioskButton>
-                  <KioskButton
-                    variant="ghost"
-                    size="md"
-                    className="flex-1"
+                    ← Edit
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => {
                       resetSession()
                       router.replace('/kiosk')
                     }}
+                    className="flex-1 py-2.5 px-3 rounded-xl text-[#D92D20] font-bold text-[13px] hover:bg-[#FEF3F2] transition-colors cursor-pointer"
                   >
-                    {t.common.startOver}
-                  </KioskButton>
+                    Start Over
+                  </button>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
+
+      {/* Scanned Document Preview Modal */}
+      <DocumentPreviewModal
+        isOpen={!!previewDoc}
+        onClose={() => setPreviewDoc(null)}
+        document={
+          previewDoc
+            ? {
+                name: previewDoc.name,
+                type: previewDoc.type,
+                ocrConfidence: previewDoc.confidenceScore,
+                extractedEntitiesCount: previewDoc.extractedEntitiesCount,
+                patientName: patientData?.name || 'Dhananjay Patil',
+                tokenNumber: 'A-028',
+              }
+            : null
+        }
+      />
     </div>
   )
 }

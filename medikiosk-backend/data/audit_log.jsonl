@@ -60,3 +60,31 @@
 {"event": "SESSION_TEARDOWN", "session_id_hash": "d7a6593825ba3112a593c6c9f92dee54c261e3340ee026183e4346235bc47e1e", "payload_transmitted": false, "timestamp_utc": "2026-08-29T21:38:03Z"}
 {"event": "CONSENT_DECISION", "session_id_hash": "5710482515b887931dc1c45f9c7ce4c11f4997a53f827969f2f93ffabe81df12", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-08-29T21:38:03Z"}
 {"event": "SESSION_TEARDOWN", "session_id_hash": "5710482515b887931dc1c45f9c7ce4c11f4997a53f827969f2f93ffabe81df12", "payload_transmitted": false, "timestamp_utc": "2026-08-29T21:38:03Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "35221ec2ec611d85e3aa0c84ab85ff79e196f7667ecd25a70f13ab1dd375f73f", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "41f4c70a4524cb4de45ca4d4f96c9c8b748c0da7daf61982fdf5e66a82e3db4b", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "482d6f88f249df7ab57c1ac6724b762d51d7e1b356bfb5505bdd98ef4f522c7a", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "482d6f88f249df7ab57c1ac6724b762d51d7e1b356bfb5505bdd98ef4f522c7a", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "fbdfbbe3862381e36e3a0169db8f75ee936da24cda9692ab6e3c9336ba0fa90b", "consent_granted": false, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "fbdfbbe3862381e36e3a0169db8f75ee936da24cda9692ab6e3c9336ba0fa90b", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "0d4189357dc39f2fb03eacb7970f89a6d7f2d3940945abb346f0312075bfdfce", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "0d4189357dc39f2fb03eacb7970f89a6d7f2d3940945abb346f0312075bfdfce", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "db335f5835bf7a6cb385a38170cbec70db96a3f06c4f6f15d25da263e7ff71bb", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:36Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "db335f5835bf7a6cb385a38170cbec70db96a3f06c4f6f15d25da263e7ff71bb", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:39Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "f939fbb3bf7a7078c77532f1d4034af2654f7f638c4179fd0a65784ea185d404", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:39Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "f939fbb3bf7a7078c77532f1d4034af2654f7f638c4179fd0a65784ea185d404", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:39Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "fa6b62351c0a35a07c350f6740ba1cf17f4ef776224483a78364fdb836b9fc78", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:00:39Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "fa6b62351c0a35a07c350f6740ba1cf17f4ef776224483a78364fdb836b9fc78", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:00:39Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "1fae59a675283a1f65ac2c733caf850d84c30ebfa0db4f7b1dd72e8f916ec517", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "5c3ff2a34cc850c45085a48f75c9f8800681434e37d19a71007d1c4db0ff4a5a", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "0dc79edd34a48438d7dbe22f6fae7bf19723bca38cbb44978f6b8bb3727ffada", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "0dc79edd34a48438d7dbe22f6fae7bf19723bca38cbb44978f6b8bb3727ffada", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "06c0e0fcff3bfbb71c06237b76a0b64c03da3ac9bd0d714b3e89e84a493d901c", "consent_granted": false, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "06c0e0fcff3bfbb71c06237b76a0b64c03da3ac9bd0d714b3e89e84a493d901c", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "21db4ca0852dd6142937880cfcf08cf8b09818112b71cc59e4b8e50301ffa74f", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "21db4ca0852dd6142937880cfcf08cf8b09818112b71cc59e4b8e50301ffa74f", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "6ee09216b23f89c075def2dde93cf8a0bacb1708f4c006151a0f57367ff3ef8c", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:42Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "6ee09216b23f89c075def2dde93cf8a0bacb1708f4c006151a0f57367ff3ef8c", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:44Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "71753be1d146a9b2bec4b27bf4b584ab52738d8e69cbe066f26b8e3240482a9f", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:44Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "71753be1d146a9b2bec4b27bf4b584ab52738d8e69cbe066f26b8e3240482a9f", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:44Z"}
+{"event": "CONSENT_DECISION", "session_id_hash": "6197cab341e9b2722cb9bf7b1ab1ef92de7019913ab0d0f912dda0841244a1f1", "consent_granted": true, "language": "hi", "consent_version": "v1.2", "timestamp_utc": "2026-09-20T19:54:44Z"}
+{"event": "SESSION_TEARDOWN", "session_id_hash": "6197cab341e9b2722cb9bf7b1ab1ef92de7019913ab0d0f912dda0841244a1f1", "payload_transmitted": false, "timestamp_utc": "2026-09-20T19:54:44Z"}
