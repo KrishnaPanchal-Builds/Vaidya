@@ -59,7 +59,7 @@ import {
 
 export default function KioskIntakePage() {
   const router = useRouter()
-  const { language } = useKioskTranslation()
+  const { language, t } = useKioskTranslation()
   const { patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
 
   // ── 1. Progressive Stage State ──
