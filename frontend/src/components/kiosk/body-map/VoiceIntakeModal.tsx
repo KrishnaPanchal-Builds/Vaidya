@@ -23,6 +23,7 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { SupportedKioskLanguage } from '@/lib/translations/kiosk-translations'
 
 export type VoiceState = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'CAPTURED' | 'ERROR'
@@ -460,17 +461,6 @@ export function VoiceIntakeModal({
     }, 400)
   }
 
-  const handleTriggerErrorTest = () => {
-    if (listeningTimerRef.current) clearTimeout(listeningTimerRef.current)
-    setVoiceState('LISTENING')
-    setTimeout(() => {
-      setVoiceState('PROCESSING')
-      setTimeout(() => {
-        setVoiceState('ERROR')
-      }, 500)
-    }, 1200)
-  }
-
   // Switch to typing mode preserving voice transcript
   const handleSwitchToTyping = () => {
     setIsTypingMode(true)
@@ -656,56 +646,103 @@ export function VoiceIntakeModal({
                       id="kiosk-voice-type-instead-btn"
                       type="button"
                       onClick={handleSwitchToTyping}
-                      className="min-h-[46px] inline-flex items-center gap-2 px-4 py-2 rounded-2xl border border-[#CBD8E5] bg-[#F8FAFC] text-[13px] font-extrabold text-[#2365B5] hover:bg-[#EEF5FC] hover:border-[#2365B5] transition-colors cursor-pointer shadow-2xs"
+                      className="min-h-[46px] inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-[#CBD8E5] bg-[#F8FAFC] text-[13px] font-extrabold text-[#2365B5] hover:bg-[#EEF5FC] hover:border-[#2365B5] transition-colors cursor-pointer shadow-2xs"
                     >
                       <Keyboard size={15} />
                       <span>{currentUI.typeInstead}</span>
-                    </button>
-
-                    <button
-                      id="kiosk-voice-test-error-btn"
-                      type="button"
-                      onClick={handleTriggerErrorTest}
-                      className="text-[11px] text-[#9AA8B7] hover:text-[#6F7480] underline cursor-pointer px-1"
-                      title="Test Audio Error Fallback State"
-                    >
-                      (Test Audio Error)
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* ── 2. LISTENING STATE (Calm breathing pulse 1800-2400ms) ── */}
+              {/* ── 2. LISTENING STATE (Rich Calm Concentric Breathing Rings + Soundwave Bars) ── */}
               {voiceState === 'LISTENING' && (
                 <div className="space-y-4 py-2 flex flex-col items-center">
-                  <div className="relative w-22 h-22 flex items-center justify-center">
-                    {/* Single calm outer pulse ring: scale 1.0 -> 1.08, opacity 0.35 -> 0 */}
+                  <div className="relative w-28 h-28 flex items-center justify-center">
+                    {/* Layered concentric calm breathing pulse rings (staggered 0s, 0.7s, 1.4s, 2.1s cycle) */}
                     {!prefersReducedMotion && (
-                      <motion.span
-                        initial={{ scale: 1, opacity: 0.35 }}
-                        animate={{ scale: 1.08, opacity: 0 }}
-                        transition={{
-                          duration: 2.1,
-                          repeat: Infinity,
-                          ease: calmEase,
-                        }}
-                        className="absolute inset-0 rounded-full bg-[#2365B5]"
-                      />
+                      <>
+                        <motion.span
+                          initial={{ scale: 1.0, opacity: 0.4 }}
+                          animate={{ scale: 1.35, opacity: 0 }}
+                          transition={{
+                            duration: 2.1,
+                            repeat: Infinity,
+                            ease: calmEase,
+                            delay: 0,
+                          }}
+                          className="absolute inset-0 rounded-full bg-[#2365B5]/30 pointer-events-none"
+                        />
+                        <motion.span
+                          initial={{ scale: 1.0, opacity: 0.35 }}
+                          animate={{ scale: 1.25, opacity: 0 }}
+                          transition={{
+                            duration: 2.1,
+                            repeat: Infinity,
+                            ease: calmEase,
+                            delay: 0.7,
+                          }}
+                          className="absolute inset-0 rounded-full bg-[#347FCE]/25 pointer-events-none"
+                        />
+                        <motion.span
+                          initial={{ scale: 1.0, opacity: 0.25 }}
+                          animate={{ scale: 1.15, opacity: 0 }}
+                          transition={{
+                            duration: 2.1,
+                            repeat: Infinity,
+                            ease: calmEase,
+                            delay: 1.4,
+                          }}
+                          className="absolute inset-0 rounded-full bg-[#174A91]/20 pointer-events-none"
+                        />
+                      </>
                     )}
 
-                    {/* Central active listening disc */}
-                    <div
-                      className={`w-20 h-20 rounded-full flex items-center justify-center text-white z-10 ${
+                    {/* Central active listening disc with gentle breathing scale */}
+                    <motion.div
+                      animate={
+                        prefersReducedMotion
+                          ? {}
+                          : { scale: [1.0, 1.04, 1.0] }
+                      }
+                      transition={
+                        prefersReducedMotion
+                          ? {}
+                          : { duration: 2.1, repeat: Infinity, ease: calmEase }
+                      }
+                      className={cn(
+                        'w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center text-white z-10 shadow-lg transition-all',
                         prefersReducedMotion
                           ? 'bg-[#174A91] border-2 border-white ring-4 ring-[#2365B5]'
-                          : 'bg-gradient-to-tr from-[#174A91] to-[#2365B5] shadow-md'
-                      }`}
+                          : 'bg-gradient-to-tr from-[#174A91] via-[#2365B5] to-[#347FCE] ring-4 ring-[#2365B5]/25 shadow-[#2365B5]/30'
+                      )}
                     >
-                      <Mic size={32} className="text-white" />
-                    </div>
+                      <Mic size={32} className="text-white stroke-[2.5]" />
+                    </motion.div>
                   </div>
 
-                  <div className="space-y-1">
+                  {/* Dynamic Calm Soundwave Frequency Indicator */}
+                  {!prefersReducedMotion && (
+                    <div className="flex items-center justify-center gap-1.5 h-6 px-4 py-1 rounded-full bg-[#EEF5FC] border border-[#CBD8E5]/60">
+                      {[0.4, 0.7, 1.0, 0.6, 0.9, 0.5, 0.8].map((h, i) => (
+                        <motion.span
+                          key={i}
+                          animate={{
+                            height: [`${h * 8 + 4}px`, `${(1.2 - h * 0.5) * 16 + 4}px`, `${h * 8 + 4}px`],
+                            opacity: [0.6, 1.0, 0.6],
+                          }}
+                          transition={{
+                            duration: 1.4 + i * 0.15,
+                            repeat: Infinity,
+                            ease: calmEase,
+                          }}
+                          className="w-1 rounded-full bg-[#2365B5]"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-1 text-center">
                     <h4 className="text-[18px] font-extrabold text-[#17191F] tracking-tight">
                       {currentUI.listeningTitle}
                     </h4>
@@ -720,7 +757,7 @@ export function VoiceIntakeModal({
                       id="kiosk-voice-stop-btn"
                       type="button"
                       onClick={handleStopListening}
-                      className="min-h-[46px] px-5 py-2 rounded-2xl bg-[#EEF5FC] border border-[#CBD8E5] text-[13px] font-extrabold text-[#2365B5] hover:bg-[#D3E2F0] cursor-pointer transition-colors"
+                      className="min-h-[46px] px-5 py-2 rounded-2xl bg-[#EEF5FC] border border-[#CBD8E5] text-[13px] font-extrabold text-[#2365B5] hover:bg-[#D3E2F0] cursor-pointer transition-colors shadow-2xs"
                     >
                       {currentUI.stopListening}
                     </button>
@@ -729,7 +766,7 @@ export function VoiceIntakeModal({
                       id="kiosk-voice-listening-type-btn"
                       type="button"
                       onClick={handleSwitchToTyping}
-                      className="min-h-[46px] px-3.5 py-2 rounded-2xl border border-[#DFE8F1] bg-white text-[12.5px] font-bold text-[#4B5565] hover:bg-[#F8FAFC] cursor-pointer"
+                      className="min-h-[46px] px-3.5 py-2 rounded-2xl border border-[#DFE8F1] bg-white text-[12.5px] font-bold text-[#4B5565] hover:bg-[#F8FAFC] cursor-pointer shadow-2xs"
                     >
                       <Keyboard size={14} className="inline mr-1" />
                       <span>{currentUI.typeInstead}</span>

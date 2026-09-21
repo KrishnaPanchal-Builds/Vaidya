@@ -853,7 +853,7 @@ export default function KioskIntakePage() {
                 onNext={handleContinueFromDuration}
                 nextLabel={language === 'hi' ? 'आगे: गंभीरता →' : 'Next: Severity →'}
                 onBack={() => setCurrentStage('SYMPTOMS')}
-                backLabel={language === 'hi' ? 'पीछे' : 'Back to Symptoms'}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
                 language={language}
               />
             </motion.div>
@@ -925,7 +925,7 @@ export default function KioskIntakePage() {
                 onNext={handleContinueFromSeverity}
                 nextLabel={language === 'hi' ? 'आगे: जीवनशैली →' : 'Next: Lifestyle →'}
                 onBack={() => setCurrentStage('DURATION')}
-                backLabel={language === 'hi' ? 'पीछे' : 'Back to Duration'}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
                 language={language}
               />
             </motion.div>
@@ -1075,7 +1075,7 @@ export default function KioskIntakePage() {
                 onNext={handleContinueFromLifestyle}
                 nextLabel={language === 'hi' ? 'समीक्षा करें →' : 'Review Answers →'}
                 onBack={() => setCurrentStage('SEVERITY')}
-                backLabel={language === 'hi' ? 'पीछे' : 'Back to Severity'}
+                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
                 language={language}
               />
             </motion.div>

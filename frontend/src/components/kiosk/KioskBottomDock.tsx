@@ -1,21 +1,24 @@
 'use client'
 
 /**
- * KioskBottomDock — Fixed Ergonomic Action Bar
+ * KioskBottomDock — Unified Ergonomic Action Bar
  *
- * Placed at the bottom-center of kiosk questionnaire screens:
- * - Center: Prominent, circular, pulsing "Speak Answer" hero button.
- * - Left: Clean, accessible "Back" navigation.
- * - Right: Standard, balanced "Next" action button.
+ * Integrated inline footer action bar for kiosk intake stages:
+ * - Center: Prominent rounded-rectangle pill "Speak Answer" hero button
+ *   with side-by-side mic icon and normal-case label matching the design system.
+ * - Left: "Back" navigation and "Type instead" action button.
+ * - Right: Balanced "Next / Continue" primary action button.
  *
- * Ensures elderly, short, or wheelchair patients reaching for the lower half
- * of a mounted kiosk tablet immediately focus on voice input.
+ * Sits naturally in document flow without floating or overlapping answer cards.
+ * Zero horizontal overflow / clipping across all screen sizes and label lengths.
+ * Adheres strictly to the calm healthcare motion tokens (--ease-calm, 2.1s breathing pulse).
  */
 
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Mic, ArrowLeft, ArrowRight, Keyboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
 
 interface KioskBottomDockProps {
   onSpeak: () => void
@@ -41,100 +44,127 @@ export function KioskBottomDock({
   backLabel = 'Back',
   onType,
   typeLabel,
-  language = 'en',
+  language: propLanguage,
   className,
 }: KioskBottomDockProps) {
+  const { language: contextLang, t } = useKioskTranslation()
+  const activeLang = propLanguage || contextLang || 'en'
+
   const getSpeakLabel = () => {
-    switch (language) {
-      case 'mr':
-        return 'बोला'
-      case 'hi':
-        return 'बोलें'
-      case 'gu':
-        return 'બોલો'
-      case 'bn':
-        return 'বলুন'
-      case 'ta':
-        return 'பேசவும்'
-      default:
-        return 'Speak Answer'
+    if (isListening) {
+      switch (activeLang) {
+        case 'hi':
+          return 'सुन रहे हैं…'
+        case 'mr':
+          return 'ऐकत आहोत…'
+        case 'gu':
+          return 'સાંભળી રહ્યા છીએ…'
+        case 'bn':
+          return 'শুনছি…'
+        case 'ta':
+          return 'கேட்கிறோம்…'
+        default:
+          return 'Listening…'
+      }
     }
+    return t.intake?.speakAnswer || 'Speak Answer'
+  }
+
+  const getTypeLabel = () => {
+    if (typeLabel) return typeLabel
+    return t.intake?.typeInstead || 'Type instead'
   }
 
   return (
     <div
       className={cn(
-        'w-full bg-white/95 backdrop-blur-md border-t border-[#DFE8F1] px-4 sm:px-6 py-3 shrink-0 flex items-center justify-between shadow-[0_-6px_24px_rgba(0,0,0,0.05)] select-none z-30',
+        'w-full max-w-full bg-white/95 backdrop-blur-md border-t border-[#DFE8F1] px-3 sm:px-6 py-3 shrink-0 flex items-center justify-between gap-2 sm:gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] select-none z-20 rounded-t-2xl mt-auto overflow-hidden',
         className
       )}
     >
-      {/* ── Left Controls: Back + Optional Type ── */}
-      <div className="flex items-center gap-2 min-w-[120px]">
+      {/* ── Left Controls: Back + Type Instead ── */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {onBack && (
           <button
             type="button"
+            id="kiosk-footer-back-btn"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl border border-[#CBD8E5] bg-[#F8FAFC] text-[#4B5565] font-bold text-[13.5px] hover:bg-[#EEF2F6] hover:text-[#17191F] transition-all active:scale-95 cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl border border-[#CBD8E5] bg-[#F8FAFC] text-[#4B5565] font-bold text-[13px] sm:text-[13.5px] hover:bg-[#EEF2F6] hover:text-[#17191F] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
             aria-label={backLabel}
           >
-            <ArrowLeft size={16} className="stroke-[2.5]" />
-            <span className="hidden sm:inline">{backLabel}</span>
+            <ArrowLeft size={16} className="stroke-[2.5] shrink-0" />
+            <span>{backLabel}</span>
           </button>
         )}
 
         {onType && (
           <button
             type="button"
+            id="kiosk-footer-type-btn"
             onClick={onType}
-            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#CBD8E5] bg-white text-[#2365B5] font-bold text-[12.5px] sm:text-[13px] hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-all active:scale-95 cursor-pointer shadow-2xs"
-            title="Type your answer"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl border border-[#CBD8E5] bg-white text-[#2365B5] font-bold text-[12.5px] sm:text-[13px] hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
+            title={getTypeLabel()}
+            aria-label={getTypeLabel()}
           >
-            <Keyboard size={15} />
-            <span className="hidden md:inline">{typeLabel || 'Type'}</span>
+            <Keyboard size={15} className="shrink-0" />
+            <span className="hidden md:inline">{getTypeLabel()}</span>
+            <span className="md:hidden">Type</span>
           </button>
         )}
       </div>
 
-      {/* ── Center Hero Action: Pulsing Floating Microphone Dock ── */}
-      <div className="relative flex flex-col items-center justify-center -my-2">
-        {/* Soft Animated Outer Pulse Ring */}
-        <div
-          className={cn(
-            'absolute inset-0 m-auto w-16 h-16 rounded-full pointer-events-none transition-all duration-300',
-            isListening
-              ? 'bg-rose-500/25 animate-ping'
-              : 'bg-[#2365B5]/20 animate-pulse'
-          )}
-        />
+      {/* ── Center Hero Action: Prominent Rounded-Rectangle Pill Voice Button ── */}
+      <div className="relative flex items-center justify-center shrink-0">
+        {/* Calm Concentric Breathing Pulse Ring (1800-2400ms cycle) */}
+        {isListening && (
+          <motion.div
+            initial={{ scale: 1.0, opacity: 0.35 }}
+            animate={{ scale: 1.08, opacity: 0 }}
+            transition={{
+              duration: 2.1,
+              repeat: Infinity,
+              ease: [0.4, 0.0, 0.2, 1],
+            }}
+            className="absolute inset-0 -m-1 rounded-2xl bg-rose-500/30 pointer-events-none motion-reduce:hidden"
+          />
+        )}
 
         <motion.button
           type="button"
+          id="kiosk-footer-speak-btn"
           onClick={onSpeak}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.1, ease: [0.4, 0.0, 0.2, 1] }}
           className={cn(
-            'relative w-[62px] h-[62px] sm:w-[68px] sm:h-[68px] rounded-full flex flex-col items-center justify-center text-white shadow-lg cursor-pointer z-10 transition-colors',
+            'relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[50px] rounded-2xl font-extrabold text-[13.5px] sm:text-[15px] text-white shadow-md hover:shadow-lg transition-all cursor-pointer z-10 whitespace-nowrap',
             isListening
-              ? 'bg-gradient-to-tr from-rose-600 to-red-500 ring-4 ring-rose-300'
-              : 'bg-gradient-to-tr from-[#174A91] via-[#2365B5] to-[#3B82F6] ring-4 ring-[#2365B5]/30'
+              ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-red-500 ring-2 ring-rose-400/50 shadow-rose-200'
+              : 'bg-gradient-to-r from-[#174A91] via-[#2365B5] to-[#347FCE] hover:from-[#133F7D] hover:via-[#1F5AA3] hover:to-[#2B6DB3] ring-1 ring-white/20'
           )}
           aria-label={getSpeakLabel()}
         >
-          <Mic size={26} className="stroke-[2.5]" />
-          <span className="text-[9.5px] font-extrabold tracking-wider uppercase leading-none mt-0.5">
-            {isListening ? 'Listening' : getSpeakLabel()}
+          <Mic
+            size={18}
+            className={cn(
+              'stroke-[2.5] shrink-0 transition-transform duration-200',
+              isListening && 'scale-110'
+            )}
+          />
+          <span className="tracking-normal whitespace-nowrap">
+            {getSpeakLabel()}
           </span>
         </motion.button>
       </div>
 
-      {/* ── Right Controls: Balanced Standard Next CTA ── */}
-      <div className="flex items-center justify-end min-w-[120px]">
+      {/* ── Right Controls: Balanced Next / Continue CTA ── */}
+      <div className="flex items-center justify-end shrink-0">
         <button
           type="button"
+          id="kiosk-footer-next-btn"
           onClick={onNext}
           disabled={isNextDisabled}
           className={cn(
-            'inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-[14px] sm:text-[14.5px] transition-all shadow-sm active:scale-95 cursor-pointer',
+            'inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl font-extrabold text-[13px] sm:text-[14px] transition-all shadow-xs active:scale-[0.97] cursor-pointer whitespace-nowrap',
             isNextDisabled
               ? 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed shadow-none'
               : 'bg-[#2365B5] text-white hover:bg-[#174A91] hover:shadow-md'
@@ -142,7 +172,7 @@ export function KioskBottomDock({
           aria-label={nextLabel}
         >
           <span>{nextLabel}</span>
-          <ArrowRight size={17} className="stroke-[2.5]" />
+          <ArrowRight size={16} className="stroke-[2.5] shrink-0" />
         </button>
       </div>
     </div>
