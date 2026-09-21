@@ -958,3 +958,277 @@ export const DEMO_QUESTIONS: Question[] = [
     isRedFlagRelevant: false,
   },
 ]
+
+// ─── Patient Portal Data Adapter ───────────────────────────────────────────
+
+export interface PatientPrescriptionItem {
+  id: string
+  medicationName: string
+  dosage: string
+  frequency: string
+  prescribedDate: string
+  prescribedBy: string
+  facilityName: string
+  sourceDocId?: string
+  documentImageUrl?: string
+}
+
+export interface PatientConsultationItem {
+  id: string
+  encounterId: string
+  date: string
+  physicianName: string
+  department: string
+  chiefComplaint: string
+  summaryNote: string
+  tokenNumber?: string
+  status: string
+}
+
+export interface PatientIntakeSubmission {
+  id: string
+  encounterId: string
+  date: string
+  reportedComplaint: string
+  translatedComplaint?: string
+  painSeverity?: number
+  duration?: string
+  bodyArea?: string
+  associatedSymptoms?: string[]
+  lifestyleNotes?: string
+}
+
+export interface PatientPortalData {
+  patient: Patient
+  encounters: Encounter[]
+  documents: MedicalDocument[]
+  prescriptions: PatientPrescriptionItem[]
+  consultations: PatientConsultationItem[]
+  intakeSubmissions: PatientIntakeSubmission[]
+  timeline: TimelineEvent[]
+}
+
+export function getPatientPortalData(patientId: string): PatientPortalData {
+  const patient = DEMO_PATIENTS.find(p => p.id === patientId) || DEMO_PATIENTS[0]
+  const encounters = DEMO_ENCOUNTERS.filter(e => e.patientId === patient.id)
+  const documents = ALL_DEMO_DOCUMENTS.filter(d => d.patientId === patient.id)
+  const facts = ALL_DEMO_FACTS.filter(f => f.patientId === patient.id)
+
+  // Derive Prescriptions strictly from existing facts & documents
+  const prescriptions: PatientPrescriptionItem[] = []
+  
+  if (patient.id === 'pat-001') {
+    prescriptions.push(
+      {
+        id: 'rx-001',
+        medicationName: 'Tab. Metformin 500mg',
+        dosage: '500 mg',
+        frequency: 'Twice daily after meals (BID)',
+        prescribedDate: '15 Jan 2025',
+        prescribedBy: 'Dr. V. Kulkarni (Endocrinology)',
+        facilityName: 'Shanti Multispecialty Hospital, Pune',
+        sourceDocId: 'doc-001',
+        documentImageUrl: '/documents/pat001_doc01_shanti_prescription.jpg',
+      },
+      {
+        id: 'rx-002',
+        medicationName: 'Tab. Amlodipine 5mg',
+        dosage: '5 mg',
+        frequency: 'Once daily in the morning (OD)',
+        prescribedDate: '15 Jan 2025',
+        prescribedBy: 'Dr. V. Kulkarni (Endocrinology)',
+        facilityName: 'Shanti Multispecialty Hospital, Pune',
+        sourceDocId: 'doc-001',
+        documentImageUrl: '/documents/pat001_doc01_shanti_prescription.jpg',
+      },
+      {
+        id: 'rx-003',
+        medicationName: 'Tab. Ranitidine 150mg & Gelusil Antacid 10ml',
+        dosage: '150 mg / 10 ml',
+        frequency: 'Ranitidine BD before meals, Gelusil TDS',
+        prescribedDate: '20 Jun 2024',
+        prescribedBy: 'Dr. S. Deshmukh (Gastroenterology)',
+        facilityName: 'District Civil Hospital, Pune',
+        sourceDocId: 'doc-003',
+        documentImageUrl: '/documents/pat001_doc03_district_civil_handwritten.jpg',
+      }
+    )
+  } else if (patient.id === 'pat-002') {
+    prescriptions.push(
+      {
+        id: 'rx-101',
+        medicationName: 'Tab. Aspirin 300mg (Chewable)',
+        dosage: '300 mg',
+        frequency: 'Immediate stat dose — chewed pre-hospital',
+        prescribedDate: '15 Aug 2026',
+        prescribedBy: 'Paramedic Unit 04',
+        facilityName: '108 Ambulance Emergency Response',
+        sourceDocId: 'doc-102',
+        documentImageUrl: '/documents/pat002_doc02_108_ambulance_triage.jpg',
+      },
+      {
+        id: 'rx-102',
+        medicationName: 'Tab. Sorbitrate 5mg (Sublingual)',
+        dosage: '5 mg',
+        frequency: 'Sublingual under tongue for chest pain',
+        prescribedDate: '15 Aug 2026',
+        prescribedBy: 'Paramedic Unit 04',
+        facilityName: '108 Ambulance Emergency Response',
+        sourceDocId: 'doc-102',
+        documentImageUrl: '/documents/pat002_doc02_108_ambulance_triage.jpg',
+      }
+    )
+  } else if (patient.id === 'pat-003') {
+    prescriptions.push(
+      {
+        id: 'rx-201',
+        medicationName: 'Tab. Aceclofenac 100mg + Paracetamol 325mg',
+        dosage: '100 mg / 325 mg',
+        frequency: 'Twice daily after meals x 5 days',
+        prescribedDate: '12 Jul 2024',
+        prescribedBy: 'Dr. A. Verma (Orthopedics)',
+        facilityName: 'Verma Ortho & Trauma Clinic, Pune',
+        sourceDocId: 'doc-203',
+        documentImageUrl: '/documents/pat003_doc03_verma_ortho_carbon.jpg',
+      }
+    )
+  } else if (patient.id === 'pat-004') {
+    prescriptions.push(
+      {
+        id: 'rx-301',
+        medicationName: 'Saptamrit Lauha & Triphala Churna 5g',
+        dosage: '5 g',
+        frequency: 'Twice daily with warm water after meals',
+        prescribedDate: '04 Mar 2025',
+        prescribedBy: 'Vaidya R. Shastri',
+        facilityName: 'AyurVaidya Chikitsalaya, Pune',
+        sourceDocId: 'doc-302',
+        documentImageUrl: '/documents/pat004_doc02_ayurvaidya_chikitsalaya.jpg',
+      }
+    )
+  } else if (patient.id === 'pat-005') {
+    prescriptions.push(
+      {
+        id: 'rx-401',
+        medicationName: 'Tab. Autrin (Iron & Folic Acid) & Shelcal 500',
+        dosage: '1 Tab OD',
+        frequency: 'Autrin after dinner, Shelcal after breakfast',
+        prescribedDate: '18 May 2025',
+        prescribedBy: 'Dr. N. Kazi (Obstetrics & Gynecology)',
+        facilityName: 'Kasturba Maternity & Child Clinic',
+        sourceDocId: 'doc-402',
+        documentImageUrl: '/documents/pat005_doc02_kasturba_maternity.jpg',
+      }
+    )
+  }
+
+  // Derive Consultations strictly from encounters & facts
+  const consultations: PatientConsultationItem[] = encounters.map((enc) => {
+    let physicianName = 'Dr. Rajesh Mehta'
+    let summaryNote = 'Regular OPD clinical consultation and record review.'
+    let chiefComplaint = 'General Follow-up'
+
+    if (patient.id === 'pat-001') {
+      physicianName = 'Dr. Rajesh Mehta (MD Medicine)'
+      chiefComplaint = 'Epigastric burning pain & post-prandial indigestion x 3 months'
+      summaryNote = 'Patient reviewed for ongoing upper abdominal burning pain. Evaluated past prescriptions and recent Sanjeevani HbA1c lab report (8.4%). Adjusted dietary guidance.'
+    } else if (patient.id === 'pat-002') {
+      physicianName = 'Dr. Sneha Nambiar (Emergency Cardiology)'
+      chiefComplaint = 'Acute retrosternal chest pain radiating to left arm x 2 hours'
+      summaryNote = 'Emergency triage evaluation. 12-Lead ECG confirmed acute cardiac pattern. Pre-hospital medications (Aspirin + Sorbitrate) noted. Patient admitted for immediate intervention.'
+    } else if (patient.id === 'pat-003') {
+      physicianName = 'Dr. Amit Verma (Orthopedics)'
+      chiefComplaint = 'Right knee joint pain on walking & morning stiffness'
+      summaryNote = 'Reviewed knee AP/Lateral X-Ray. Mild joint space narrowing noted. Advised quadriceps strengthening physiotherapy and short course analgesics.'
+    } else if (patient.id === 'pat-004') {
+      physicianName = 'Vaidya R. Shastri (AYUSH OPD)'
+      chiefComplaint = 'Chronic dyspepsia & Pitta imbalance'
+      summaryNote = 'Prakriti assessment conducted. Dietary modifications (Ahara) and herbal formulation prescribed.'
+    } else if (patient.id === 'pat-005') {
+      physicianName = 'Dr. N. Kazi (Obstetrics & Gynecology)'
+      chiefComplaint = 'Routine second trimester antenatal checkup (24 weeks)'
+      summaryNote = 'Vitals stable (BP 118/74), fetal heart sound regular at 144 bpm. Prenatal iron and calcium supplements continued.'
+    }
+
+    return {
+      id: `cons-${enc.id}`,
+      encounterId: enc.id,
+      date: enc.createdAt,
+      physicianName,
+      department: enc.department,
+      chiefComplaint,
+      summaryNote,
+      tokenNumber: enc.tokenNumber,
+      status: enc.state === 'READY_FOR_REVIEW' || enc.state === 'UNDER_PHYSICIAN_REVIEW' ? 'Completed Consultation' : 'In Progress',
+    }
+  })
+
+  // Derive Data Submitted Per Visit (Kiosk Intake)
+  const intakeSubmissions: PatientIntakeSubmission[] = []
+  if (patient.id === 'pat-001') {
+    intakeSubmissions.push({
+      id: 'sub-001',
+      encounterId: 'enc-001',
+      date: '2026-08-15T10:24:00Z',
+      reportedComplaint: '३ महिन्यांपासून जेवणानंतर पोटात तीव्र जळजळ आणि दुखणे जाणवते',
+      translatedComplaint: 'Burning epigastric pain occurring 30-45 minutes after meals for 3 months',
+      painSeverity: 7,
+      duration: '3 months',
+      bodyArea: 'Upper Abdomen (Epigastrium)',
+      associatedSymptoms: ['Post-prandial burning', 'Acid reflux / Indigestion', 'Mild nausea'],
+      lifestyleNotes: 'Irregular meal timings, frequent spicy meals, high occupational stress',
+    })
+  } else if (patient.id === 'pat-002') {
+    intakeSubmissions.push({
+      id: 'sub-002',
+      encounterId: 'enc-002',
+      date: '2026-08-15T10:22:00Z',
+      reportedComplaint: 'Mujhe seene mein bahut dard hai, aur dard baayein haath mein bhi ja raha hai.',
+      translatedComplaint: 'Crushing central chest pain radiating to left arm and neck',
+      painSeverity: 9,
+      duration: '2 hours',
+      bodyArea: 'Chest & Left Arm',
+      associatedSymptoms: ['Severe chest pressure', 'Left arm radiation', 'Sweating / Diaphoresis', 'Shortness of breath'],
+      lifestyleNotes: 'Acute sudden onset during morning activity',
+    })
+  } else if (patient.id === 'pat-003') {
+    intakeSubmissions.push({
+      id: 'sub-003',
+      encounterId: 'enc-003',
+      date: '2026-08-15T09:10:00Z',
+      reportedComplaint: 'घुटनों में दर्द और चलने में कठिनाई',
+      translatedComplaint: 'Knee joint pain and difficulty climbing stairs',
+      painSeverity: 6,
+      duration: '6 months',
+      bodyArea: 'Right Knee',
+      associatedSymptoms: ['Morning stiffness', 'Joint cracking sound'],
+    })
+  }
+
+  // Derive Timeline
+  let timeline: TimelineEvent[] = []
+  if (patient.id === 'pat-001') {
+    timeline = DEMO_TIMELINE_ENC001
+  } else if (patient.id === 'pat-002') {
+    timeline = [
+      { id: 'tl-101', eventDate: '2026-08-15', datePrecision: 'EXACT', title: '108 Ambulance Dispatch & Paramedic Triage', detail: 'Tab. Aspirin 300mg & Sorbitrate 5mg administered', sourceType: 'DOCUMENT_EXTRACT', sourceId: 'doc-102' },
+      { id: 'tl-102', eventDate: '2026-08-15', datePrecision: 'EXACT', title: 'Emergency 12-Lead ECG Completed', detail: 'Sinus Tachycardia HR 112 bpm, ST-Elevation V1-V4', sourceType: 'DOCUMENT_EXTRACT', sourceId: 'doc-101' },
+      { id: 'tl-103', eventDate: '2026-08-15', datePrecision: 'EXACT', title: 'Cardiology Triaging & Immediate Review', detail: 'Dr. S. Nambiar consultation', sourceType: 'INTERVIEW', sourceId: 'sess-002' },
+    ]
+  } else {
+    timeline = [
+      { id: `tl-${patient.id}-1`, eventDate: '2026-08-15', datePrecision: 'EXACT', title: 'OPD Check-in & Intake', detail: 'VAIDYA Kiosk self-service registration', sourceType: 'INTERVIEW', sourceId: 'sess-001' },
+    ]
+  }
+
+  return {
+    patient,
+    encounters,
+    documents,
+    prescriptions,
+    consultations,
+    intakeSubmissions,
+    timeline,
+  }
+}
+

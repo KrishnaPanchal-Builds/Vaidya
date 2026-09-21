@@ -118,6 +118,10 @@ export default function Welcome({ onNavigate }: WelcomeProps) {
     router.push('/auth/login')
   }
 
+  const handlePatientLogin = () => {
+    router.push('/patient/login')
+  }
+
   const currentStep = MOTION_STEPS[activeMotionStep]
 
   return (
@@ -150,7 +154,13 @@ export default function Welcome({ onNavigate }: WelcomeProps) {
             </a>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handlePatientLogin}
+              className="px-3.5 py-1.5 rounded-lg border border-teal-200 bg-teal-50/60 text-teal-800 text-[12.5px] font-bold hover:bg-teal-100/80 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+            >
+              <span>Patient Portal</span>
+            </button>
             <button
               onClick={handleStaffLogin}
               className="px-3.5 py-1.5 rounded-lg border border-border bg-white text-ink text-[12.5px] font-bold hover:bg-surface-subtle transition-all cursor-pointer shadow-2xs"
@@ -198,6 +208,13 @@ export default function Welcome({ onNavigate }: WelcomeProps) {
                 >
                   <span>Begin Patient Intake</span>
                   <ArrowRight size={16} />
+                </button>
+
+                <button
+                  onClick={handlePatientLogin}
+                  className="h-12 px-5 rounded-xl border border-teal-300 bg-teal-50/70 text-teal-900 text-[13.5px] font-bold flex items-center justify-center gap-2 hover:bg-teal-100 transition-colors shadow-2xs"
+                >
+                  <span>Patient Login & Records</span>
                 </button>
 
                 <a
