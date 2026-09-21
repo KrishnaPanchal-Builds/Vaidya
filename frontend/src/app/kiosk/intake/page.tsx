@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { useVoiceAgent } from '@/lib/hooks/use-voice-agent'
 import { getLocalizedBodyRegionLabel } from '@/lib/translations/body-regions-translations'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 import { KioskBottomDock } from '@/components/kiosk/KioskBottomDock'
@@ -61,6 +62,7 @@ export default function KioskIntakePage() {
   const router = useRouter()
   const { language } = useKioskTranslation()
   const { patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
+  const { speak, isSpeaking, stop } = useVoiceAgent()
 
   // ── 1. Progressive Stage State ──
   const [currentStage, setCurrentStage] = useState<IntakeStageKey>('LOCATION')
@@ -116,6 +118,56 @@ export default function KioskIntakePage() {
   useEffect(() => {
     advanceStep('INTAKE')
   }, [advanceStep])
+
+  // Auto-speak question title whenever stage or question changes
+  useEffect(() => {
+    if (currentStage === 'LOCATION') {
+      const text =
+        language === 'mr'
+          ? 'शरीरावरील त्रासाचे ठिकाण निवडा.'
+          : language === 'hi'
+          ? 'शरीर पर दर्द या तकलीफ का स्थान चुनें।'
+          : 'Please select the area of your body where you feel the problem.'
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    } else if (currentStage === 'SYMPTOMS' && currentQuestion) {
+      const localQ = getLocalizedQuestion(currentQuestion, language)
+      speak(localQ.title, (language as 'en' | 'hi' | 'mr') || 'en')
+    } else if (currentStage === 'DURATION') {
+      const text =
+        language === 'mr'
+          ? 'हा त्रास किती दिवसांपासून होत आहे?'
+          : language === 'hi'
+          ? 'यह तकलीफ कितने समय से है?'
+          : 'How long have you been experiencing this problem?'
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    } else if (currentStage === 'SEVERITY') {
+      const text =
+        language === 'mr'
+          ? 'त्रासाची तीव्रता किती आहे? एक ते दहापैकी निवडा.'
+          : language === 'hi'
+          ? 'तकलीफ की तीव्रता कितनी है? एक से दस में से चुनें।'
+          : 'On a scale of 1 to 10, how severe is your discomfort?'
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    } else if (currentStage === 'LIFESTYLE') {
+      const text =
+        language === 'mr'
+          ? 'आपल्या आहाराविषयी किंवा सवयींविषयी सांगा.'
+          : language === 'hi'
+          ? 'अपनी खान-पान या जीवनशैली के बारे में बताएं।'
+          : 'Tell us about your diet or lifestyle habits.'
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    } else if (currentStage === 'REVIEW') {
+      const text =
+        language === 'mr'
+          ? 'कृपया आपल्या उत्तरांचा आढावा तपासा आणि पुढे जा.'
+          : language === 'hi'
+          ? 'कृपया अपने जवाब जांचें और आगे बढ़ें।'
+          : 'Please review your answers and tap Continue when ready.'
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    }
+    return () => { stop() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStage, activeQuestionIndex, language])
 
   // ── STAGE 1 HANDLERS: Body Map & Category Selection ──
   const handleToggleRegion = useCallback(
@@ -332,13 +384,48 @@ export default function KioskIntakePage() {
   }
 
   // ── AUDIO TTS GUIDANCE ──
-  const handleHearQuestion = () => {
+  const handleHearQuestion = useCallback(() => {
     updateActivity()
-    setIsSpeakingQuestion(true)
-    setTimeout(() => {
-      setIsSpeakingQuestion(false)
-    }, 2400)
-  }
+    let text: string
+    if (currentStage === 'SYMPTOMS' && currentQuestion) {
+      const localQ = getLocalizedQuestion(currentQuestion, language)
+      text = localQ.title
+    } else if (currentStage === 'DURATION') {
+      text =
+        language === 'mr'
+          ? 'हा त्रास किती दिवसांपासून होत आहे?'
+          : language === 'hi'
+          ? 'यह तकलीफ कितने समय से है?'
+          : 'How long have you been experiencing this problem?'
+    } else if (currentStage === 'SEVERITY') {
+      text =
+        language === 'mr'
+          ? 'त्रासाची तीव्रता किती आहे? एक ते दहापैकी निवडा.'
+          : language === 'hi'
+          ? 'तकलीफ की तीव्रता कितनी है? एक से दस में से चुनें।'
+          : 'How severe is your discomfort on a scale of 1 to 10?'
+    } else if (currentStage === 'LIFESTYLE') {
+      text =
+        language === 'mr'
+          ? 'आपल्या आहाराविषयी किंवा सवयींविषयी सांगा.'
+          : language === 'hi'
+          ? 'अपनी खान-पान या जीवनशैली के बारे में बताएं।'
+          : 'Tell us about your diet or lifestyle habits.'
+    } else {
+      text =
+        language === 'mr'
+          ? 'शरीरावरील त्रासाचे ठिकाण निवडा.'
+          : language === 'hi'
+          ? 'शरीर पर दर्द का स्थान चुनें।'
+          : 'Select the area of your body where you feel the problem.'
+    }
+    speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+  }, [updateActivity, currentStage, currentQuestion, language, speak])
+
+  // Sync isSpeakingQuestion with real voice state
+  useEffect(() => {
+    setIsSpeakingQuestion(isSpeaking)
+  }, [isSpeaking])
 
   // Localized question strings
   const localizedQ = getLocalizedQuestion(currentQuestion, language)

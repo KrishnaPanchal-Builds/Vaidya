@@ -37,7 +37,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """
     Application startup / shutdown lifecycle manager.
-    All heavy initialisation (Redis pool, embedding model, Pinecone client)
+    All heavy initialisation (Redis pool, embedding model, local FAISS index)
     happens here so the event loop is already running.
     """
     # ── Startup ───────────────────────────────────────────────────────────────

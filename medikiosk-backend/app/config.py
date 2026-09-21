@@ -52,10 +52,10 @@ class Settings(BaseSettings):
     bhashini_confidence_threshold: float = 0.70
     bhashini_arbitration_window_ms: int = 2500
 
-    # ── Pinecone ──────────────────────────────────────────────────────────────
-    pinecone_api_key: str = ""
-    pinecone_index_name: str = "medikiosk-ontology"
-    pinecone_environment: str = "us-east-1"
+    # ── Local Vector Store (FAISS) ────────────────────────────────────────────
+    # Path to the FAISS flat index built from NAMASTE corpus at startup.
+    # Leave as default; override only if you relocate the data directory.
+    vector_db_path: str = "data/faiss_index.bin"
 
     # ── Google Cloud Document AI ──────────────────────────────────────────────
     google_application_credentials: str = ""

@@ -17,7 +17,7 @@ Schema created:
     namaste_codes(namaste_code, category, english_term, hindi_term,
                   marathi_term, synonyms, icd11_tm2_code, icd11_allopathic_code,
                   dosha_association, severity_tier)
-    embeddings_meta(namaste_code, chunk_id, text, pinecone_uploaded)
+    embeddings_meta(namaste_code, chunk_id, text, vector_indexed)
 """
 from __future__ import annotations
 
@@ -103,14 +103,14 @@ def _create_schema(conn: sqlite3.Connection) -> None:
         )
     """)
 
-    # Metadata table for tracking Pinecone upload status
+    # Metadata table for tracking local vector index status
     cur.execute("""
         CREATE TABLE IF NOT EXISTS embeddings_meta (
             id                  INTEGER PRIMARY KEY AUTOINCREMENT,
             namaste_code        TEXT,
             chunk_id            TEXT UNIQUE,
             text                TEXT,
-            pinecone_uploaded   INTEGER DEFAULT 0,
+            vector_indexed      INTEGER DEFAULT 0,
             created_at          TEXT DEFAULT (datetime('now'))
         )
     """)
@@ -241,7 +241,7 @@ def load_corpus(
         )
         namaste_loaded += 1
 
-        # Queue combined text for Pinecone embedding upload
+        # Queue combined text for local FAISS index embedding
         chunk_text = " | ".join(filter(None, [
             row.get("english_term", ""),
             row.get("hindi_term", ""),

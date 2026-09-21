@@ -23,8 +23,6 @@ def mock_settings(monkeypatch):
         "GROQ_API_KEY": "gsk_test_key",
         "BHASHINI_API_KEY": "test-bhashini-key",
         "BHASHINI_USER_ID": "test-user-id",
-        "PINECONE_API_KEY": "test-pinecone-key",
-        "PINECONE_INDEX_NAME": "medikiosk-test",
         "GCP_PROJECT_ID": "test-project",
         "DOCUMENT_AI_PROCESSOR_ID": "test-processor",
         "DOCUMENT_AI_LOCATION": "us",

@@ -15,7 +15,7 @@ Test Scenarios:
     7. REST health endpoints
     8. Physician bundle retrieval endpoint
 
-All network I/O (Redis, Bhashini, Groq, Pinecone, Google DocAI) is mocked.
+All network I/O (Redis, Bhashini, Groq, FAISS, Google DocAI) is mocked.
 Tests run fully offline without any cloud credentials.
 """
 from __future__ import annotations
@@ -38,8 +38,6 @@ os.environ.setdefault("REDIS_URL", "redis://localhost:6379/1")
 os.environ.setdefault("GROQ_API_KEY", "gsk_test_key")
 os.environ.setdefault("BHASHINI_API_KEY", "test-bhashini-key")
 os.environ.setdefault("BHASHINI_USER_ID", "test-user-id")
-os.environ.setdefault("PINECONE_API_KEY", "test-pinecone-key")
-os.environ.setdefault("PINECONE_INDEX_NAME", "medikiosk-test")
 os.environ.setdefault("GCP_PROJECT_ID", "test-project")
 os.environ.setdefault("DOCUMENT_AI_PROCESSOR_ID", "test-processor")
 os.environ.setdefault("DOCUMENT_AI_LOCATION", "us")

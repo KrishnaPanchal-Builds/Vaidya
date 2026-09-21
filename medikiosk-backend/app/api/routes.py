@@ -107,14 +107,19 @@ async def physician_login(credentials: dict[str, str]) -> dict[str, Any]:
     doctor_id = credentials.get("doctor_id", "").strip()
     passcode = credentials.get("passcode", "").strip()
 
-    # Passcode verification for OPD kiosk station
     if not doctor_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="doctor_id is required",
         )
 
-    if passcode and passcode not in ("1234", "doctor2026", "admin2026", "opd2026", settings.secret_key):
+    # Passcode is required — no passcode == authentication failure.
+    # Accepted values should be moved to env vars before production deployment.
+    VALID_PASSCODES = {"1234", "doctor2026", "admin2026", "opd2026"}
+    if settings.secret_key:
+        VALID_PASSCODES.add(settings.secret_key)
+
+    if passcode not in VALID_PASSCODES:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid physician PIN or passcode",

@@ -14,8 +14,7 @@ services:
       - GROQ_MODEL=${GROQ_MODEL:-llama3-8b-8192}
       - BHASHINI_API_KEY=${BHASHINI_API_KEY}
       - BHASHINI_USER_ID=${BHASHINI_USER_ID}
-      - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME:-medikiosk-ontology}
+      # FAISS vector index is built locally at startup — no external key needed
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - DOCUMENT_AI_PROCESSOR_ID=${DOCUMENT_AI_PROCESSOR_ID}
       - ABDM_HIS_ENDPOINT=${ABDM_HIS_ENDPOINT:-}
