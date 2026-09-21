@@ -166,7 +166,8 @@ async def require_admin_auth(
       2. Valid Bearer JWT with role="admin"
     """
     # 1. Check API Key header
-    if api_key and (api_key == settings.secret_key or api_key == "medikiosk-admin-key-2026"):
+    valid_keys = [k for k in [settings.secret_key, settings.admin_api_key] if k]
+    if api_key and api_key in valid_keys:
         return {"sub": "admin_key", "role": "admin"}
 
     # 2. Check JWT Bearer

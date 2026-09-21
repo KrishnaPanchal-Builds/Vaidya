@@ -20,10 +20,12 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { useVoiceAgent } from '@/lib/hooks/use-voice-agent'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 import { kioskService } from '@/services/kiosk.service'
 import type { KioskPatientData } from '@/types/kiosk'
 import { DEMO_PATIENTS } from '@/constants/demo-data'
+import { Volume2, ArrowRight } from 'lucide-react'
 
 type IdentifyView =
   | 'SELECT_METHOD'
@@ -40,6 +42,7 @@ export default function KioskIdentifyPage() {
   const router = useRouter()
   const { t } = useKioskTranslation()
   const { language, advanceStep, setPatientData, updateActivity } = useKioskStore()
+  const { speak, speakOnMount, isSpeaking } = useVoiceAgent()
 
   const [view, setView] = useState<IdentifyView>('SELECT_METHOD')
   const [manualType, setManualType] = useState<ManualEntryType>('ABHA')
@@ -56,6 +59,29 @@ export default function KioskIdentifyPage() {
   const [newPhone, setNewPhone] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Spoken voice guidance on screen mount
+  useEffect(() => {
+    const promptText =
+      language === 'mr'
+        ? 'कृपया तुमचे आभा कार्ड किंवा मोबाईल नंबर दाखवा. नसल्यास पुढे जाण्यासाठी हिरवे बटण दाबा.'
+        : language === 'hi'
+        ? 'कृपया अपना आभा कार्ड या मोबाइल नंबर दिखाएं। यदि नहीं है, तो आगे बढ़ने के लिए हरा बटन दबाएं।'
+        : 'Please show your ABHA card or enter mobile number. If you do not have one, touch the green button to continue.'
+
+    return speakOnMount(promptText, language || 'mr', 450)
+  }, [speakOnMount, language])
+
+  const handleHearInstructions = () => {
+    updateActivity()
+    const promptText =
+      language === 'mr'
+        ? 'कृपया तुमचे आभा कार्ड किंवा मोबाईल नंबर दाखवा. नसल्यास पुढे जाण्यासाठी हिरवे बटण दाबा.'
+        : language === 'hi'
+        ? 'कृपया अपना आभा कार्ड या मोबाइल नंबर दिखाएं। यदि नहीं है, तो आगे बढ़ने के लिए हरा बटन दबाएं।'
+        : 'Please show your ABHA card or enter mobile number. If you do not have one, touch the green button to continue.'
+    speak(promptText, language || 'mr')
+  }
 
   // Ensure store knows we are in IDENTIFY step
   useEffect(() => {
@@ -261,18 +287,81 @@ export default function KioskIdentifyPage() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-5 sm:gap-6"
             >
-              {/* Header Title */}
-              <div className="flex flex-col text-center gap-1">
-                <span className="text-[12.5px] font-bold text-[var(--color-brand)] tracking-wider uppercase">
-                  {t.identify.title}
-                </span>
-                <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[var(--color-text-primary)] leading-tight">
-                  {t.identify.title}
-                </h1>
-                <p className="text-[15px] sm:text-[16px] font-medium text-[var(--color-text-secondary)] mt-0.5 max-w-xl mx-auto">
+              {/* Header Title with Audio Replay */}
+              <div className="flex flex-col text-center gap-2">
+                <div className="flex items-center justify-center gap-3">
+                  <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[var(--color-text-primary)] leading-tight">
+                    {t.identify.title}
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={handleHearInstructions}
+                    className="p-2.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D9E9F8] transition-all cursor-pointer shadow-xs shrink-0"
+                    title="Listen to instructions (सूचना ऐका)"
+                    aria-label="Listen to identification guidance"
+                  >
+                    <Volume2 size={24} className={isSpeaking ? 'animate-pulse text-[#174A91]' : ''} />
+                  </button>
+                </div>
+                <p className="text-[16px] sm:text-[18px] font-semibold text-[#4B5565] max-w-xl mx-auto">
                   {t.identify.titleSub}
                 </p>
               </div>
+
+              {/* 🌟 Dedicated Green Button for Illiterate / Guest Walkthrough (Never Get Stuck) */}
+              <button
+                type="button"
+                id="kiosk-guest-skip-btn"
+                onClick={() => {
+                  updateActivity()
+                  const guestPatient: KioskPatientData = {
+                    id: 'pat-marathi-rural-01',
+                    name: language === 'mr' ? 'आनंदी शिंदे' : language === 'hi' ? 'आनंदी शिंदे' : 'Anandi Shinde',
+                    age: 68,
+                    sex: 'Female',
+                    phone: '9820011223',
+                    abhaNumber: '91-4421-9876-1234',
+                    lastVisit: 'First OPD Visit',
+                    preferredLanguage: language || 'mr',
+                  }
+                  if (language === 'mr') {
+                    speak('थेट नोंदणी निवडली आहे. पुढे जात आहोत.', 'mr')
+                  } else if (language === 'hi') {
+                    speak('सीधी प्रविष्टि चुनी गई है। आगे बढ़ रहे हैं।', 'hi')
+                  } else {
+                    speak('Continuing as guest patient.', 'en')
+                  }
+                  handleSelectPatient(guestPatient, false)
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-5 sm:p-5.5 rounded-2xl border-2 border-emerald-500 shadow-md flex items-center justify-between gap-4 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[96px]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 text-white flex items-center justify-center shrink-0">
+                    <ArrowRight className="w-8 h-8 stroke-[3]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[20px] sm:text-[22px] font-extrabold leading-tight">
+                        {language === 'mr'
+                          ? 'हिरवे बटण: थेट पुढे जा (आभा कार्ड नाही)'
+                          : language === 'hi'
+                          ? 'हरा बटन: सीधे आगे बढ़ें (आभा कार्ड नहीं है)'
+                          : 'Green Button: Continue Directly (No ABHA)'}
+                      </span>
+                      <span className="bg-white/25 text-white text-[13px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider">
+                        {language === 'mr' ? 'जलद प्रवेश' : 'Quick Start'}
+                      </span>
+                    </div>
+                    <p className="text-[15px] sm:text-[16px] text-emerald-100 font-medium mt-1">
+                      {language === 'mr'
+                        ? 'नवीन रुग्ण म्हणून थेट तपासणीसाठी पुढे जा. कार्डची गरज नाही.'
+                        : language === 'hi'
+                        ? 'नए मरीज के रूप में सीधे आगे बढ़ें। कार्ड की आवश्यकता नहीं है।'
+                        : 'Tap here to continue directly without ABHA or phone.'}
+                    </p>
+                  </div>
+                </div>
+              </button>
 
               {/* Option Cards Stack */}
               <div className="flex flex-col gap-3.5 w-full">
@@ -294,14 +383,14 @@ export default function KioskIdentifyPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-[18px] sm:text-[19px] font-extrabold text-[var(--color-text-primary)]">
+                      <h2 className="text-[19px] sm:text-[21px] font-extrabold text-[var(--color-text-primary)]">
                         {t.identify.methodAbha}
                       </h2>
-                      <span className="bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] text-[11.5px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="bg-[var(--color-verified-subtle)] text-[var(--color-verified-text)] text-[13px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                         {t.identify.fastestBadge}
                       </span>
                     </div>
-                    <p className="text-[13.5px] sm:text-[14.5px] text-[var(--color-text-secondary)] mt-0.5 leading-snug">
+                    <p className="text-[15px] sm:text-[16px] text-[#4B5565] mt-0.5 leading-snug font-medium">
                       {t.identify.methodAbhaDesc}
                     </p>
                   </div>

@@ -12,23 +12,25 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { useVoiceAgent } from '@/lib/hooks/use-voice-agent'
 import { LanguageTile } from '@/components/kiosk/language-tile'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 import { KIOSK_LANGUAGES } from '@/lib/kiosk-localization'
 import { kioskService } from '@/services/kiosk.service'
 import VaidyaWordmark from '@/components/ui/VaidyaWordmark'
-import { ShieldCheck } from 'lucide-react'
+import { ShieldCheck, Volume2 } from 'lucide-react'
 import type { Language } from '@/types'
 
 const HEADING_LINES = [
-  { text: 'Welcome', opacity: 1.0, lang: 'en', size: 'text-[36px] sm:text-[44px]' },
-  { text: 'स्वागत है', opacity: 0.85, lang: 'hi', size: 'text-[30px] sm:text-[38px]' },
-  { text: 'સ્વાગત છે · স্বাগতম · வரவேற்பு', opacity: 0.60, lang: 'gu', size: 'text-[22px] sm:text-[28px]' },
+  { text: 'Welcome', opacity: 1.0, lang: 'en', size: 'text-[38px] sm:text-[48px]' },
+  { text: 'स्वागत है', opacity: 0.90, lang: 'hi', size: 'text-[32px] sm:text-[40px]' },
+  { text: 'સ્વાગત છે · স্বাগতম · வரவேற்பு', opacity: 0.70, lang: 'gu', size: 'text-[24px] sm:text-[30px]' },
 ]
 
 export default function KioskAttractPage() {
   const router = useRouter()
   const { t } = useKioskTranslation()
+  const { speak, speakOnMount, isSpeaking } = useVoiceAgent()
   const {
     language: storedLang,
     status,
@@ -39,9 +41,18 @@ export default function KioskAttractPage() {
     updateActivity,
   } = useKioskStore()
 
-  const [selected, setSelected] = useState<Language | null>(storedLang || 'en')
+  const [selected, setSelected] = useState<Language | null>(storedLang || 'mr')
   const [isContinuing, setIsContinuing] = useState(false)
   const [showCleared, setShowCleared] = useState(false)
+
+  // Auto-speak sequential welcome invitation in Marathi, Hindi, and English
+  useEffect(() => {
+    return speakOnMount(
+      'कृपया तुमची भाषा निवडा. अपनी भाषा चुनें. Please select your language to begin.',
+      'mr',
+      500
+    )
+  }, [speakOnMount])
 
   // Show "session cleared" feedback banner if redirected from reset
   useEffect(() => {
@@ -57,9 +68,23 @@ export default function KioskAttractPage() {
       setSelected(code)
       setLanguage(code)
       updateActivity()
+
+      // Immediate spoken confirmation in chosen language
+      if (code === 'mr') {
+        speak('मराठी भाषा निवडली आहे. पुढे जाण्यासाठी खालील हिरवे बटण दाबा.', 'mr')
+      } else if (code === 'hi') {
+        speak('हिंदी भाषा चुनी गई है। आगे बढ़ने के लिए नीचे दिए गए बटन को दबाएं।', 'hi')
+      } else {
+        speak('English selected. Touch the button below to continue.', 'en')
+      }
     },
-    [setLanguage, updateActivity]
+    [setLanguage, updateActivity, speak]
   )
+
+  const handleHearAgain = () => {
+    updateActivity()
+    speak('कृपया तुमची भाषा निवडा. अपनी भाषा चुनें. Please select your language to begin.', 'mr')
+  }
 
   const handleContinue = useCallback(async () => {
     if (!selected || isContinuing) return
@@ -143,13 +168,24 @@ export default function KioskAttractPage() {
           ))}
         </div>
 
-        {/* Instruction Subheading */}
-        <div className="flex flex-col items-center text-center gap-1">
-          <h2 className="text-[19px] sm:text-[21px] text-[#17191F] font-extrabold tracking-tight">
-            Select Preferred Language
-          </h2>
-          <p className="text-[14px] sm:text-[15px] text-[#6F7480] font-medium max-w-md">
-            You can speak or read in this language throughout the visit.
+        {/* Instruction Subheading with Spoken Audio Guide Button */}
+        <div className="flex flex-col items-center text-center gap-2">
+          <div className="flex items-center justify-center gap-2.5">
+            <h2 className="text-[22px] sm:text-[26px] text-[#17191F] font-extrabold tracking-tight">
+              भाषा निवडा · भाषा चुनें · Select Language
+            </h2>
+            <button
+              type="button"
+              onClick={handleHearAgain}
+              className="p-2.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D9E9F8] transition-all cursor-pointer shadow-xs"
+              title="Listen to instructions (सूचना ऐका)"
+              aria-label="Listen to language instructions"
+            >
+              <Volume2 size={22} className={isSpeaking ? 'animate-pulse text-[#174A91]' : ''} />
+            </button>
+          </div>
+          <p className="text-[16px] sm:text-[18px] text-[#4B5565] font-semibold max-w-lg">
+            तुम्ही संपूर्ण भेटीदरम्यान ही भाषा बोलू किंवा वाचू शकता.
           </p>
         </div>
 
@@ -157,7 +193,7 @@ export default function KioskAttractPage() {
         <div
           role="radiogroup"
           aria-label="Select your preferred language"
-          className="grid grid-cols-2 gap-3.5 sm:gap-4.5 w-full"
+          className="grid grid-cols-2 gap-3.5 sm:gap-5 w-full"
         >
           {KIOSK_LANGUAGES.map((lang, idx) => (
             <LanguageTile
@@ -171,8 +207,8 @@ export default function KioskAttractPage() {
         </div>
 
         {/* Footer Support Prompt */}
-        <p className="text-center text-[13.5px] text-[#8C93A3] font-medium pt-2">
-          Need help? Ask hospital staff
+        <p className="text-center text-[15px] sm:text-[16px] text-[#4B5565] font-bold pt-1">
+          मदत हवी आहे का? हॉस्पिटल कर्मचाऱ्यांशी संपर्क साधा (Need help? Ask hospital staff)
         </p>
       </main>
 

@@ -83,16 +83,16 @@ export function KioskBottomDock({
       )}
     >
       {/* ── Left Controls: Back + Type Instead ── */}
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         {onBack && (
           <button
             type="button"
             id="kiosk-footer-back-btn"
             onClick={onBack}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl border border-[#CBD8E5] bg-[#F8FAFC] text-[#4B5565] font-bold text-[13px] sm:text-[13.5px] hover:bg-[#EEF2F6] hover:text-[#17191F] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4.5 py-2.5 sm:py-3 min-h-[50px] sm:min-h-[54px] rounded-xl border border-[#CBD8E5] bg-[#F8FAFC] text-[#4B5565] font-extrabold text-[15px] sm:text-[16px] hover:bg-[#EEF2F6] hover:text-[#17191F] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
             aria-label={backLabel}
           >
-            <ArrowLeft size={16} className="stroke-[2.5] shrink-0" />
+            <ArrowLeft size={18} className="stroke-[2.8] shrink-0" />
             <span>{backLabel}</span>
           </button>
         )}
@@ -102,11 +102,11 @@ export function KioskBottomDock({
             type="button"
             id="kiosk-footer-type-btn"
             onClick={onType}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl border border-[#CBD8E5] bg-white text-[#2365B5] font-bold text-[12.5px] sm:text-[13px] hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[50px] sm:min-h-[54px] rounded-xl border border-[#CBD8E5] bg-white text-[#2365B5] font-extrabold text-[15px] sm:text-[16px] hover:bg-[#F0F6FD] hover:border-[#2365B5] transition-all active:scale-[0.97] cursor-pointer shadow-2xs whitespace-nowrap"
             title={getTypeLabel()}
             aria-label={getTypeLabel()}
           >
-            <Keyboard size={15} className="shrink-0" />
+            <Keyboard size={18} className="shrink-0" />
             <span className="hidden md:inline">{getTypeLabel()}</span>
             <span className="md:hidden">Type</span>
           </button>
@@ -136,7 +136,7 @@ export function KioskBottomDock({
           whileTap={{ scale: 0.97 }}
           transition={{ duration: 0.1, ease: [0.4, 0.0, 0.2, 1] }}
           className={cn(
-            'relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[50px] rounded-2xl font-extrabold text-[13.5px] sm:text-[15px] text-white shadow-md hover:shadow-lg transition-all cursor-pointer z-10 whitespace-nowrap',
+            'relative inline-flex items-center justify-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-3.5 min-h-[52px] sm:min-h-[58px] rounded-2xl font-extrabold text-[16px] sm:text-[18px] text-white shadow-md hover:shadow-lg transition-all cursor-pointer z-10 whitespace-nowrap',
             isListening
               ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-red-500 ring-2 ring-rose-400/50 shadow-rose-200'
               : 'bg-gradient-to-r from-[#174A91] via-[#2365B5] to-[#347FCE] hover:from-[#133F7D] hover:via-[#1F5AA3] hover:to-[#2B6DB3] ring-1 ring-white/20'
@@ -144,9 +144,9 @@ export function KioskBottomDock({
           aria-label={getSpeakLabel()}
         >
           <Mic
-            size={18}
+            size={22}
             className={cn(
-              'stroke-[2.5] shrink-0 transition-transform duration-200',
+              'stroke-[2.8] shrink-0 transition-transform duration-200',
               isListening && 'scale-110'
             )}
           />
@@ -164,7 +164,7 @@ export function KioskBottomDock({
           onClick={onNext}
           disabled={isNextDisabled}
           className={cn(
-            'inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[48px] rounded-xl font-extrabold text-[13px] sm:text-[14px] transition-all shadow-xs active:scale-[0.97] cursor-pointer whitespace-nowrap',
+            'inline-flex items-center gap-1.5 sm:gap-2.5 px-4.5 sm:px-7 py-2.5 sm:py-3 min-h-[50px] sm:min-h-[54px] rounded-xl font-extrabold text-[15.5px] sm:text-[17px] transition-all shadow-xs active:scale-[0.97] cursor-pointer whitespace-nowrap',
             isNextDisabled
               ? 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed shadow-none'
               : 'bg-[#2365B5] text-white hover:bg-[#174A91] hover:shadow-md'
@@ -172,7 +172,7 @@ export function KioskBottomDock({
           aria-label={nextLabel}
         >
           <span>{nextLabel}</span>
-          <ArrowRight size={16} className="stroke-[2.5] shrink-0" />
+          <ArrowRight size={18} className="stroke-[2.8] shrink-0" />
         </button>
       </div>
     </div>

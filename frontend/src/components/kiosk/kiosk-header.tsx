@@ -54,7 +54,7 @@ const HEADER_LANG_OPTIONS: TabOption<SupportedKioskLanguage>[] = [
 ]
 
 export function KioskHeader({ step, language, progressPercent, className }: KioskHeaderProps) {
-  const { setLanguage, updateActivity } = useKioskStore()
+  const { setLanguage, updateActivity, isMuted, toggleMute } = useKioskStore()
   const isActive = ACTIVE_STEPS.includes(step)
   const progress = progressPercent ?? STEP_PROGRESS[step] ?? 0
 
@@ -84,8 +84,44 @@ export function KioskHeader({ step, language, progressPercent, className }: Kios
           </span>
         </div>
 
-        {/* Right: Dynamic in-session Sliding Language Switcher & Security indicator */}
-        <div className="shrink-0 flex items-center gap-2.5 overflow-x-auto">
+        {/* Right: Dynamic in-session Sliding Language Switcher & Audio Controls */}
+        <div className="shrink-0 flex items-center gap-2 sm:gap-3 overflow-x-auto">
+          {/* Mute / Unmute Audio Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              updateActivity()
+              toggleMute()
+            }}
+            className={cn(
+              'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border transition-all cursor-pointer font-bold text-[13px] sm:text-[14px]',
+              isMuted
+                ? 'bg-amber-50 border-amber-300 text-amber-700'
+                : 'bg-[#EEF5FC] border-[#CBD8E5] text-[#2365B5] hover:bg-[#D9E9F8]'
+            )}
+            title={isMuted ? 'Unmute Audio (आवाज सुरू करा)' : 'Mute Audio (आवाज बंद करा)'}
+            aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+          >
+            {isMuted ? (
+              <>
+                <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+                <span className="hidden md:inline">Muted</span>
+              </>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+                <span className="hidden md:inline">Voice ON</span>
+              </>
+            )}
+          </button>
+
           {isActive && (
             <div className="flex items-center">
               <SlidingSegmentedTabs
@@ -99,12 +135,12 @@ export function KioskHeader({ step, language, progressPercent, className }: Kios
             </div>
           )}
 
-          <div className="hidden sm:flex items-center gap-1.5 text-[var(--color-text-muted)] pl-1.5 border-l border-[var(--color-border)]">
-            <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 text-[var(--color-brand)]" fill="none" aria-hidden="true">
+          <div className="hidden lg:flex items-center gap-1.5 text-[var(--color-text-muted)] pl-2 border-l border-[var(--color-border)]">
+            <svg viewBox="0 0 16 16" className="w-4 h-4 text-[var(--color-brand)]" fill="none" aria-hidden="true">
               <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span className="text-[11px] font-bold tracking-wide uppercase text-[var(--color-text-secondary)]">Secure</span>
+            <span className="text-[13px] font-bold tracking-wide uppercase text-[var(--color-text-secondary)]">ABDM Secure</span>
           </div>
         </div>
       </div>

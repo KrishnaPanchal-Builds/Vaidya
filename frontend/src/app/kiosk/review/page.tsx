@@ -20,22 +20,69 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { useVoiceAgent } from '@/lib/hooks/use-voice-agent'
 import { KioskButton } from '@/components/kiosk/kiosk-button'
 
 type ReviewWorkflowStage = 'SUMMARY' | 'TOKEN' | 'PRINT' | 'COMPLETION'
 
 export default function KioskReviewPage() {
   const router = useRouter()
-  const { t } = useKioskTranslation()
-  const { patientData, intakeAnswers, documents, advanceStep, resetSession, updateActivity } = useKioskStore()
+  const { t, language } = useKioskTranslation()
+  const {
+    patientData,
+    intakeAnswers,
+    documents,
+    advanceStep,
+    resetSession,
+    updateActivity,
+    assignedToken,
+    assignedRoom,
+    assignedWaitTime,
+  } = useKioskStore()
 
   const [stage, setStage] = useState<ReviewWorkflowStage>('SUMMARY')
   const [printStatus, setPrintStatus] = useState<'IDLE' | 'PRINTING' | 'DONE'>('IDLE')
   const [countdown, setCountdown] = useState(10)
 
+  // Web Speech API Voice Agent
+  const { speakOnMount } = useVoiceAgent()
+
+  const displayToken = assignedToken || t.token.tokenNumber || 'A-015'
+  const displayRoom = assignedRoom || t.token.location || 'Room 4, First Floor'
+  const displayWait = assignedWaitTime || t.token.estimatedWait || '~12 minutes'
+
   useEffect(() => {
     advanceStep('REVIEW')
   }, [advanceStep])
+
+  // Spoken voice guidance across review stages
+  useEffect(() => {
+    if (stage === 'SUMMARY') {
+      const text =
+        language === 'mr'
+          ? 'तुमच्या माहितीचा अंतिम आढावा तपासून टोकन मिळवण्यासाठी पुष्टी करा बटणावर स्पर्श करा.'
+          : language === 'hi'
+          ? 'अपनी जानकारी की समीक्षा करें और टोकन प्राप्त करने के लिए पुष्टि करें दबाएं।'
+          : 'Please review your health summary and tap confirm to generate your OPD token.'
+      speakOnMount(text, language, 500)
+    } else if (stage === 'TOKEN') {
+      const text =
+        language === 'mr'
+          ? `तुमचा टोकन क्रमांक ${displayToken} तयार आहे. खोली क्रमांक ४, पहिला मजला. अंदाजे प्रतीक्षा वेळ १२ मिनिटे.`
+          : language === 'hi'
+          ? `आपका टोकन नंबर ${displayToken} तैयार है। कमरा नंबर 4, पहली मंज़िल। अनुमानित प्रतीक्षा समय 12 मिनट।`
+          : `Your token number is ${displayToken}. Room 4, First Floor. Estimated wait time 12 minutes.`
+      speakOnMount(text, language, 400)
+    } else if (stage === 'COMPLETION') {
+      const text =
+        language === 'mr'
+          ? 'धन्यवाद. कृपया प्रतीक्षा कक्षात बसा. डॉक्टर लवकरच आपल्याला बोलावतील.'
+          : language === 'hi'
+          ? 'धन्यवाद। कृपया प्रतीक्षा क्षेत्र में बैठें। डॉक्टर जल्द ही आपको बुलाएंगे।'
+          : 'Thank you. Please proceed to the waiting area. The doctor will call your token shortly.'
+      speakOnMount(text, language, 400)
+    }
+  }, [stage, language, displayToken, speakOnMount])
 
   // ── Privacy Reset Countdown on Completion ───────────────────────────────────
 
@@ -151,20 +198,20 @@ export default function KioskReviewPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-left">
                   <div>
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[var(--color-text-muted)] block uppercase">Complaint:</span>
-                    <span className="font-extrabold text-[var(--color-text-primary)] text-[14.5px] sm:text-[15px]">{chiefComplaint}</span>
+                    <span className="text-[13px] font-extrabold text-[var(--color-text-muted)] block uppercase">Complaint:</span>
+                    <span className="font-extrabold text-[var(--color-text-primary)] text-[16px]">{chiefComplaint}</span>
                   </div>
                   <div>
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[var(--color-text-muted)] block uppercase">Duration:</span>
-                    <span className="font-bold text-[var(--color-text-primary)] text-[14px] sm:text-[14.5px]">{duration}</span>
+                    <span className="text-[13px] font-extrabold text-[var(--color-text-muted)] block uppercase">Duration:</span>
+                    <span className="font-extrabold text-[var(--color-text-primary)] text-[15.5px]">{duration}</span>
                   </div>
                   <div>
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[var(--color-text-muted)] block uppercase">Sensation:</span>
-                    <span className="font-bold text-[var(--color-text-primary)] text-[14px] sm:text-[14.5px]">{quality}</span>
+                    <span className="text-[13px] font-extrabold text-[var(--color-text-muted)] block uppercase">Sensation:</span>
+                    <span className="font-extrabold text-[var(--color-text-primary)] text-[15.5px]">{quality}</span>
                   </div>
                   <div>
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[var(--color-text-muted)] block uppercase">Diet Factor:</span>
-                    <span className="font-bold text-[var(--color-verified)] text-[14px] sm:text-[14.5px]">{lifestyle}</span>
+                    <span className="text-[13px] font-extrabold text-[var(--color-text-muted)] block uppercase">Diet Factor:</span>
+                    <span className="font-extrabold text-[var(--color-verified)] text-[15.5px]">{lifestyle}</span>
                   </div>
                 </div>
               </div>
@@ -176,12 +223,12 @@ export default function KioskReviewPage() {
                     📄
                   </div>
                   <div>
-                    <span className="font-extrabold text-[var(--color-text-primary)] text-[14.5px] sm:text-[15.5px] block">
+                    <span className="font-extrabold text-[var(--color-text-primary)] text-[15px] sm:text-[16px] block">
                       {documents.length > 0
                         ? `${documents.length} Medical Document(s) Attached`
                         : 'No New Paper Documents (Existing Records Linked)'}
                     </span>
-                    <span className="text-[12.5px] text-[var(--color-text-muted)]">
+                    <span className="text-[13px] sm:text-[13.5px] text-[var(--color-text-muted)] font-medium">
                       {documents.length > 0
                         ? documents.map((d) => d.name).join(', ')
                         : 'Previous hospital visit records will be referenced'}
@@ -204,10 +251,10 @@ export default function KioskReviewPage() {
                     {t.review.aiSummaryTitle}
                   </span>
                 </div>
-                <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
+                <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
                   {t.review.aiSummaryDisclaimer}
                 </p>
-                <div className="bg-[var(--color-surface)]/90 p-3 rounded-xl border border-[var(--color-sage-border)] text-[13px] text-[var(--color-text-primary)] space-y-1.5">
+                <div className="bg-[var(--color-surface)]/90 p-3.5 rounded-xl border border-[var(--color-sage-border)] text-[14px] text-[var(--color-text-primary)] space-y-1.5 font-medium">
                   <p>• <strong>Clinical synthesis:</strong> Sub-acute gastric discomfort with meal correlation.</p>
                   <p>• <strong>Pre-triage:</strong> Routine General Medicine / Ayush OPD Consultation.</p>
                 </div>
@@ -285,7 +332,7 @@ export default function KioskReviewPage() {
 
                 {/* Dominant Token Typography */}
                 <span className="text-[80px] sm:text-[96px] font-black tracking-tight leading-none my-3 font-mono drop-shadow-md">
-                  {t.token.tokenNumber}
+                  {displayToken}
                 </span>
 
                 <span className="text-[14.5px] text-[var(--color-sage-soft)]">
@@ -304,7 +351,7 @@ export default function KioskReviewPage() {
                       {t.token.estimatedWaitLabel}
                     </span>
                     <span className="text-[15px] sm:text-[16px] font-extrabold text-[var(--color-text-primary)]">
-                      {t.token.estimatedWait}
+                      {displayWait}
                     </span>
                   </div>
                 </div>
@@ -318,7 +365,7 @@ export default function KioskReviewPage() {
                       {t.token.locationLabel}
                     </span>
                     <span className="text-[15px] sm:text-[16px] font-extrabold text-[var(--color-text-primary)]">
-                      {t.token.location}
+                      {displayRoom}
                     </span>
                   </div>
                 </div>
@@ -386,7 +433,7 @@ export default function KioskReviewPage() {
                       {t.token.printing}
                     </h2>
                     <p className="text-[15px] text-[var(--color-text-secondary)] mt-1">
-                      Dispensing token slip for #{t.token.tokenNumber}
+                      Dispensing token slip for #{displayToken}
                     </p>
                   </div>
                 </>
@@ -444,7 +491,7 @@ export default function KioskReviewPage() {
               <div className="bg-[var(--color-surface)] p-5 sm:p-6 rounded-3xl border border-[var(--color-border)] shadow-sm flex flex-col gap-3.5 text-left text-[14.5px]">
                 <div className="flex justify-between items-center pb-2.5 border-b border-[var(--color-border)]">
                   <span className="text-[var(--color-text-secondary)] font-medium">Token Number:</span>
-                  <span className="text-[24px] sm:text-[28px] font-black font-mono text-[var(--color-brand)]">{t.token.tokenNumber}</span>
+                  <span className="text-[24px] sm:text-[28px] font-black font-mono text-[var(--color-brand)]">{displayToken}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[var(--color-text-secondary)] font-medium">OPD Department:</span>
@@ -452,7 +499,7 @@ export default function KioskReviewPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[var(--color-text-secondary)] font-medium">Assigned Room:</span>
-                  <span className="font-extrabold text-[var(--color-text-primary)]">Room 104 (First Floor)</span>
+                  <span className="font-extrabold text-[var(--color-text-primary)]">{displayRoom}</span>
                 </div>
               </div>
 

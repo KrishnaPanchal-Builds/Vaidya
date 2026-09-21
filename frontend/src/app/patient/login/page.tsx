@@ -9,21 +9,16 @@ import {
   ShieldCheck,
   Smartphone,
   CreditCard,
-  QrCode,
   ArrowRight,
   CheckCircle2,
   Heart,
-  User,
   Sparkles,
-  Calendar,
-  Phone,
-  FileText,
 } from 'lucide-react'
 import VaidyaWordmark from '@/components/VaidyaWordmark'
 import { useAuthStore } from '@/store'
 import { DEMO_PATIENTS } from '@/constants/demo-data'
 
-type AuthMode = 'DEMO_QUICK' | 'MOBILE' | 'ABHA' | 'QR'
+type AuthMode = 'DEMO_QUICK' | 'MOBILE' | 'ABHA'
 
 export default function PatientLoginPage() {
   const router = useRouter()
@@ -34,9 +29,7 @@ export default function PatientLoginPage() {
   const [abhaId, setAbhaId] = useState('12-3456-7890-1234')
   const [selectedPatientId, setSelectedPatientId] = useState<'pat-001' | 'pat-002' | 'pat-003'>('pat-001')
   const [step, setStep] = useState<'IDENTIFY' | 'CONFIRM' | 'OTP'>('IDENTIFY')
-  const [otp, setOtp] = useState('482910')
   const [loading, setLoading] = useState(false)
-  const [qrScanning, setQrScanning] = useState(false)
 
   const handleSelectDemoProfile = (patientId: 'pat-001' | 'pat-002' | 'pat-003') => {
     setSelectedPatientId(patientId)
@@ -71,15 +64,6 @@ export default function PatientLoginPage() {
       }
       setStep('CONFIRM')
     }, 450)
-  }
-
-  const handleSimulateQrScan = (patientId: 'pat-001' | 'pat-002') => {
-    setQrScanning(true)
-    setTimeout(() => {
-      setQrScanning(false)
-      setSelectedPatientId(patientId)
-      setStep('CONFIRM')
-    }, 800)
   }
 
   const handleConfirmAndProceed = () => {

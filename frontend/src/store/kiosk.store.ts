@@ -54,6 +54,15 @@ interface KioskStore extends KioskSession {
   /** Set encounter ref after encounter is created */
   setEncounterRef: (encounterRef: string) => void
 
+  /** Toggle global kiosk speech audio */
+  toggleMute: () => void
+
+  /** Explicitly set mute state */
+  setMuted: (muted: boolean) => void
+
+  /** Set dynamic OPD token and queue details */
+  setAssignedToken: (token: string, room?: string, waitTime?: string) => void
+
   /**
    * Full privacy reset — clears ALL session state and returns to ATTRACT.
    * Must be called after session completion or timeout.
@@ -62,6 +71,20 @@ interface KioskStore extends KioskSession {
    */
   resetSession: () => void
 }
+
+let sessionCounter = 15
+
+export function generateNextToken(): { token: string; room: string; waitTime: string } {
+  const token = `A-${String(sessionCounter).padStart(3, '0')}`
+  sessionCounter += 1
+  return {
+    token,
+    room: 'OPD Room 4 (Ayush / General)',
+    waitTime: '12',
+  }
+}
+
+const defaultTokenData = generateNextToken()
 
 const EMPTY_SESSION: KioskSession = {
   sessionId: null,
@@ -78,13 +101,30 @@ const EMPTY_SESSION: KioskSession = {
   documents: [],
   encounterRef: null,
   isReturningPatient: null,
+  isMuted: false,
+  assignedToken: defaultTokenData.token,
+  assignedRoom: defaultTokenData.room,
+  assignedWaitTime: defaultTokenData.waitTime,
 }
 
 export const useKioskStore = create<KioskStore>((set) => ({
   ...EMPTY_SESSION,
 
-  beginSession: () =>
-    set({
+  toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
+
+  setMuted: (isMuted: boolean) => set({ isMuted }),
+
+  setAssignedToken: (assignedToken, room, waitTime) =>
+    set((state) => ({
+      assignedToken,
+      assignedRoom: room || state.assignedRoom,
+      assignedWaitTime: waitTime || state.assignedWaitTime,
+      lastActivityAt: Date.now(),
+    })),
+
+  beginSession: () => {
+    const nextQueue = generateNextToken()
+    return set({
       status: 'active',
       step: 'LANGUAGE',
       startedAt: Date.now(),
@@ -100,7 +140,11 @@ export const useKioskStore = create<KioskStore>((set) => ({
       encounterRef: null,
       isReturningPatient: null,
       language: null,
-    }),
+      assignedToken: nextQueue.token,
+      assignedRoom: nextQueue.room,
+      assignedWaitTime: nextQueue.waitTime,
+    })
+  },
 
   setLanguage: (language) => set({ language, lastActivityAt: Date.now() }),
 

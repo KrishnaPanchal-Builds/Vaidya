@@ -59,7 +59,7 @@ import {
 
 export default function KioskIntakePage() {
   const router = useRouter()
-  const { language, t } = useKioskTranslation()
+  const { language } = useKioskTranslation()
   const { patientData, advanceStep, setIntakeAnswer, updateActivity } = useKioskStore()
 
   // ── 1. Progressive Stage State ──
@@ -869,11 +869,11 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-2xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
+              className="max-w-2xl mx-auto w-full my-auto space-y-4 overflow-y-auto max-h-full py-1"
             >
-              <div className="text-center space-y-1">
-                <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
+              <div className="text-center space-y-1.5">
+                <div className="flex justify-center items-center gap-2.5">
+                  <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F] leading-tight">
                     {language === 'hi'
                       ? 'तकलीफ या दर्द कितना तेज है?'
                       : language === 'mr'
@@ -888,13 +888,13 @@ export default function KioskIntakePage() {
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-2 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] shrink-0"
+                    className="p-2.5 rounded-full bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] shrink-0 cursor-pointer shadow-2xs"
                     aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={19} />
+                    <Volume2 size={22} />
                   </button>
                 </div>
-                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
+                <p className="text-[16px] sm:text-[17.5px] font-medium text-[#4B5565] leading-relaxed">
                   {language === 'hi'
                     ? '1 (हल्का) से 10 (गंभीर) के पैमाने पर अपनी परेशानी बताएं।'
                     : language === 'mr'
@@ -923,9 +923,15 @@ export default function KioskIntakePage() {
                   setIsVoiceModalOpen(true)
                 }}
                 onNext={handleContinueFromSeverity}
-                nextLabel={language === 'hi' ? 'आगे: जीवनशैली →' : 'Next: Lifestyle →'}
+                nextLabel={
+                  language === 'mr'
+                    ? 'पुढे: जीवनशैली →'
+                    : language === 'hi'
+                    ? 'आगे: जीवनशैली →'
+                    : 'Next: Lifestyle →'
+                }
                 onBack={() => setCurrentStage('DURATION')}
-                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
+                backLabel={language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}
                 language={language}
               />
             </motion.div>
@@ -941,11 +947,11 @@ export default function KioskIntakePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.18 }}
-              className="max-w-3xl mx-auto w-full my-auto space-y-3.5 overflow-y-auto max-h-full py-1"
+              className="max-w-3xl mx-auto w-full my-auto space-y-4 overflow-y-auto max-h-full py-1"
             >
-              <div className="text-center space-y-1">
-                <div className="flex justify-center items-center gap-2">
-                  <h1 className="text-[22px] sm:text-[27px] font-extrabold text-[#17191F] leading-tight">
+              <div className="text-center space-y-1.5">
+                <div className="flex justify-center items-center gap-2.5">
+                  <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F] leading-tight">
                     {language === 'hi'
                       ? 'कोई खान-पान या जीवनशैली का कारण?'
                       : language === 'mr'
@@ -960,13 +966,13 @@ export default function KioskIntakePage() {
                   </h1>
                   <button
                     onClick={handleHearQuestion}
-                    className="p-2 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF] shrink-0"
+                    className="p-2.5 rounded-full bg-[#EBFDF5] text-[#079455] hover:bg-[#D1FADF] shrink-0 cursor-pointer shadow-2xs"
                     aria-label="Listen to question guidance"
                   >
-                    <Volume2 size={19} />
+                    <Volume2 size={22} />
                   </button>
                 </div>
-                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
+                <p className="text-[16px] sm:text-[17.5px] font-medium text-[#4B5565] leading-relaxed">
                   {language === 'hi'
                     ? 'वैकल्पिक प्रश्न: यदि किसी आदत या दिनचर्या से संबंध लगता है तो चुनें।'
                     : language === 'mr'
@@ -982,7 +988,7 @@ export default function KioskIntakePage() {
               </div>
 
               {/* Standardized Lifestyle Options Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {LIFESTYLE_OPTIONS.map((opt) => {
                   const isSelected = selectedLifestyleTrigger === opt.id
                   const title = opt.title[language] || opt.title.en
@@ -993,7 +999,7 @@ export default function KioskIntakePage() {
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectLifestyle(opt.id)}
-                      className={`p-4 rounded-2xl border text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[78px] sm:min-h-[84px] ${
+                      className={`p-4 sm:p-5 rounded-2xl border text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[84px] sm:min-h-[92px] ${
                         isSelected
                           ? 'bg-[#EBFDF5] border-[#079455] shadow-xs ring-1 ring-[#079455]/30'
                           : 'bg-white border-[#DFE8F1] hover:border-[#CBD8E5] hover:bg-[#F8FAFC] shadow-2xs'
@@ -1001,25 +1007,25 @@ export default function KioskIntakePage() {
                       aria-label={`${title}: ${desc}`}
                       aria-pressed={isSelected}
                     >
-                      <div className="space-y-0.5">
+                      <div className="space-y-1">
                         <span
-                          className={`text-[15px] sm:text-[15.5px] font-extrabold block ${
+                          className={`text-[17px] sm:text-[18px] font-extrabold block leading-snug ${
                             isSelected ? 'text-[#079455]' : 'text-[#17191F]'
                           }`}
                         >
                           {title}
                         </span>
-                        <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block">{desc}</span>
+                        <span className="text-[14px] sm:text-[14.5px] text-[#4B5565] block font-medium leading-relaxed">{desc}</span>
                       </div>
 
                       <div
-                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-colors mt-0.5 ${
                           isSelected
                             ? 'bg-[#079455] border-[#079455] text-white'
                             : 'bg-white border-[#CBD8E5]'
                         }`}
                       >
-                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                        {isSelected && <Check size={14} className="stroke-[3]" />}
                       </div>
                     </button>
                   )
@@ -1032,16 +1038,16 @@ export default function KioskIntakePage() {
                     setVoiceModalMode('TYPING')
                     setIsVoiceModalOpen(true)
                   }}
-                  className="p-4 rounded-2xl border-2 border-dashed border-[#079455]/50 bg-[#EBFDF5]/60 hover:bg-[#EBFDF5] text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[78px] sm:min-h-[84px] shadow-2xs"
+                  className="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-[#079455]/50 bg-[#EBFDF5]/60 hover:bg-[#EBFDF5] text-left transition-all active:scale-98 cursor-pointer flex items-start justify-between min-h-[84px] sm:min-h-[92px] shadow-2xs"
                   aria-label="Other habit or trigger"
                 >
-                  <div className="space-y-0.5">
-                    <span className="text-[15px] sm:text-[15.5px] font-extrabold text-[#079455] flex items-center gap-2">
-                      <Keyboard size={16} />
+                  <div className="space-y-1">
+                    <span className="text-[17px] sm:text-[18px] font-extrabold text-[#079455] flex items-center gap-2 leading-snug">
+                      <Keyboard size={18} />
                       {language === 'hi'
                         ? 'अन्य / लिखकर बताएं'
                         : language === 'mr'
-                        ? 'इतर / टाईप करा'
+                        ? 'इतर / सवय टाईप करा'
                         : language === 'gu'
                         ? 'અન્ય / લખીને જણાવો'
                         : language === 'bn'
@@ -1050,13 +1056,15 @@ export default function KioskIntakePage() {
                         ? 'மற்றவை / தட்டச்சு செய்யவும்'
                         : 'Other / Type custom habit'}
                     </span>
-                    <span className="text-[12.5px] sm:text-[13px] text-[#6F7480] block">
+                    <span className="text-[14px] sm:text-[14.5px] text-[#4B5565] block font-medium leading-relaxed">
                       {language === 'hi'
                         ? 'कोई अन्य खान-पान या दिनचर्या का कारण'
+                        : language === 'mr'
+                        ? 'कोणतीही वेगळी सवय किंवा आहाराचे कारण'
                         : 'Any other dietary or daily routine factor'}
                     </span>
                   </div>
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border border-[#079455] bg-white text-[#079455] font-extrabold text-[14px]">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border border-[#079455] bg-white text-[#079455] font-extrabold text-[14px] mt-0.5">
                     +
                   </div>
                 </button>
@@ -1073,9 +1081,15 @@ export default function KioskIntakePage() {
                   setIsVoiceModalOpen(true)
                 }}
                 onNext={handleContinueFromLifestyle}
-                nextLabel={language === 'hi' ? 'समीक्षा करें →' : 'Review Answers →'}
+                nextLabel={
+                  language === 'mr'
+                    ? 'आढावा तपासा →'
+                    : language === 'hi'
+                    ? 'समीक्षा करें →'
+                    : 'Review Answers →'
+                }
                 onBack={() => setCurrentStage('SEVERITY')}
-                backLabel={language === 'hi' ? 'पीछे' : 'Back'}
+                backLabel={language === 'mr' ? 'मागे' : language === 'hi' ? 'पीछे' : 'Back'}
                 language={language}
               />
             </motion.div>
@@ -1093,12 +1107,12 @@ export default function KioskIntakePage() {
               transition={{ duration: 0.18 }}
               className="max-w-2xl mx-auto w-full my-auto space-y-3.5 text-center overflow-y-auto max-h-full py-1"
             >
-              <div className="w-13 h-13 rounded-2xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
-                <CheckCircle2 size={26} />
+              <div className="w-14 h-14 rounded-2xl bg-[#EEF5FC] text-[#2365B5] flex items-center justify-center mx-auto shadow-sm border border-[#CBD8E5]">
+                <CheckCircle2 size={28} />
               </div>
 
-              <div className="space-y-0.5">
-                <h1 className="text-[24px] sm:text-[28px] font-extrabold text-[#17191F] tracking-tight">
+              <div className="space-y-1">
+                <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F] tracking-tight leading-tight">
                   {language === 'hi'
                     ? 'अपनी जानकारी की समीक्षा करें'
                     : language === 'mr'
@@ -1111,17 +1125,21 @@ export default function KioskIntakePage() {
                     ? 'உங்கள் தகவலை மதிப்பாய்வு செய்யவும்'
                     : 'Review your intake assessment'}
                 </h1>
-                <p className="text-[13.5px] sm:text-[14.5px] text-[#6F7480]">
-                  Please verify your responses before proceeding to document scanning.
+                <p className="text-[16px] sm:text-[17px] font-medium text-[#4B5565]">
+                  {language === 'mr'
+                    ? 'कागदपत्रे जोडण्यापूर्वी कृपया तुमची उत्तरे तपासून घ्या.'
+                    : language === 'hi'
+                    ? 'दस्तावेज़ स्कैन करने से पहले कृपया अपने जवाब जांच लें।'
+                    : 'Please verify your responses before proceeding to document scanning.'}
                 </p>
               </div>
 
               {/* Structured Summary Card with Per-Section Edit Affordances */}
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#DFE8F1] shadow-card text-left space-y-3 text-[13.5px]">
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#DFE8F1] shadow-card text-left space-y-3.5 text-[15px]">
                 {/* Patient Header */}
-                <div className="flex justify-between items-center pb-2.5 border-b border-[#DFE8F1]">
-                  <span className="font-bold text-[#6F7480] text-[13.5px]">Patient:</span>
-                  <span className="font-extrabold text-[#17191F] text-[15px] sm:text-[16px]">
+                <div className="flex justify-between items-center pb-3 border-b border-[#DFE8F1]">
+                  <span className="font-extrabold text-[#4B5565] text-[15.5px]">Patient:</span>
+                  <span className="font-black text-[#17191F] text-[17px] sm:text-[18px]">
                     {patientData?.name ?? 'Dhananjay Patil'} ({patientData?.age ?? 67} yrs)
                   </span>
                 </div>
@@ -1129,106 +1147,106 @@ export default function KioskIntakePage() {
                 {/* 1. Problem Location */}
                 <div className="flex justify-between items-start pt-1">
                   <div className="space-y-0.5">
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#64748B] uppercase tracking-wide block">
                       📍 Selected Body Areas:
                     </span>
-                    <span className="font-extrabold text-[#17191F] text-[14.5px] sm:text-[15.5px]">
+                    <span className="font-black text-[#17191F] text-[16px] sm:text-[17px]">
                       {selectedItems.map((i) => i.label).join(', ') || 'Chest'}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('LOCATION')}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-extrabold text-[#2365B5] hover:text-[#174A91] px-2.5 py-1.5 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={13} />
+                    <Edit3 size={15} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 2. Specific Symptoms */}
-                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-2 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#64748B] uppercase tracking-wide block">
                       🩺 Reported Symptoms:
                     </span>
-                    <span className="font-bold text-[#17191F] text-[14px] sm:text-[15px]">
+                    <span className="font-extrabold text-[#17191F] text-[16px] sm:text-[17px]">
                       {Object.values(symptomAnswers).flat().join(', ') || 'Pain / Discomfort'}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('SYMPTOMS')}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-extrabold text-[#2365B5] hover:text-[#174A91] px-2.5 py-1.5 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={13} />
+                    <Edit3 size={15} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 3. Duration */}
-                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-2 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#64748B] uppercase tracking-wide block">
                       ⏱️ Duration:
                     </span>
-                    <span className="font-bold text-[#17191F] text-[14px] sm:text-[15px]">
+                    <span className="font-extrabold text-[#17191F] text-[16px] sm:text-[17px]">
                       {resolvedDurationText}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('DURATION')}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-extrabold text-[#2365B5] hover:text-[#174A91] px-2.5 py-1.5 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={13} />
+                    <Edit3 size={15} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 4. Severity */}
-                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-2 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#64748B] uppercase tracking-wide block">
                       ⚡ Severity Rating:
                     </span>
-                    <span className="font-extrabold text-[#17191F] text-[14.5px] sm:text-[15.5px]">
+                    <span className="font-black text-[#17191F] text-[16px] sm:text-[17px]">
                       {severityRating} / 10 ({severityRating <= 3 ? 'Mild' : severityRating <= 6 ? 'Moderate' : 'Severe'})
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('SEVERITY')}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-extrabold text-[#2365B5] hover:text-[#174A91] px-2.5 py-1.5 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={13} />
+                    <Edit3 size={15} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 5. Lifestyle Factor */}
-                <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
+                <div className="flex justify-between items-start pt-2 border-t border-[#F1F4F9]">
                   <div className="space-y-0.5">
-                    <span className="text-[11.5px] sm:text-[12px] font-bold text-[#6F7480] uppercase block">
+                    <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#64748B] uppercase tracking-wide block">
                       🌿 Lifestyle &amp; Daily Routine:
                     </span>
-                    <span className="font-bold text-[#079455] text-[14px] sm:text-[15px]">
+                    <span className="font-extrabold text-[#079455] text-[16px] sm:text-[17px]">
                       {resolvedLifestyleText}
                     </span>
                   </div>
                   <button
                     onClick={() => setCurrentStage('LIFESTYLE')}
-                    className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#2365B5] hover:text-[#174A91] px-2 py-1 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-extrabold text-[#2365B5] hover:text-[#174A91] px-2.5 py-1.5 rounded-lg hover:bg-[#EEF5FC] transition-colors cursor-pointer"
                   >
-                    <Edit3 size={13} />
+                    <Edit3 size={15} />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 6. Voice Transcriptions if any */}
                 {Object.keys(customSymptomNotes).length > 0 && (
-                  <div className="flex justify-between items-start pt-1.5 border-t border-[#F1F4F9]">
+                  <div className="flex justify-between items-start pt-2 border-t border-[#F1F4F9]">
                     <div className="space-y-0.5">
-                      <span className="text-[11.5px] sm:text-[12px] font-bold text-[#2365B5] uppercase block">
+                      <span className="text-[13px] sm:text-[13.5px] font-extrabold text-[#2365B5] uppercase tracking-wide block">
                         🎙️ Patient-Reported Voice Transcription:
                       </span>
-                      <span className="font-semibold text-[#17191F] text-[13.5px] italic">
+                      <span className="font-bold text-[#17191F] text-[15px] italic">
                         &quot;{Object.values(customSymptomNotes).join('; ')}&quot;
                       </span>
                     </div>
@@ -1237,8 +1255,8 @@ export default function KioskIntakePage() {
               </div>
 
               {/* Calm Patient Disclaimer Banner */}
-              <div className="bg-[#EEF5FC] border border-[#CBD8E5] rounded-2xl p-3 text-center">
-                <p className="text-[12.5px] sm:text-[13px] text-[#4B5565] font-medium leading-relaxed">
+              <div className="bg-[#EEF5FC] border border-[#CBD8E5] rounded-2xl p-3.5 text-center">
+                <p className="text-[14px] sm:text-[15px] text-[#334155] font-medium leading-relaxed">
                   {language === 'hi'
                     ? 'आपकी जानकारी देखभाल टीम को आपकी स्थिति समझने में मदद करेगी। यह कोई अंतिम निदान नहीं है।'
                     : language === 'mr'
@@ -1260,16 +1278,26 @@ export default function KioskIntakePage() {
                   size="fullLg"
                   onClick={handleProceedToDocuments}
                 >
-                  <span>Proceed to Document Scanning</span>
-                  <ArrowRight size={18} className="stroke-[2.5]" />
+                  <span className="text-[17px] sm:text-[18px]">
+                    {language === 'mr'
+                      ? 'कागदपत्रे स्कॅन करण्यासाठी पुढे जा'
+                      : language === 'hi'
+                      ? 'दस्तावेज़ स्कैन के लिए आगे बढ़ें'
+                      : 'Proceed to Document Scanning'}
+                  </span>
+                  <ArrowRight size={20} className="stroke-[2.5]" />
                 </KioskButton>
 
                 <button
                   type="button"
                   onClick={() => setCurrentStage('LOCATION')}
-                  className="text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-1.5 transition-colors cursor-pointer"
+                  className="text-[15px] font-extrabold text-[#64748B] hover:text-[#17191F] py-2 transition-colors cursor-pointer"
                 >
-                  Edit All Answers
+                  {language === 'mr'
+                    ? 'सर्व उत्तरे बदला'
+                    : language === 'hi'
+                    ? 'सभी उत्तर बदलें'
+                    : 'Edit All Answers'}
                 </button>
               </div>
             </motion.div>
@@ -1277,15 +1305,27 @@ export default function KioskIntakePage() {
         </AnimatePresence>
 
         {/* ── 3. Bottom Security & Assistance Footer ── */}
-        <footer className="w-full shrink-0 flex items-center justify-between text-[11.5px] sm:text-[12px] text-[#6F7480] pt-1.5 select-none border-t border-[#DFE8F1]/60">
+        <footer className="w-full shrink-0 flex items-center justify-between text-[13px] sm:text-[13.5px] font-medium text-[#64748B] pt-2 select-none border-t border-[#DFE8F1]/60">
           <div className="flex items-center gap-1.5">
-            <Shield size={13} className="text-[#2365B5]" />
-            <span>Your information is encrypted, secure, and private</span>
+            <Shield size={15} className="text-[#2365B5]" />
+            <span>
+              {language === 'mr'
+                ? 'तुमची माहिती पूर्णपणे सुरक्षित व गोपनीय आहे'
+                : language === 'hi'
+                ? 'आपकी जानकारी सुरक्षित और निजी है'
+                : 'Your information is encrypted, secure, and private'}
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <HelpCircle size={13} className="text-[#6F7480]" />
-            <span>Need help? Ask hospital staff</span>
+            <HelpCircle size={15} className="text-[#64748B]" />
+            <span>
+              {language === 'mr'
+                ? 'मदत हवी आहे? रुग्णालय कर्मचाऱ्यांशी बोला'
+                : language === 'hi'
+                ? 'मदद चाहिए? अस्पताल कर्मचारियों से पूछें'
+                : 'Need help? Ask hospital staff'}
+            </span>
           </div>
         </footer>
       </main>

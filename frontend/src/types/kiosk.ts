@@ -115,6 +115,22 @@ export interface KioskSession {
    */
   encounterRef: string | null
   /**
+   * Whether the kiosk audio is currently muted by patient or staff.
+   */
+  isMuted?: boolean
+  /**
+   * Assigned OPD token for current session (dynamic).
+   */
+  assignedToken?: string
+  /**
+   * Assigned OPD room for current session.
+   */
+  assignedRoom?: string
+  /**
+   * Estimated wait time in minutes for current session.
+   */
+  assignedWaitTime?: string
+  /**
    * Whether the patient has been identified as returning (has existing records).
    * Drives the K-04 vs K-05 branch in the identification flow.
    */

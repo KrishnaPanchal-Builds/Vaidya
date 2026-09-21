@@ -21,7 +21,6 @@ import {
   ScanLine,
   Upload,
   CheckCircle2,
-  AlertTriangle,
   Volume2,
   ArrowRight,
   ArrowLeft,
@@ -38,6 +37,7 @@ import {
 } from 'lucide-react'
 import { useKioskStore } from '@/store/kiosk.store'
 import { useKioskTranslation } from '@/lib/hooks/use-kiosk-translation'
+import { useVoiceAgent } from '@/lib/hooks/use-voice-agent'
 import type { KioskDocument } from '@/types/kiosk'
 import { DocumentPreviewModal } from '@/components/documents/DocumentPreviewModal'
 
@@ -54,6 +54,7 @@ type DocType = 'PRESCRIPTION' | 'LAB_REPORT' | 'DISCHARGE_SUMMARY' | 'OTHER'
 export default function KioskDocumentsPage() {
   const router = useRouter()
   const { language } = useKioskTranslation()
+  const { speak, isSpeaking, stop } = useVoiceAgent()
   const {
     patientData,
     documents,
@@ -70,7 +71,6 @@ export default function KioskDocumentsPage() {
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStageText, setProcessingStageText] = useState('Initializing optical camera...')
   const [currentScanningDoc, setCurrentScanningDoc] = useState<KioskDocument | null>(null)
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [previewDoc, setPreviewDoc] = useState<KioskDocument | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -85,14 +85,38 @@ export default function KioskDocumentsPage() {
     }
   }, [documents.length, stage])
 
-  // ── Audio Guidance Simulation ───────────────────────────────────────────────
+  // ── Audio Guidance ─────────────────────────────────────────────────────────
+  const getDocGuidanceText = useCallback(() => {
+    if (stage === 'QUALITY_WARNING') {
+      return language === 'mr'
+        ? 'काळजी नको! तुमची कागदपत्रे डॉक्टरांसाठी सुरक्षित ठेवली आहेत. हवे असल्यास तुम्ही पुन्हा स्वच्छ प्रकाशात स्कॅन करू शकता.'
+        : language === 'hi'
+        ? 'चिंता न करें! यह पर्ची डॉक्टर को देखने के लिए सुरक्षित जोड़ दी गई है। आप चाहें तो दोबारा साफ रोशनी में स्कैन कर सकते हैं।'
+        : 'We never turn away your paper. This document is safely preserved for your doctor. You can scan again with better lighting if desired.'
+    }
+    return language === 'mr'
+      ? 'तुमच्याकडे जुन्या औषधांच्या चिठ्ठ्या किंवा तपासणी अहवाल असल्यास कॅमेऱ्यासमोर ठेवा. आम्ही ते डॉक्टरांसाठी सुरक्षित ठेवू.'
+      : language === 'hi'
+      ? 'यदि आपके पास पुरानी पर्ची या जांच रिपोर्ट है, तो कैमरे के सामने रखें। हम इसे डॉक्टर के लिए सुरक्षित जोड़ देंगे।'
+      : 'If you have previous prescriptions or lab reports, please place them flat under the kiosk camera.'
+  }, [language, stage])
+
   const handlePlayAudioGuidance = useCallback(() => {
     updateActivity()
-    setIsPlayingAudio(true)
-    setTimeout(() => {
-      setIsPlayingAudio(false)
-    }, 2800)
-  }, [updateActivity])
+    const text = getDocGuidanceText()
+    speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+  }, [updateActivity, getDocGuidanceText, speak, language])
+
+  // Auto-speak on entry and on quality warning
+  useEffect(() => {
+    if (stage === 'ENTRY' || stage === 'QUALITY_WARNING') {
+      const text = getDocGuidanceText()
+      speak(text, (language as 'en' | 'hi' | 'mr') || 'en')
+    }
+    return () => {
+      stop()
+    }
+  }, [stage, language, getDocGuidanceText, speak, stop])
 
   // ── Document Capture & Processing Simulation ────────────────────────────────
   const handleCaptureDocument = useCallback(
@@ -215,12 +239,20 @@ export default function KioskDocumentsPage() {
         {/* Listen Audio Button */}
         <button
           onClick={handlePlayAudioGuidance}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] text-[12px] font-bold border border-[#CBD8E5] transition-colors cursor-pointer"
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-extrabold border transition-all cursor-pointer ${
+            isSpeaking
+              ? 'bg-[#EBFDF5] text-[#079455] border-[#A6F4C5] animate-pulse'
+              : 'bg-[#EEF5FC] text-[#2365B5] hover:bg-[#D3E2F0] border-[#CBD8E5]'
+          }`}
         >
-          <Volume2 size={15} />
+          <Volume2 size={16} />
           <span className="hidden sm:inline">
-            {isPlayingAudio
-              ? 'Playing Guidance...'
+            {isSpeaking
+              ? language === 'mr'
+                ? 'बोलत आहे...'
+                : language === 'hi'
+                ? 'बोल रहा है...'
+                : 'Speaking...'
               : language === 'hi'
               ? 'निर्देश सुनें'
               : language === 'mr'
@@ -616,7 +648,7 @@ export default function KioskDocumentsPage() {
           )}
 
           {/* ════════════════════════════════════════════════════════════════════
-              STAGE 4: QUALITY WARNING SCREEN
+              STAGE 4: QUALITY REASSURANCE SCREEN (Non-Rejection Policy)
           ════════════════════════════════════════════════════════════════════ */}
           {stage === 'QUALITY_WARNING' && (
             <motion.div
@@ -625,37 +657,55 @@ export default function KioskDocumentsPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-5 text-center my-auto max-w-md mx-auto"
+              className="flex flex-col gap-6 text-center my-auto max-w-lg mx-auto bg-white p-7 sm:p-9 rounded-3xl border border-[#DFE8F1] shadow-xl"
             >
-              <div className="w-16 h-16 rounded-full bg-[#FEF3F2] text-[#D92D20] flex items-center justify-center mx-auto border border-[#FECDCA]">
-                <AlertTriangle size={32} />
+              <div className="w-20 h-20 rounded-full bg-[#EBFDF5] text-[#079455] flex items-center justify-center mx-auto border-2 border-[#A6F4C5] shadow-xs">
+                <CheckCircle2 size={40} />
               </div>
 
-              <div className="space-y-1">
-                <h1 className="text-[24px] sm:text-[26px] font-extrabold text-[#17191F]">
-                  Document Appears Blurry
+              <div className="space-y-2">
+                <h1 className="text-[24px] sm:text-[28px] font-extrabold text-[#17191F]">
+                  {language === 'mr'
+                    ? 'कागदपत्र सुरक्षित जोडले गेले आहे'
+                    : language === 'hi'
+                    ? 'दस्तावेज़ सुरक्षित जोड़ दिया गया है'
+                    : 'Document Safely Attached'}
                 </h1>
-                <p className="text-[13.5px] sm:text-[14px] text-[#6F7480]">
-                  Certain text or medicine names could not be identified clearly. Re-scanning will help your doctor avoid missing details.
+                <p className="text-[15.5px] sm:text-[16.5px] text-[#4B5565] leading-relaxed">
+                  {language === 'mr'
+                    ? 'काळजी नको! तुमची कागदपत्रे थेट डॉक्टरांना दाखवण्यासाठी जतन केली आहेत. हवे असल्यास तुम्ही पुन्हा स्वच्छ प्रकाशात स्कॅन करू शकता.'
+                    : language === 'hi'
+                    ? 'चिंता न करें! यह पर्ची डॉक्टर को देखने के लिए सुरक्षित जोड़ दी गई है। आप चाहें तो दोबारा साफ रोशनी में स्कैन कर सकते हैं।'
+                    : 'We never turn away your paper. This document is safely preserved for your doctor. You can scan again with better lighting if desired.'}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2.5 pt-2">
+              <div className="flex flex-col gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleRescan}
-                  className="w-full py-3 px-4 rounded-xl bg-[#2365B5] text-white font-extrabold text-[14.5px] flex items-center justify-center gap-2 shadow-xs hover:bg-[#174A91] transition-colors cursor-pointer"
+                  className="w-full py-4 px-4 rounded-2xl bg-[#2365B5] text-white font-extrabold text-[16px] flex items-center justify-center gap-2 shadow-sm hover:bg-[#174A91] transition-all cursor-pointer"
                 >
-                  <RefreshCw size={16} />
-                  <span>Scan Again with Better Light</span>
+                  <RefreshCw size={18} />
+                  <span>
+                    {language === 'mr'
+                      ? 'पुन्हा स्कॅन करा (स्वच्छ प्रकाशात)'
+                      : language === 'hi'
+                      ? 'दोबारा स्कैन करें (साफ रोशनी में)'
+                      : 'Scan Again with Better Light'}
+                  </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleContinueAnyway}
-                  className="w-full py-3 px-4 rounded-xl bg-white border border-[#CBD8E5] text-[#4B5565] font-bold text-[14px] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-white border-2 border-[#CBD8E5] text-[#17191F] font-extrabold text-[15px] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                 >
-                  Continue with this Scan
+                  {language === 'mr'
+                    ? 'याच स्कॅनसह पुढे जा (डॉक्टर तपासतील)'
+                    : language === 'hi'
+                    ? 'इसी स्कैन के साथ आगे बढ़ें (डॉक्टर जांचेंगे)'
+                    : 'Continue with this Scan (Doctor will review)'}
                 </button>
               </div>
             </motion.div>
@@ -675,10 +725,19 @@ export default function KioskDocumentsPage() {
             >
               <div className="text-center space-y-1">
                 <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#17191F]">
-                  Attached Medical Documents
+                  {language === 'mr'
+                    ? 'जोडलेली वैद्यकीय कागदपत्रे'
+                    : language === 'hi'
+                    ? 'संलग्न चिकित्सा दस्तावेज़'
+                    : 'Attached Medical Documents'}
                 </h1>
-                <p className="text-[13.5px] sm:text-[14px] text-[#6F7480]">
-                  {documents.length} document{documents.length > 1 ? 's' : ''} successfully attached &amp; analyzed
+                <p className="text-[14px] sm:text-[15.5px] text-[#4B5565]">
+                  {documents.length}{' '}
+                  {language === 'mr'
+                    ? 'कागदपत्रे सुरक्षित साठवली आहेत'
+                    : language === 'hi'
+                    ? 'दस्तावेज़ सुरक्षित जोड़े गए'
+                    : 'documents attached & preserved for physician'}
                 </p>
               </div>
 
@@ -702,11 +761,11 @@ export default function KioskDocumentsPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-[15px] font-extrabold text-[#17191F] group-hover:text-[#2365B5] transition-colors truncate">
+                          <h3 className="text-[16px] font-extrabold text-[#17191F] group-hover:text-[#2365B5] transition-colors truncate">
                             {doc.name}
                           </h3>
                           <span
-                            className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded-full uppercase border ${
+                            className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border ${
                               doc.status === 'COMPLETE'
                                 ? 'bg-[#EBFDF5] text-[#079455] border-[#A6F4C5]'
                                 : 'bg-[#FEF3F2] text-[#D92D20] border-[#FECDCA]'
@@ -714,12 +773,12 @@ export default function KioskDocumentsPage() {
                           >
                             {doc.status}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2365B5] bg-[#EEF5FC] px-2 py-0.5 rounded-full border border-[#CBD8E5]">
-                            <Eye size={11} />
+                          <span className="inline-flex items-center gap-1 text-[11.5px] font-extrabold text-[#2365B5] bg-[#EEF5FC] px-2.5 py-0.5 rounded-full border border-[#CBD8E5]">
+                            <Eye size={12} />
                             <span>Preview</span>
                           </span>
                         </div>
-                        <p className="text-[12.5px] text-[#6F7480] mt-0.5">
+                        <p className="text-[13px] text-[#6F7480] mt-0.5 font-medium">
                           {doc.extractedEntitiesCount} clinical items extracted • {doc.confidenceScore}% clarity • Tap to view scan
                         </p>
                       </div>
@@ -728,10 +787,10 @@ export default function KioskDocumentsPage() {
                     <button
                       type="button"
                       onClick={() => removeDocument(doc.id)}
-                      className="p-2 text-[#6F7480] hover:text-[#D92D20] rounded-lg hover:bg-[#FEF3F2] transition-colors shrink-0 cursor-pointer"
+                      className="p-2.5 text-[#6F7480] hover:text-[#D92D20] rounded-xl hover:bg-[#FEF3F2] transition-colors shrink-0 cursor-pointer"
                       aria-label={`Remove ${doc.name}`}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 ))}
@@ -743,33 +802,49 @@ export default function KioskDocumentsPage() {
                     updateActivity()
                     setStage('SCANNER')
                   }}
-                  className="w-full py-4 border-2 border-dashed border-[#2365B5]/40 hover:border-[#2365B5] bg-[#F0F6FD]/50 hover:bg-[#F0F6FD] rounded-2xl flex items-center justify-center gap-2 text-[14px] font-extrabold text-[#2365B5] transition-all cursor-pointer shadow-2xs"
+                  className="w-full py-4 border-2 border-dashed border-[#2365B5]/40 hover:border-[#2365B5] bg-[#F0F6FD]/50 hover:bg-[#F0F6FD] rounded-2xl flex items-center justify-center gap-2 text-[15px] font-extrabold text-[#2365B5] transition-all cursor-pointer shadow-2xs"
                 >
                   <Plus size={18} />
-                  <span>+ Scan Another Document</span>
+                  <span>
+                    {language === 'mr'
+                      ? '+ आणखी एक कागदपत्र स्कॅन करा'
+                      : language === 'hi'
+                      ? '+ एक और दस्तावेज़ स्कैन करें'
+                      : '+ Scan Another Document'}
+                  </span>
                 </button>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-2.5 pt-2">
+              <div className="flex flex-col gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => router.push('/kiosk/review')}
-                  className="w-full py-3.5 px-6 rounded-2xl text-white text-[15px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-4 px-6 rounded-2xl text-white text-[16.5px] sm:text-[17.5px] font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
                   style={{
                     background: 'linear-gradient(135deg, #347FCE 0%, #2365B5 52%, #174A91 100%)',
                   }}
                 >
-                  <span>Continue to Final Review</span>
-                  <ArrowRight size={17} />
+                  <span>
+                    {language === 'mr'
+                      ? 'अंतिम पडताळणीकडे जा →'
+                      : language === 'hi'
+                      ? 'अंतिम समीक्षा की ओर बढ़ें →'
+                      : 'Continue to Final Review'}
+                  </span>
+                  <ArrowRight size={18} />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => router.push('/kiosk/intake')}
-                  className="text-[13px] font-bold text-[#6F7480] hover:text-[#17191F] py-2 cursor-pointer"
+                  className="text-[14px] font-extrabold text-[#6F7480] hover:text-[#17191F] py-2 cursor-pointer text-center"
                 >
-                  ← Back to Intake
+                  {language === 'mr'
+                    ? '← लक्षणांकडे मागे जा'
+                    : language === 'hi'
+                    ? '← पीछे जाएं (लक्षण)'
+                    : '← Back to Intake'}
                 </button>
               </div>
             </motion.div>

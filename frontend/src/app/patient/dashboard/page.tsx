@@ -11,32 +11,24 @@ import {
   Pill,
   Clock,
   Calendar,
-  User,
-  ShieldCheck,
   LogOut,
   ChevronRight,
   Eye,
   X,
-  ExternalLink,
   CheckCircle2,
-  AlertCircle,
   Activity,
   MapPin,
   Stethoscope,
   Sparkles,
-  Search,
   ZoomIn,
   ZoomOut,
   RefreshCw,
-  Phone,
   Info,
 } from 'lucide-react'
 import VaidyaWordmark from '@/components/VaidyaWordmark'
 import {
-  DEMO_PATIENTS,
   getPatientPortalData,
   PatientPortalData,
-  PatientPrescriptionItem,
 } from '@/constants/demo-data'
 import { formatIndianDate } from '@/lib/utils'
 import { useAuthStore } from '@/store'

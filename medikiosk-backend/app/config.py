@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     # "test" is used by the pytest conftest to prevent real I/O during unit tests.
     app_env: Literal["development", "production", "test"] = "development"
     secret_key: str = "INSECURE-CHANGE-IN-PRODUCTION-32+"
+    admin_api_key: str = ""
     session_ttl_seconds: int = 900
 
     # ── Redis ─────────────────────────────────────────────────────────────────

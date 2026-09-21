@@ -1012,7 +1012,6 @@ export function getPatientPortalData(patientId: string): PatientPortalData {
   const patient = DEMO_PATIENTS.find(p => p.id === patientId) || DEMO_PATIENTS[0]
   const encounters = DEMO_ENCOUNTERS.filter(e => e.patientId === patient.id)
   const documents = ALL_DEMO_DOCUMENTS.filter(d => d.patientId === patient.id)
-  const facts = ALL_DEMO_FACTS.filter(f => f.patientId === patient.id)
 
   // Derive Prescriptions strictly from existing facts & documents
   const prescriptions: PatientPrescriptionItem[] = []
