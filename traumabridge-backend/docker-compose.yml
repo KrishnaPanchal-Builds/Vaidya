@@ -1,0 +1,106 @@
+services:
+  # ── TraumaBridge AI FastAPI Backend ──────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: traumabridge-backend
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql+asyncpg://tba_user:${DB_PASSWORD}@postgres:5432/traumabridge
+      - REDIS_URL=redis://redis:6379/0
+      - MQTT_BROKER_HOST=mqtt
+      - MQTT_BROKER_PORT=1883
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - BLOOD_BANK_WEBHOOK_URL=${BLOOD_BANK_WEBHOOK_URL:-}
+      - BLOOD_BANK_API_KEY=${BLOOD_BANK_API_KEY:-}
+      - TELEMATICS_API_URL=${TELEMATICS_API_URL:-}
+      - TELEMATICS_API_KEY=${TELEMATICS_API_KEY:-}
+      - ABDM_CLIENT_ID=${ABDM_CLIENT_ID:-}
+      - ABDM_CLIENT_SECRET=${ABDM_CLIENT_SECRET:-}
+      - ABDM_MOCK=${ABDM_MOCK:-true}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - ASYSTOLE_MIN_DURATION_MS=3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - traumabridge-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: traumabridge-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=tba_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-change_in_production}
+      - POSTGRES_DB=traumabridge
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    networks:
+      - traumabridge-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tba_user -d traumabridge"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: traumabridge-redis
+    restart: unless-stopped
+    command: redis-server --appendonly no --save "" --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - traumabridge-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── MQTT Broker (EMQX) ────────────────────────────────────────────────────────
+  mqtt:
+    image: emqx/emqx:5.6
+    container_name: traumabridge-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"    # MQTT plaintext (internal)
+      - "8083:8083"    # MQTT over WebSocket (for browser clients)
+    networks:
+      - traumabridge-net
+
+  # ── Nginx Reverse Proxy ───────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: traumabridge-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - traumabridge-net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  traumabridge-net:
+    driver: bridge
